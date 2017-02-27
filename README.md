@@ -8,13 +8,13 @@ We define a *party city* to be one of the following: Atlanta, Brooklyn, Los Ange
 who travel to a party city and then play a game in another city the day after.
 
 ### Confounders
-What if we pick up the effect of a busy play-schedule? We use a difference in difference model.
+What if we pick up the effect of a busy play-schedule, or travel from a far-away city? We use a difference in difference model.
 
 - Compare the difference in performance when a team has visited a party city the day before to the difference in performance when a team has visited any other city the day before.
 
 Model sketch
 $$
-\texttt{meet spread} \sim \substack{\texttt{days since} \\ \texttt{last game}} + \substack{\texttt{games played} \\ \texttt{last week}} + \substack{\texttt{team} \\ \texttt{ranking}} + \texttt{party}
+\texttt{meet spread} \sim \substack{\texttt{days since} \\ \texttt{last game}} + \substack{\texttt{games played} \\ \texttt{last week}} + \substack{\texttt{team} \\ \texttt{ranking}} + \substack{\texttt{time}\\ \texttt{difference}} + \substack{\texttt{distance} \\ \texttt{traveled}} + \texttt{party}
 $$
 
 ### References
