@@ -30,9 +30,9 @@ collectData <- function(datafile) {
                    MoreArgs = list(data=data), SIMPLIFY = F)
 
     data <- rbindlist(data)
-    data[['year']] = gsub('raw_data/([0-9]{4})\\.txt', '\\1', datafile)
+    data[['season']] = gsub('raw_data/([0-9_]{9})\\.txt', '\\1', datafile)
 
-    setnames(data, c('date', 'opponent', 'outcome', 'spread', 'score', 'location', 'ou', 'team', 'year'))
-    setcolorder(data, c('year', 'date', 'team', 'opponent', 'outcome', 'spread', 'score', 'location', 'ou'))
+    setnames(data, c('date', 'opponent', 'outcome', 'spread', 'score', 'location', 'ou', 'team', 'season'))
+    setcolorder(data, c('season', 'date', 'team', 'opponent', 'outcome', 'spread', 'score', 'location', 'ou'))
     return(data)
 }
