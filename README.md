@@ -17,5 +17,7 @@ $$
 \texttt{meet spread} \sim \substack{\texttt{days since} \\ \texttt{last game}} + \substack{\texttt{games played} \\ \texttt{last week}} + \substack{\texttt{team} \\ \texttt{ranking}} + \substack{\texttt{time}\\ \texttt{difference}} + \substack{\texttt{distance} \\ \texttt{traveled}} + \texttt{party}
 $$
 
+We note that some of these predictors have non-linear interaction effects with recency since last game played; we might consider some type of kernel.
+
 ### References
 "The Benefits of College Athletic Success: An Application of the Propensity Score Design", by Michael L. Anderson. March, 2017. [Paper](http://www.mitpressjournals.org/doi/pdfplus/10.1162/REST_a_00589)
