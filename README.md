@@ -12,5 +12,9 @@ What if we pick up the effect of a busy play-schedule? We use a difference in di
 
 - Compare the difference in performance when a team has visited a party city the day before to the difference in performance when a team has visited any other city the day before.
 
+Model sketch
+$$
+\texttt{meet spread} \sim \substack{\texttt{days since} \\ \texttt{last game}} + \substack{\texttt{games played} \\ \texttt{last week}} + \substack{\texttt{team} \\ \texttt{ranking}} + \texttt{party}
+$$
 ### References
 "The Benefits of College Athletic Success: An Application of the Propensity Score Design", by Michael L. Anderson. March, 2017. [Paper](http://www.mitpressjournals.org/doi/pdfplus/10.1162/REST_a_00589)
