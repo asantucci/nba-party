@@ -4,8 +4,9 @@ Fetch <- function(team, beg, end, data, year) {
     ### We have to be careful for data entry errors. Ex: missing delimiter.
     datum <- gsub("W\\+12 89-98", "W  +12  89-98", datum) %>%               # Separate fields.
         gsub("([0-9]{3}[OU][[:blank:]]+)(.*)", "\\1", .) %>% # Throw out playoff game not formatted nicely.
-        strsplit('[[:blank:]]{2,}') %>%
-        do.call(rbind, args = .) %>%
+        strsplit('[[:blank:]]{2,}')
+    datum <- Filter(function(x) !any(grepl("CAN\\.", x)), datum)
+    datum <- do.call(rbind, args = datum) %>%
         data.table(.) %>% cbind(team) # %>% cbind(year)
 #    datum <- data.table(datum)
 }
