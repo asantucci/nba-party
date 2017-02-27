@@ -23,10 +23,15 @@ data[, team := gsub('^[[:blank:]]+', '', team)]
 ### Relationship between 'new jersey nets' and 'brooklyn nets', collapse into one?
 data[grepl("\\<nets$", team), team := 'nets']
 
-### We lose 16 observations here...
+### We lose 14 observations here...
 data <- data[spread != 'P']
 data[, spread := gsub('\'$', '', spread) %>% as.numeric]
 
+### Over-under.
+data[, ou.out := gsub('^[0-9]+([OUN])$', '\\1', ou, ignore.case = T)]
+data[, ou     := gsub('[OUN]$', '', ou, ignore.case = T) %>% as.numeric]
+
+### Date variable.
 data[, year := NA_integer_]
 data[grepl("^1[012]/", date), year := substr(season, start = 1, stop = 4) %>% as.integer]
 data[grepl("^[0-9]{1}/", date), year := substr(season, start = 6, stop = 10) %>% as.integer]
