@@ -92,8 +92,10 @@ setcolorder(data, c('season', 'date', 'day', 'team', 'opponent', 'outcome', 'spr
 
 ### Number of days since last game.
 setkey(data, team, date)
-data[, last.game  := c(NA, diff(date)),    by = list(team, season)]
-data[, last.opp   := c(NA, lag(opponent)[1:.N-1]), by = list(team, season)]
-data[, last.loc   := c(NA, lag(location)[1:.N-1]), by = list(team, season)]
+data[, ndays.lgame := c(NA, diff(date)),    by = list(team, season)]
+#data[, last.opp := c(NA, lag(opponent)[1:.N-1]), by = list(team, season)]
+
+data[, game.loc := ifelse(location == 'H', team, opponent)]
+data[, last.game.loc := c(NA, lag(game.loc)[1:.N-1]), by = list(team, season)]
 
 save(data, file = 'tmp_data/spreads.RData')
