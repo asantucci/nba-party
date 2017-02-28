@@ -6,117 +6,38 @@
 ## remDr$open()
 ## remDr$navigate('http://www.goldsheet.com/histnba.php')
 
+### To do:
+### 1. is the team a playoff contender?
+### 2. Fix the way year is assigned to date variable.
+
 require(data.table)
 require(ggmap)
 require(magrittr)
 require(sp)
 source('functions.r')
 
-files <- list.files('raw_data', pattern = '[[:digit:]]{4}.txt', full.names = T)
-data <- lapply(files, collectData)
-data <- rbindlist(data)
+load(file = 'tmp_data/spreads_wdist.RData')
+load(file = 'tmp_data/standings.RData')
 
-data[, team := tolower(team)]
-data[, opponent := tolower(opponent)]
+data[, season := gsub('_20', '_', season)]
 
-data[team == 'okla. city thunder', team := 'oklahoma city thunder']
-data[, team := gsub('^[[:blank:]]+', '', team)]
+standings <- subset(standings, select = c('team', 'season', 'pct'))
 
-### Relationship between 'new jersey nets' and 'brooklyn nets', collapse into one?
-data[grepl("\\<nets$", team), team := 'brooklyn nets']
-
-### Here, we geocode team locations to get lat-lon, and also addresses.
-teams <- data[, unique(team)]
-locs <- sapply(teams, geocode, simplify = F)
-locs <- do.call(rbind, locs)
-locs[['team']] <- rownames(locs)
-setDT(locs)
-dmat <- spDists(locs[, list(lon, lat)] %>% as.matrix, longlat = T) # Returns distance in kilometers.
-dmat <- dmat / 1.60934  # Convert to Miles.
-rownames(dmat) <- locs$team
-colnames(dmat) <- locs$team
-dmat <- melt(dmat)
-setnames(dmat, c('team', 'opponent', 'distance'))
-
-### We lose 14 observations here...
-data <- data[spread != 'P']
-data[, spread := gsub('\'$', '', spread) %>% as.numeric]
-
-### Over-under.
-data[, ou.out := gsub('^[0-9]+([OUN])$', '\\1', ou, ignore.case = T)]
-data[, ou     := gsub('[OUN]$', '', ou, ignore.case = T) %>% as.numeric]
-
-### Date variable.
-data[, year := NA_integer_]
-data[grepl("^1[012]/", date), year := substr(season, start = 1, stop = 4) %>% as.integer]
-data[grepl("^[0-9]{1}/", date), year := substr(season, start = 6, stop = 10) %>% as.integer]
-
-data[, date := paste(date, year, sep = '/') %>% as.Date(x = ., format = '%m/%d/%Y')]
-data[, year := NULL]
-data[, day  := weekdays(date)]
-
-### Number of days since last game.
-setkey(data, team, date)
-data[, last.game := c(NA, diff(date)),    by = list(team, season)]
-data[, last.opp  := c(NA, lag(opponent)[1:.N-1]), by = list(team, season)]
-data[, last.loc  := c(NA, lag(location)[1:.N-1]), by = list(team, season)]
+data <- merge(data, standings, by = c('season', 'team'), all.x = T)
 
 ##############################
 ## What does it mean to party?
 ##############################
 
-party.cities <- c("miami", "los angeles", "^la\\>", "^nets$", "brooklyn", "new york", "atlanta")
+party.cities <- c("miami", "los angeles", "brooklyn", "new york", "atlanta")
 party.rgx <- paste0('(', party.cities, ')', collapse = "|")
 
-### Generate a lag-variable which describes the location of the most-recent game played.
-setkey(data, team, date)
-
-### 2009-2010
-bad.2009 <- data.frame(season = '2009_2010',
-                       bad.teams = paste0('(', c('milwaukee', 'toronto', 'new york',
-                                                 'washington', 'memphis', 'minnesota',
-                                                 'oklahoma city', 'clippers', 'sacramento'),
-                                          ')', collapse = '|'))
-
-### 2010-2011
-bad.2010 <- data.frame(season = '2010_2011',
-                       bad.teams = paste0('(', c('cleveland', 'detroit', 'philadelphia',
-                                                 'washington', '(new jersey)|(\\<nets)',
-                                                 'clippers', 'golden state', 'sacramento',
-                                                 'minnesota'),
-                                          ')', collapse = '|'))
-
-### 2011-2012
-bad.2011 <- data.frame(season = '2011_2012',
-                       bad.teams = paste0('(', c('\\<nets', 'washington', 'toronto',
-                                                 'cleveland', 'golden state', 'sacramento' ,
-                                                 'minnesota'),
-                                          ')', collapse = '|'))
-
-### 2012-2013
-bad.2012 <- data.frame(season = '2012_2013',
-                       bad.teams = paste0('(', c('orlando', 'philadelphia', 'cleveland',
-                                                 'washington', 'charlotte', 'minnesota',
-                                                 'golden state', 'sacramento', 'new orleans'),
-                                          ')', collapse = '|'))
-
-#bad.teams <- paste0('(', bad.teams, ')', collapse = '|')
-
-### To do:
-### 1. is the team a playoff contender?
-### 2. Fix the way year is assigned to date variable.
-
-data[, bad.team := 0L]
-data[season == '2009_2010' & grepl(bad.2009$bad.teams, team), bad.team := 1]
-data[season == '2010_2011' & grepl(bad.2010$bad.teams, team), bad.team := 1]
-data[season == '2011_2012' & grepl(bad.2011$bad.teams, team), bad.team := 1]
-data[season == '2012_2013' & grepl(bad.2012$bad.teams, team), bad.team := 1]
-
 data[, party := 0]
+data[, weekend := grepl("(Friday)|(Saturday)|(Sunday)", day) %>% as.integer]
 
 ### We (1) exclude people who already party, (2) check if last game played against party city
 ### (3) check last game was played 'away' i.e. at party city and (4) party last night
-data[!grepl(party.rgx, team) & grepl(party.rgx, last.opp) & last.loc == 'V' & last.game == 1, party := 1]
+data[!grepl(party.rgx, team) & grepl(party.rgx, last.game.loc) & ndays.lgame == 1, party := 1]
 ## data[grepl(party.rgx, last.opp) & last.loc == 'V' & last.game == 1 & bad.team == 1, party := 1]
 
 ### We also consider: when the team had the day off the day before playing a party city
@@ -129,9 +50,12 @@ hist(data[, mean(outcome == 'W'), by = list(season, team)][, V1],
      xlab = "Proportion of games for which a team-year meets the spread")
 
 table(data$party, data$outcome)      # Only win 44% of the games.
-table(data[last.game == 1, outcome]) # Win 49% of the games they play the day before.
+table(data[ndays.lgame == 1, outcome]) # Win 49% of the games they play the day before.
 
-model <- glm(outcome=='W' ~ last.game + party, family = 'binomial', data = data)
+data[, pq := cut(pct, breaks = quantile(pct)), by = season]
+data[, hp := ifelse(pq == '(0.244,0.378]' & party == 1, 1, 0)]
+
+model <- glm(outcome=='W' ~ party + weekend + ndays.lgame + pct + I(travel.dist>1350), family = 'binomial', data = data)
 
 ### logistic
 ### probability of meeting the spread ~ # days since last game + # games played in last week +
