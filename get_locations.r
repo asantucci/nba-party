@@ -32,8 +32,10 @@ dmat <- dmat / 1.60934  # Convert to Miles.
 rownames(dmat) <- locs$team
 colnames(dmat) <- locs$team
 
-## dmat <- melt(dmat)
-## setnames(dmat, c('team', 'opponent', 'distance'))
-## data[, distance.lag := c(NA, lag(distance)[1:.N-1]), by = list(team, season)]
+getDist <- function(current, last, distances)
+    if (!is.na(current) && !is.na(last))
+        distances[current, last]
 
-## data <- merge(data, dmat, by = c('team', 'opponent'), all.x = T)
+data[, travel.dist := getDist(game.loc, last.game.loc, dmat), by = list(game.loc, last.game.loc)]
+
+save(data, file = 'tmp_data/spreads_wdist.RData')
