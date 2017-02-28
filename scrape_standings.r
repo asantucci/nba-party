@@ -26,3 +26,9 @@ scrapeESPNStandings <- function(year) {
 standings <- lapply(2010:2013, scrapeESPNStandings)
 standings <- rbindlist(standings)
 standings[, season := gsub('NBA Standings - ', '', season)]
+
+standings[, team := tolower(team)]
+standings[, season := gsub('-', '_', season)]
+standings[, pct := as.numeric(pct)]
+
+save(standings, file = 'tmp_data/standings.RData')
