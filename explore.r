@@ -7,7 +7,9 @@
 ## remDr$navigate('http://www.goldsheet.com/histnba.php')
 
 require(data.table)
+require(ggmap)
 require(magrittr)
+require(sp)
 source('functions.r')
 
 files <- list.files('raw_data', pattern = '[[:digit:]]{4}.txt', full.names = T)
@@ -21,7 +23,20 @@ data[team == 'okla. city thunder', team := 'oklahoma city thunder']
 data[, team := gsub('^[[:blank:]]+', '', team)]
 
 ### Relationship between 'new jersey nets' and 'brooklyn nets', collapse into one?
-data[grepl("\\<nets$", team), team := 'nets']
+data[grepl("\\<nets$", team), team := 'brooklyn nets']
+
+### Here, we geocode team locations to get lat-lon, and also addresses.
+teams <- data[, unique(team)]
+locs <- sapply(teams, geocode, simplify = F)
+locs <- do.call(rbind, locs)
+locs[['team']] <- rownames(locs)
+setDT(locs)
+dmat <- spDists(locs[, list(lon, lat)] %>% as.matrix, longlat = T) # Returns distance in kilometers.
+dmat <- dmat / 1.60934  # Convert to Miles.
+rownames(dmat) <- locs$team
+colnames(dmat) <- locs$team
+dmat <- melt(dmat)
+setnames(dmat, c('team', 'opponent', 'distance'))
 
 ### We lose 14 observations here...
 data <- data[spread != 'P']
