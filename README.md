@@ -5,7 +5,7 @@ It's not unreasonable to think that game performance can be affected (in part) b
 
 ### The set up
 We define a *party city* to be one of the following: Atlanta, Brooklyn, Los Angeles, or Miami. We then look for other teams (not from one of these cities)
-who travel to a party city and then play a game in another city the day after.
+who travel to a party city and then play a game in another city the day after; there are approximately 65 such games each season.
 
 ### Confounders
 What if we pick up the effect of a busy play-schedule, or travel from a far-away city? We use a difference in difference model.
