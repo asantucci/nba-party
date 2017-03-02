@@ -12,6 +12,7 @@
 
 require(data.table)
 require(ggmap)
+require(ggplot2)
 require(magrittr)
 require(sp)
 source('functions.r')
@@ -41,7 +42,52 @@ data[!grepl(party.rgx, team) & grepl(party.rgx, last.game.loc) & ndays.lgame == 
 ## data[grepl(party.rgx, last.opp) & last.loc == 'V' & last.game == 1 & bad.team == 1, party := 1]
 
 ### We also consider: when the team had the day off the day before playing a party city
-#data[grepl('V', location) & grepl(party.rgx, opponent) & last.game > 1, table(outcome)]
+### data[grepl('V', location) & grepl(party.rgx, opponent) & last.game > 1, table(outcome)]
+
+
+data[, .N, by = list(season, team)]
+data[party==1, .N, by = list(season, team)][, N] %>%
+    hist(main = "Number of party days by season-team", xlab = "Number of days", ylab = "Frequency")
+
+
+m <- data[, list(meet.spread = mean(outcome == 'W'), .N), by = ndays.lgame][order(ndays.lgame)]
+ggplot(m, aes(x = ndays.lgame, y = meet.spread, label = N)) +
+    geom_point() +
+    geom_label(nudge_y = -.01)
+
+
+m <- data[, list(meet.spread = mean(outcome == 'W')), by = list(team, season)]
+ggplot(m, mapping = aes(x = meet.spread)) +
+    geom_histogram(binwidth = 0.01)
+
+data[, list(avg.win = mean(outcome == 'W'), .N), by = list(team, party)]
+m <- data[, list(avg.win = mean(outcome == 'W'), .N), by = list(team, season, party)]
+ggplot(data = m, mapping = aes(x = avg.win, fill = as.factor(party))) +
+    geom_histogram() +
+    facet_wrap(facets = ~season)
+
+m <- data[, list(meet.spread = mean(outcome == 'W')), by = list(season, team)]
+m <- merge(m, standings, by = intersect(names(standings), names(m)))
+setkey(m, team, season)
+m[, lpct := shift(pct, type = 'lag'), by = team]
+
+### Notice that team-performance last-year well correlated with perf. this year.
+ggplot(data = m, mapping = aes(x = lpct, y = pct)) +
+    geom_point() +
+    facet_wrap(facets = ~season) +
+    labs(x = 'Last season\'s Win Percentage', y = 'This season\'s Win Percentage',
+         title = 'Team Performance between years is well correlated.') +
+    geom_label(data = m[team == 'cleveland cavaliers' & season == '2010_11'],
+               label = 'Cleveland Cavs') +
+    geom_point(data = m[team == 'cleveland cavaliers' & season == '2010_11'], color = 'red')
+
+### Here, we see that the spread doesn't just take into account ability.
+ggplot(data = m, mapping = aes(x = lpct, y = meet.spread)) +
+    geom_point() +
+    facet_wrap(facets = ~season) +
+    labs(x = 'Last season\'s Win Percentage',
+         y = 'Proportion of games in Current Season\nfor which spread was met',
+         title = 'Team Performance between years is well correlated.')
 
 ### How often are teams meeting the spread?
 hist(data[, mean(outcome == 'W'), by = list(season, team)][, V1],
@@ -49,16 +95,5 @@ hist(data[, mean(outcome == 'W'), by = list(season, team)][, V1],
      main = "How often are teams meeting the spread?",
      xlab = "Proportion of games for which a team-year meets the spread")
 
-table(data$party, data$outcome)      # Only win 44% of the games.
-table(data[ndays.lgame == 1, outcome]) # Win 49% of the games they play the day before.
+save(data, file = 'tmp_data/spreads_with_standings.RData')
 
-data[, pq := cut(pct, breaks = quantile(pct)), by = season]
-data[, hp := ifelse(pq == '(0.244,0.378]' & party == 1, 1, 0)]
-
-model <- glm(outcome=='W' ~ party + weekend + ndays.lgame + pct + I(travel.dist>1350), family = 'binomial', data = data)
-
-### logistic
-### probability of meeting the spread ~ # days since last game + # games played in last week +
-###  + day of week + team-ranking + party city
-
-### proportion of games where spread is met if spread is over abs(X)
