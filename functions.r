@@ -7,8 +7,7 @@ Fetch <- function(team, beg, end, data, year) {
         strsplit('[[:blank:]]{2,}')
     datum <- Filter(function(x) !any(grepl("CAN\\.", x)), datum)
     datum <- do.call(rbind, args = datum) %>%
-        data.table(.) %>% cbind(team) # %>% cbind(year)
-#    datum <- data.table(datum)
+        data.table(.) %>% cbind(team)
 }
 
 
@@ -37,3 +36,6 @@ collectData <- function(datafile) {
     setcolorder(data, c('season', 'date', 'team', 'opponent', 'outcome', 'spread', 'score', 'location', 'ou'))
     return(data)
 }
+
+getFullTeamName <- function(needle, haystack)
+    grep(needle, haystack, value = T)

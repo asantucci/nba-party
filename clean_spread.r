@@ -21,7 +21,7 @@ source('functions.r')
 ### Load Data
 ##############################
 
-files <- list.files('raw_data', pattern = '[[:digit:]]{4}.txt', full.names = T)
+files <- list.files('raw_data', pattern = '[[:digit:]]{4}.txt', full.names = T)[-(1:3)]
 data <- lapply(files, collectData)
 data <- rbindlist(data)
 

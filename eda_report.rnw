@@ -1,0 +1,261 @@
+\documentclass[12pt]{article}  
+
+\usepackage{algorithm2e} 
+\usepackage{amsmath} \usepackage{amsthm} 
+\usepackage{amsfonts} 
+\usepackage{bbm} \usepackage{color,soul} 
+\usepackage{framed} 
+\usepackage[margin=0.5in]{geometry} \usepackage{hyperref} 
+\usepackage{mathtools} 
+\usepackage[dvipsnames]{xcolor}  
+\newtheorem{theorem}{Theorem}[section] 
+\newtheorem{lemma}[theorem]{Lemma} \newtheorem{proposition}[theorem]{Proposition} \newtheorem{corollary}[theorem]{Corollary}  
+\newcommand{\D}{\mathrm{d}} 
+
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil} \DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor} 
+
+\SetKwInput{KwInput}{Input} 
+\SetKwInput{KwOutput}{Output}  
+
+\begin{document}
+
+\title{Exploring the ``Party City'' effect in the NBA}
+\author{Andreas Santucci, Eric Lax}
+\maketitle
+
+\subsection*{Motivation}
+It's not unreasonable to think that game performance can be affected (in part) by what takes place off the basketball court. We are interested to see if teams exhibit a decline in performance the day following a game in a party city. We exploit data on bookmaker spreads: the expected score differential between two teams after conditioning on observable performance. We expect a team to meet the spread half the time; if not, the bookmakers would open up an opportunity for arbitrage over the long-term. We construct a model which attempts to estimate the causal effect of  visiting a ``party-city'' the day before a game on the probability of meeting the spread.
+
+\paragraph{Defining a party city}
+We define a \emph{party city} to be one of the following: Atlanta, Brooklyn, Los Angeles, or Miami. We then look for other teams (not from one of these cities)
+who travel to a party city and then play a game in another city the day after; each of the thirty NBA teams encounters this situation on average twice per season.
+
+\subsection*{A simple first model}
+What if we pick up the effect of a busy play-schedule, or travel from a far-away city? We consider comparing the difference in performance when a team has visited a party city the day before to the difference in performance when a team has visited any other city the day before. We estimate the probability of meeting the spread
+using a logistic regression. Model sketch:
+$$
+\texttt{meet spread} \sim \substack{\texttt{days since} \\ \texttt{last game}} + \substack{\texttt{games played} \\ \texttt{last week}} + \substack{\texttt{team} \\ \texttt{ranking}} + \substack{\texttt{time}\\ \texttt{difference}} + \substack{\texttt{distance} \\ \texttt{traveled}} + \texttt{party}
+$$
+
+\subsection*{Challenges} Each of the thirty NBA teams runs into our quasi-experiment only a few times
+per season, so our effective sample size relatively small. One possible remedy is to consider a more granular model, analyzing individual player performance. Another challenge is that our model relies
+on spreads as input, for which we would like to know which factors are taken into account, especially
+in so far as this model may change from season to season. Although
+we cannot directly observe how the spreads model is built, we can observe how well different features
+predict the probability of meeting the spread, and from this back out or infer what one such model 
+may be.
+
+\subsection*{References}
+``The Benefits of College Athletic Success: An Application of the Propensity Score Design'', by Michael L. Anderson. March, 2017. \href{http://www.mitpressjournals.org/doi/pdfplus/10.1162/REST_a_00589}{paper}
+
+\newpage
+
+\section*{Exploratory Analysis}
+Here, we explore a few aspects of our data, which are collected from
+\href{http://www.goldsheet.com/histnba.php}{gold sheet}. We utilize 2008-2012 data. We start with a sanity check: if spreads are set correctly, they should be met on average half the time; otherwise an arbitrage opportunity exists. This
+is verified.
+
+<<echo=F,results='hide',include=FALSE>>=
+require(data.table)
+require(ggplot2)
+require(magrittr)
+
+load(file = 'tmp_data/spreads_wdist.RData')
+load(file = 'tmp_data/standings.RData')
+
+data[, season := gsub('_20', '_', season)]
+
+standings <- subset(standings, select = c('team', 'season', 'pct'))
+standings[, pct := shift(pct, type = 'lag'), by = team]
+
+data <- merge(data, standings, by = c('season', 'team'), all.x = T)
+data <- data[data[, head(.I, 82), by = list(season, team)]$V1]
+
+### Define a Party Variable
+party.cities <- c("miami", "los angeles", "brooklyn", "new york", "atlanta")
+party.rgx <- paste0('(', party.cities, ')', collapse = "|")
+
+data[, party := 0]
+data[, weekend := grepl("(Friday)|(Saturday)|(Sunday)", day) %>% as.integer]
+
+data[!grepl(party.rgx, team) & grepl(party.rgx, last.game.loc) & ndays.lgame == 1, party := 1]
+@ 
+
+
+<<echo=F,out.height="6in",warning=F>>=
+
+### How often are teams meeting the spread?
+hist(data[, mean(outcome == 'W'), by = list(season, team)][, V1],
+     breaks = seq(0.3, 0.75, by = 0.025),
+     main = "How often are teams meeting the spread?",
+     xlab = "Proportion of games for which a team-year meets the spread")
+@ 
+
+We also check how many observations we will have to test our hypothesis. On average, each team
+only encounters our quasi-experiment twice per season. This motivates the need for a more granular
+model, which perhaps might look at the party effect on individual performance. We could
+further break this down into offensive performance (shots scored per minute of playtime)
+and defensive performance, perhaps.
+
+<<echo=F,out.height="5.5in">>=
+#data[, .N, by = list(season, team)]
+data[party==1, .N, by = list(season, team)][, N] %>%
+    hist(main = "Number of party days by season-team", xlab = "Number of days", ylab = "Frequency")
+@ 
+
+\subsection*{Arguing which factors are taken into account in the spread model}
+We argue that the input spreads data has already taken into account (at least some of)
+a team's ability, in so far as ability can be proxied by last season's average win-rate.
+
+<<echo=F,warning=F,fig.pos='H'>>=
+
+### TODO : Look at outliers here!!
+### TODO : Remove playoff games.
+m <- data[,#grepl(party.rgx, game.loc) & !grepl(party.rgx, team),
+          list(meet.spread = mean(outcome == 'W'), pct = unique(pct), .N), by = list(team, season)]
+ggplot(m, aes(x = pct, y = meet.spread)) +
+    geom_point() +
+    facet_wrap(facets = ~season) + 
+    labs(title = "In select seasons, lagged performance not predictive of meet the spread",
+         x = "Percentage of games won last season",
+         y = "Proportion of games for which spread was met in current season")
+@
+
+We remark that in seasons starting in 2008-2010, there is almost no correlation between 
+performance in the prior season and proportion of games for which spread was met in the current season. In 2011-12 and 2012-13 we have positive correlation between these two variables, which is interesting; we do not expect this. It is indicative
+of a change in the way spreads are calculated, and is worthy of further investigation.
+
+We now also argue that clearly the number of days since last game has been factored into spread data.
+
+<<>>=
+m[, cor(meet.spread, pct, use = 'complete'), by = season]
+@ 
+
+We see that on average, teams are meeting the spread half the time no matter if they've played
+their most recent game one day ago or one week ago. There are a few outliers when teams are allowed
+over one week rest; we note that these games are not of interest to our analysis, and may be excluded
+without problem.
+
+<<echo=F,out.height="6in",warning=F,fig.pos='H'>>=
+m <- data[, list(meet.spread = mean(outcome == 'W'), .N), by = ndays.lgame][order(ndays.lgame)]
+ggplot(m, aes(x = ndays.lgame, y = meet.spread, label = N)) +
+    geom_point() +
+    geom_label(nudge_y = -.04) +
+    geom_hline(yintercept = 0.5) + 
+    labs(x = "Number of days since last game", y = "Met the Spread",
+         title = paste("Proportion of games which meet spread",
+                       "as a function of rest-time",
+                       "(Counts indicate number of observations used)", sep = "\n"))
+@ 
+
+The same is true for distance traveled as well.
+
+<<echo=F,warning=F>>=
+m <- data[, list(meet.spread = mean(outcome == 'W'), .N), by = list(season, travel.dist = round(travel.dist, digits = -2))]
+ggplot(m, aes(x = travel.dist, y = meet.spread, label = N)) +
+    geom_point() +
+    geom_label(nudge_y = -.01) +
+    geom_hline(yintercept = 0.5) +
+#    facet_wrap(facets = ~season) + 
+    labs(x = "Travel Distance", y = "Met the Spread",
+         title = paste("Proportion of games which meet spread",
+                       "as a function of travel distance",
+                       "(Counts indicate number of observations used)", sep = "\n"))
+
+@ 
+
+<<>>= 
+m[, cor(travel.dist, meet.spread, use = 'complete')]
+@ 
+
+When we partition the above plot by season, we see that there is some linear correlation
+between distance traveled and proportion of games for which spread was met; however, this correlation
+heavily influenced by a few outliers (in particular, these outliers' averages are calculated based on very few observations).
+
+<<>>=
+m[, cor(travel.dist, meet.spread, use = 'complete'), by = season]
+@ 
+
+\section*{A tabular look at the effect of partying by team}
+
+Lastly, we take a look at the effect of partying by season-team. Notice that
+some teams are more effected than others; we hypothesize that demographics of the 
+team influence the effect size. In particular, younger teams with unmarried players may
+exhibit larger variability in performance after visiting party cities.
+
+Some notable examples include the Denver Nuggets, and the Philadelphia 76'ers.
+Also of importance: the San Antonio Spurs consistently have the oldest team, no matter which
+statistic is used, and they also have a coach which is notoriously strict on partying; for this team, unsurprisingly, the party effect moves in the opposite direction. For 2008-2012 historical data, we display below the proportion of games for which
+each team meets the spread under treatment as compared to without, along with the number of observations used to calculate the statistic.
+
+<<>>=
+
+data[, list(meet.spread = mean(outcome == 'W'), .N), by = list(team, party)][order(team, party)]
+@ 
+
+We might also consider that the effect sizes may change as a function of how competitive the team is. Perhaps we may consider running a separate analysis for teams in the bottom quantile of last-year's rankings.
+We also remark that there is not a lot of data supporting each mean estimate for
+the treatment effect by team (especially at the season-team level), and this does pose issues.
+\subsection*{A first model}
+For the 2008-2012 seasons, we fit the following model.
+
+<<>>=
+load(file = 'tmp_data/spreads_with_standings.RData')
+model <- glm(outcome == 'W' ~ party + weekend + ndays.lgame + pct +
+                 travel.dist + team + season + team:season,
+             family = 'binomial', data = data)
+
+summary(model)$coef[c(1:6, sample(7:nrow(coef(summary(model))), size = 6)), ]
+@ 
+
+\section*{Problems, Extensions}
+
+We remark that the magnitude and sign of the coefficient on \texttt{party} are of practical
+importance. Although we don't achieve statistical significance, we may be able to come up with
+a formulaic way to determine which teams are susceptible to the treatment effect, e.g.
+teams with mostly young and unmarried demographic, and run a separate analysis for this group. It's also noteworthy that the model was teetering on weak statistical significance
+before adding in 2008-2009 data, and the results could change slightly as we include more historical
+data (either more recent or more past).
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

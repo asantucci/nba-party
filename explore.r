@@ -1,14 +1,21 @@
+################################################################################
+################################################################################
+################################################################################
+###
+### Title: Exploratory Data Analysis
+###
+### Andreas Santucci
+###
+### Date: March 2017
+###
+### Inputs: 'tmp_data/spreads_wdist.RData', 'tmp_data/standings.RData'
+###
+################################################################################
+################################################################################
 
-## require(RSelenium)
-## # https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html
-## # andreas@asantucci-MBP:~/Downloads$ java -jar selenium-server-standalone-2.53.1.jar 
-## remDr <- remoteDriver(port = 4444)
-## remDr$open()
-## remDr$navigate('http://www.goldsheet.com/histnba.php')
-
-### To do:
-### 1. is the team a playoff contender?
-### 2. Fix the way year is assigned to date variable.
+##################################################
+### Set up Workspace, load data
+##################################################
 
 require(data.table)
 require(ggmap)
@@ -26,9 +33,12 @@ standings <- subset(standings, select = c('team', 'season', 'pct'))
 
 data <- merge(data, standings, by = c('season', 'team'), all.x = T)
 
-##############################
-## What does it mean to party?
-##############################
+### Remove playoff games (sketchy)
+data <- data[data[, head(.I, 82), by = list(season, team)]$V1]
+
+##################################################
+### Define a Party Variable
+##################################################
 
 party.cities <- c("miami", "los angeles", "brooklyn", "new york", "atlanta")
 party.rgx <- paste0('(', party.cities, ')', collapse = "|")
@@ -39,21 +49,50 @@ data[, weekend := grepl("(Friday)|(Saturday)|(Sunday)", day) %>% as.integer]
 ### We (1) exclude people who already party, (2) check if last game played against party city
 ### (3) check last game was played 'away' i.e. at party city and (4) party last night
 data[!grepl(party.rgx, team) & grepl(party.rgx, last.game.loc) & ndays.lgame == 1, party := 1]
-## data[grepl(party.rgx, last.opp) & last.loc == 'V' & last.game == 1 & bad.team == 1, party := 1]
+
+data[grepl(party.rgx, team) & grepl(party.rgx, last.game.loc) &
+     team != last.game.loc & ndays.lgame == 1, party := 1]
 
 ### We also consider: when the team had the day off the day before playing a party city
 ### data[grepl('V', location) & grepl(party.rgx, opponent) & last.game > 1, table(outcome)]
 
+data[, .N, by = list(season, team, party)]
+m <- data[party==1, .N, by = list(season, team)]
+ggplot(m, aes(x = N)) +
+    geom_histogram() +
+    labs(title = "Number of party days by season-team", x = "Number of days", y = "Frequency")
+ggsave(filename = 'figure/party_days_by_season_team.pdf')
 
-data[, .N, by = list(season, team)]
-data[party==1, .N, by = list(season, team)][, N] %>%
-    hist(main = "Number of party days by season-team", xlab = "Number of days", ylab = "Frequency")
+### TODO : Look at outliers here!!
+### TODO : Remove playoff games.
+m <- data[grepl(party.rgx, game.loc) & !grepl(party.rgx, team),
+          list(meet.spread = mean(outcome == 'W'), pct = unique(pct), .N), by = list(team, season)]
+cor(m[, list(meet.spread, pct)])
+ggplot(m, aes(x = pct, y = meet.spread, label = N)) +
+    geom_point() +
+    geom_label()
 
-
+### For this plot, we should look at outliers.
 m <- data[, list(meet.spread = mean(outcome == 'W'), .N), by = ndays.lgame][order(ndays.lgame)]
 ggplot(m, aes(x = ndays.lgame, y = meet.spread, label = N)) +
     geom_point() +
-    geom_label(nudge_y = -.01)
+    geom_label(nudge_y = -.01) +
+    geom_hline(yintercept = 0.5) + 
+    labs(x = "Number of days since last game", y = "Met the Spread",
+         title = paste("Proportion of games which meet spread",
+                       "as a function of rest-time",
+                       "(Counts indicate number of observations used)", sep = "\n"))
+
+m <- data[, list(meet.spread = mean(outcome == 'W'), .N), by = list(season, travel.dist = round(travel.dist, digits = -2))]
+ggplot(m, aes(x = travel.dist, y = meet.spread, label = N)) +
+    geom_point() +
+    geom_label(nudge_y = -.01) +
+    geom_hline(yintercept = 0.5) +
+    facet_wrap(facets = ~season) + 
+    labs(x = "Travel Distance", y = "Met the Spread",
+         title = paste("Proportion of games which meet spread",
+                       "as a function of travel distance",
+                       "(Counts indicate number of observations used)", sep = "\n"))
 
 
 m <- data[, list(meet.spread = mean(outcome == 'W')), by = list(team, season)]

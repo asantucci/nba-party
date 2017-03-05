@@ -23,7 +23,7 @@ scrapeESPNStandings <- function(year) {
     return(data)
 }
 
-standings <- lapply(2010:2013, scrapeESPNStandings)
+standings <- lapply(2005:2013, scrapeESPNStandings)
 standings <- rbindlist(standings)
 standings[, season := gsub('NBA Standings - ', '', season)]
 
