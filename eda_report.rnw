@@ -190,7 +190,24 @@ each team meets the spread under treatment as compared to without, along with th
 
 <<>>=
 
-data[, list(meet.spread = mean(outcome == 'W'), .N), by = list(team, party)][order(team, party)]
+tmp <- data[, list(meet.spread = mean(outcome == 'W'), .N), by = list(team, party)][order(team, party)]
+
+load(file = 'tmp_data/roster.RData')
+roster[, season := gsub('-', '_', season)]
+setkey(roster, team, season)
+getAvgAge <- function(t, s, game.date, roster) {
+    roster[.(t, s), mean(game.date - birthdate)]
+}
+data[, avg.age := getAvgAge(team, season, date, roster), by = list(team, season, date)]
+data[, avg.age := as.numeric(avg.age) %>% log]
+
+tmp <- data[, list(meet.spread = mean(outcome == 'W'), .N), 
+            by = list(avg.age = round(avg.age), party, season)][order(avg.age, season, party)]
+tmp[order(avg.age, party)]
+## ages[, year := as.numeric(year)]
+## data[, year := year(date)] # Note quite right.
+## data <- merge(data, ages, by = c('team', 'year'), all.x = T)
+
 @ 
 
 We might also consider that the effect sizes may change as a function of how competitive the team is. Perhaps we may consider running a separate analysis for teams in the bottom quantile of last-year's rankings.
@@ -201,7 +218,7 @@ For the 2008-2012 seasons, we fit the following model.
 
 <<>>=
 load(file = 'tmp_data/spreads_with_standings.RData')
-model <- glm(outcome == 'W' ~ party + weekend + ndays.lgame + pct +
+model <- glm(outcome == 'W' ~ party + avg.age*party + weekend + ndays.lgame + pct +
                  travel.dist + team + season + team:season,
              family = 'binomial', data = data)
 
