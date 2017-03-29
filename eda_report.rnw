@@ -46,6 +46,7 @@ predict the probability of meeting the spread, and from this back out or infer w
 may be.
 
 \subsection*{References}
+``Balancing, Regression, Difference-In-Differences and Synthetic Control Methods: A Synthesis'', by Doudchenko, Imbens. Oct 2016. \href{http://www.nber.org/papers/w22791}{paper} \\
 ``The Benefits of College Athletic Success: An Application of the Propensity Score Design'', by Michael L. Anderson. March, 2017. \href{http://www.mitpressjournals.org/doi/pdfplus/10.1162/REST_a_00589}{paper}
 
 \newpage
@@ -72,7 +73,8 @@ data <- merge(data, standings, by = c('season', 'team'), all.x = T)
 data <- data[data[, head(.I, 82), by = list(season, team)]$V1]
 
 ### Define a Party Variable
-party.cities <- c("miami", "los angeles", "brooklyn", "new york", "atlanta")
+#party.cities <- c("miami", "los angeles", "brooklyn", "new york", "atlanta")
+party.cities <- c('boston', 'brooklyn', 'los angeles', 'new york')
 party.rgx <- paste0('(', party.cities, ')', collapse = "|")
 
 data[, party := 0]
@@ -89,7 +91,9 @@ hist(data[, mean(outcome == 'W'), by = list(season, team)][, V1],
      breaks = seq(0.3, 0.75, by = 0.025),
      main = "How often are teams meeting the spread?",
      xlab = "Proportion of games for which a team-year meets the spread")
+
 @ 
+
 
 We also check how many observations we will have to test our hypothesis. On average, each team
 only encounters our quasi-experiment twice per season. This motivates the need for a more granular
@@ -102,6 +106,38 @@ and defensive performance, perhaps.
 data[party==1, .N, by = list(season, team)][, N] %>%
     hist(main = "Number of party days by season-team", xlab = "Number of days", ylab = "Frequency")
 @ 
+
+\subsection*{Which teams to include as party cities?}
+<<echo=-1>>=
+
+tmp <- data[, list(meet.spread = mean(outcome == 'W'), .N), 
+     by = list(last.game.loc, ndays.lgame)][order(last.game.loc, ndays.lgame)]
+
+tmp[ndays.lgame == 1][order(meet.spread)]
+
+@ 
+
+<<results='hide'>>=
+
+### What about by game location
+ggplot(tmp, aes(x = ndays.lgame, y = meet.spread, label = N)) +
+    geom_point() + 
+    geom_label(nudge_y = 0.2) +
+    geom_hline(yintercept = 0.5) + 
+    facet_wrap(facets = ~ last.game.loc)
+
+@ 
+
+\subsection*{Does last-season's ranking have an implication?}
+
+<<>>=
+tmp <- data[, list(meet.spread = mean(outcome == 'W'), .N), 
+            by = list(pct, party)][order(pct)]
+ggplot(tmp, aes(x = pct, y = meet.spread, color = as.factor(party), label = N)) + 
+    geom_label()
+@ 
+
+
 
 \subsection*{Arguing which factors are taken into account in the spread model}
 We argue that the input spreads data has already taken into account (at least some of)
@@ -188,7 +224,7 @@ Also of importance: the San Antonio Spurs consistently have the oldest team, no 
 statistic is used, and they also have a coach which is notoriously strict on partying; for this team, unsurprisingly, the party effect moves in the opposite direction. For 2008-2012 historical data, we display below the proportion of games for which
 each team meets the spread under treatment as compared to without, along with the number of observations used to calculate the statistic.
 
-<<>>=
+<<echo=F>>=
 
 tmp <- data[, list(meet.spread = mean(outcome == 'W'), .N), by = list(team, party)][order(team, party)]
 
@@ -202,8 +238,14 @@ data[, avg.age := getAvgAge(team, season, date, roster), by = list(team, season,
 data[, avg.age := as.numeric(avg.age) %>% log]
 
 tmp <- data[, list(meet.spread = mean(outcome == 'W'), .N), 
-            by = list(avg.age = round(avg.age), party, season)][order(avg.age, season, party)]
-tmp[order(avg.age, party)]
+            by = list(avg.age = round(avg.age, 2), party)][
+    order(avg.age, party)] %>% na.omit
+
+ggplot(tmp, aes(x = avg.age, y = meet.spread, 
+                color = party %>% as.factor, label = N)) + 
+    geom_point() +
+    geom_label() +
+    geom_smooth()
 ## ages[, year := as.numeric(year)]
 ## data[, year := year(date)] # Note quite right.
 ## data <- merge(data, ages, by = c('team', 'year'), all.x = T)
@@ -217,10 +259,10 @@ the treatment effect by team (especially at the season-team level), and this doe
 For the 2008-2012 seasons, we fit the following model.
 
 <<>>=
-load(file = 'tmp_data/spreads_with_standings.RData')
+#load(file = 'tmp_data/spreads_with_standings.RData')
 model <- glm(outcome == 'W' ~ party + avg.age*party + weekend + ndays.lgame + pct +
-                 travel.dist + team + season + team:season,
-             family = 'binomial', data = data)
+                 travel.dist + season,
+             family = 'binomial', data = data, subset = pct < 0.5)
 
 summary(model)$coef[c(1:6, sample(7:nrow(coef(summary(model))), size = 6)), ]
 @ 
@@ -235,44 +277,6 @@ before adding in 2008-2009 data, and the results could change slightly as we inc
 data (either more recent or more past).
 
 \end{document}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
