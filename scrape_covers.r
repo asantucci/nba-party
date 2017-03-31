@@ -28,7 +28,6 @@ clusterCall(cl, function() {
     require(XML)
 })
 
-
 load(file = 'tmp_data/game_days.RData')
 game.days <- Filter(function(x) grepl("^201[^0]", x), game.days) 
 game.days <- gsub('-0([0-9])-', '-\\1-', game.days)
@@ -40,13 +39,14 @@ scrapeGame <- function(link) {
     tryCatch(expr = {
         text <- readLines(link, warn = F)
         ### We manually extract the date-field from HTML text.
-        date <- grep("\\<Date[^(]", text, value = T) %>% gsub('^.*- (.*)<br>', '\\1', .)
+        date <- grep("\\<Date[^(]", text, value = T) %>%
+            gsub('^.*- (.*)<br>', '\\1', .)
         ### Determine the event-id from the link, such that we may scrape-lines.
         event.id <- gsub('^.*boxscore([0-9]+).html$', '\\1', link)
         lines <- paste0('http://www.covers.com/odds/linehistory.aspx?eventId=',
                         event.id, '&sport=NBA')
         ### Scrape lines, just grabbing one entry for now.
-        lines <- readHTMLTable(lines, header = T, which = 1)[1, ]  # <-- One entry assumption.
+        lines <- readHTMLTable(lines, header = T, which = 1)[1, ]  # <-- One entry.
         data  <- data.frame(date = date, lines)
         setnames(data, c('date', 'line.ts', 'line', 'ou'))
         return(data)
@@ -70,8 +70,8 @@ scrapeCoverLines <- function(date, rescrape = F, save.path = 'raw_data/covers/')
             grep('boxscore', ., value = T)
         ### Games.stats contains quarter-by-quarter scores, alongside team-names.
         games.stats <- readHTMLTable(doc)
-        teams <- t(sapply(games.stats, function(x) x[[1]] %>% as.character)) # Grab team names.
-        score <- t(sapply(games.stats, function(x) x[[ncol(x)-1]]))  # Grab column of points totals.
+        teams <- t(sapply(games.stats, function(x) x[[1]] %>% as.character)) 
+        score <- t(sapply(games.stats, function(x) x[[ncol(x)-1]])) # Pt totals.
         colnames(teams) <- c('away', 'home')
         colnames(score) <- c('away.pts', 'home.pts')
         rownames(teams) <- NULL
