@@ -18,8 +18,16 @@
 ##############################
 ### Set up Workspace
 ##############################
-require(data.table)
-require(XML)
+
+require(parallel)
+
+cl <- makeCluster(detectCores())
+clusterCall(cl, function() {
+    require(data.table)
+    require(magrittr)
+    require(XML)
+})
+
 
 load(file = 'tmp_data/game_days.RData')
 game.days <- Filter(function(x) grepl("^201[^0]", x), game.days) 
@@ -80,84 +88,11 @@ scrapeCoverLines <- function(date, rescrape = F, save.path = 'raw_data/covers/')
 }
 
 ##############################
-### Example
+### Scrape
 ##############################
-require(parallel)
-cl <- makeCluster(detectCores())
-clusterCall(cl, function() {
-    require(data.table)
-    require(magrittr)
-    require(XML)
-})
 
-clusterExport(cl, 'scrapeGame')
-
+### Note that we must export scrapeCoverLines since in the event of a fault,
+### an individual core will need to re-call this function.
+clusterExport(cl, c('scrapeGame', 'scrapeCoverLines'))
 lines <- parLapplyLB(cl, game.days, scrapeCoverLines)
-## lines <- lapply(game.days, scrapeCoverLines)
-## save(lines, file = 'raw_data/covers.RData')
-lines <- rbindlist(lines)
-
-### Second pass?
-game.days <- as.Date(game.days)
-game.days <- setdiff(game.days %>% as.character, unique(lines$date) %>% as.character)
-game.days <- gsub('-0([0-9])-', '-\\1-', game.days)
-second.pass <- lapply(game.days, scrapeCoverLines)
-second.pass2 <- rbindlist(second.pass)
-save(second.pass2, file = 'tmp_data/second_pass.RData')
-lines <- rbind(lines, second.pass2)
-
-lines <- lines[, lapply(.SD, as.character), .SDcols = 1:ncol(lines)]
-save(lines, file = 'raw_data/covers.RData')
-
-lines[, game.time := gsub('^.* ([0-9:APM]+)$', '\\1', date)]
-lines[, date := as.Date(date, format = '%A, %B %d %Y')]
-
-lines[, line := gsub('^(-?[0-9.]+)/.*$', '\\1', line)]
-lines[, line.ts := NULL]
-lines[, ou := NULL]
-lines[, game.time := NULL]
-
-lines[, `:=`(home = tolower(home), away = tolower(away))]
-
-abbrs <- unique(lines$home) %>% sort
-fulls <- read.table(text = 'Atlanta Hawks
-Brooklyn Nets
-Boston Celtics
-Charlotte Bobcats
-Chicago Bulls
-Cleveland Cavaliers
-Dallas Mavericks
-Denver Nuggets
-Detroit Pistons
-Golden State Warriors
-Houston Rockets
-Indiana Pacers
-LA Clippers
-LA Lakers
-Memphis Grizzlies
-Miami Heat
-Milwaukee Bucks
-Minnesota Timberwolves
-New Orleans Hornets
-New York Knicks
-Oklahoma City Thunder
-Orlando Magic
-Philadelphia Sixers
-Phoenix Suns
-Portland Trail Blazers
-San Antonio Spurs
-Sacramento Kings
-Toronto Raptors
-Utah Jazz
-Washington Wizards', sep = '\n', stringsAsFactors = F)
-
-teams <- data.frame(team = fulls[[1]] %>% tolower, abbr = abbrs %>% tolower)
-lines <- merge(lines, teams, by.x = 'home', by.y = 'abbr', all.x = T)
-setnames(lines, 'team', 'home.team')
-lines <- merge(lines, teams, by.x = 'away', by.y = 'abbr', all.x = T)
-setnames(lines, 'team', 'away.team')
-
-lines <- lines[line != 'OFF', list(date, home.team, away.team, home.pts, away.pts, line)]
-lines[, line := as.numeric(line)]
-save(lines, file = 'tmp_data/covers_lines.RData')
 
