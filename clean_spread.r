@@ -98,4 +98,5 @@ data[, ndays.lgame := c(NA, diff(date)),    by = list(team, season)]
 data[, game.loc := ifelse(location == 'H', team, opponent)]
 data[, last.game.loc := c(NA, lag(game.loc)[1:.N-1]), by = list(team, season)]
 
+data[team == 'new jersey nets', team := 'brooklyn nets']
 save(data, file = 'tmp_data/spreads.RData')
