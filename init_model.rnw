@@ -1,0 +1,240 @@
+\documentclass[12pt]{article}  
+
+\usepackage{algorithm2e} 
+\usepackage{amsmath} 
+\usepackage{amsthm} 
+\usepackage{amsfonts} 
+\usepackage{bbm} 
+\usepackage{color,soul} 
+\usepackage{framed} 
+\usepackage[margin=0.5in]{geometry} 
+\usepackage{hyperref} 
+\usepackage{mathtools} 
+\usepackage[dvipsnames]{xcolor}  
+
+\newtheorem{theorem}{Theorem}[section] 
+\newtheorem{lemma}[theorem]{Lemma} 
+\newtheorem{proposition}[theorem]{Proposition} 
+\newtheorem{corollary}[theorem]{Corollary}  
+\newcommand{\D}{\mathrm{d}} 
+
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil} 
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor} 
+
+\SetKwInput{KwInput}{Input} 
+\SetKwInput{KwOutput}{Output}  
+
+\begin{document}
+
+\title{\textbf{NBA Party}}
+\author{Andreas Santucci, Eric Lax}
+\date{April 2017}
+\maketitle
+
+<<echo=F,results='hide'>>=
+require(data.table)
+require(ggplot2)
+load(file = 'tmp_data/covers_lines.RData')
+lines[, `:=`(pct = NULL, weekend = NULL)]
+others <- grep("party", names(lines), value = T, invert = T)
+setcolorder(lines, c(others, c('party')))
+@ 
+
+\subsection*{Data} We obtained data from \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, which records the outcome of each game alongside the line set by a betting house. To this data, we've added features such as 
+the number of days since last game, the last game location, the travel distance,
+average age\footnote{We use $\log \textrm{\# days old}$, at the time the game is played.}, and a party indicator.
+
+
+<<>>= 
+head(lines)
+@ 
+Our data range from 2010-2011 season through present, which includes part of the 2016-2017 season.
+
+\paragraph{What does it mean to party?}
+
+\begin{align*}   
+  \texttt{party} = \begin{cases}     
+    1 &\textrm{ if } \textrm{ team played in Brooklyn, Los Angeles, or New York yesterday} \\ 
+    0 &\textrm{ otherwise}   \end{cases} 
+\end{align*}
+
+
+\subsection*{A significant first model}
+
+<<>>= 
+
+model <- glm(outcome == 'W' ~ party + ndays.lgame + I(log(travel.dist+1)) + season,
+             data = lines, family = 'binomial', subset = season < 2016)
+
+summary(model)
+
+@ 
+
+The magnitude of our \texttt{party} variable is both practically and 
+statistically significant. 
+
+\subsection*{A model worth betting on}
+We mention that we don't have very many games to bet on, but that we do make a profit in expectation.
+
+<<>>=
+### We're only interested in making predictions when teams party.
+yhat <- predict(model, newdata = lines[season >= 2016 & party == 1], type = 'response')
+yhat <- ifelse(yhat < 0.41325, 0, 1) # We use a simple threshold based on hist(yhat).
+table(yhat, lines[season >= 2016 & party == 1, outcome])
+@ 
+
+\subsection*{Where to go from here?}
+There are several approaches.
+
+\paragraph{Refining the definition of party, Estimating travel schedules} Right now, we define our party variable
+crudely, that is, we use whether the team played in a party city the day before
+as a proxy for whether the team spent the night in a party city the day before the 
+game. Realize that we could further identify our effect if we could more accurately
+distinguish when treatment is applied.
+
+One idea is to utilize the time each game is played alongside a sample flight schedule
+between stadiums. In the simplest example, if we know that a team plays a game on the one coast and a game on the opposing coast the following day, it may be possible to 
+infer with reasonable accuracy which day the team \emph{actually} traveled. We can
+then use this logical prediction (on where the team spent the night) to define
+our \texttt{party} variable accordingly.
+
+The general idea is that we either hope to add a few more treatment observations
+to our data, or refine the fidelity of existing observations, so that we may identify
+a more concentrated effect.
+
+\paragraph{Focusing on player demographics} We remark that we do not have
+player age in the model, even though we did take time to incorporate this into our data. Including an interaction between \texttt{party} and \texttt{avg.age} introduces
+colinearity in our model and robs us of statistical significance. However, there
+is both intuition and mild evidence that younger teams are affected more by our treatment effect. We also hypothesize that the effect is stronger for unmarried players.
+With this in mind, we may consider exploring in more detail the demographics of our teams. We detail a few approaches.
+
+One idea is to create an \texttt{average age} variable for each observation which, instead of simply taking the average across all players on the roster, uses a weighted average based on which players are estimated to be starters and which are on the bench (this can be determined either from the ``depth chart'' or from an estimate based on the current season's historical minutes). The problem here is that further refining our age variable isn't going to help if it's colinear with \texttt{party}.
+
+Another idea is to look at the proportion of players on a team which are unmarried. Our intuition is that younger, unmarried players will tend to exhibit a stronger treatment effect. If adding
+carefully constructed demographic features helps our model predict team-performance, this may motivate us to further consider individual bets. That is, we can build a more granular model which
+examines the performance of each player each game. This has the added benefit that with 5 players on each team each game, we get a 10x increase in the number of bets we can take.
+This is helpful since right now, although our margins are high, our profits limited due to limited number of bets we can take.
+
+
+\paragraph{Knowing our own data better}
+We remark that there are still unanswered questions in our existing data.
+For example, we tried scraping the team's performance in the season prior and using this as a feature to predict whether the team will meet the spread. Although the magnitude of the coefficient wasn't practically significant, it was still extremely statistically significant in our model. This is surprising, since we expect the House to take advantage of such an obvious feature when constructing their model.
+This opens up the question: can we back out from our black-box how Vegas builds their model?
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
