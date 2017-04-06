@@ -35,17 +35,55 @@
 require(data.table)
 require(ggplot2)
 load(file = 'tmp_data/covers_lines.RData')
+load(file = 'tmp_data/ndrink_estabs.RData')
+drinks[, county := NULL]
+
 lines[, `:=`(pct = NULL, weekend = NULL)]
-others <- grep("party", names(lines), value = T, invert = T)
-setcolorder(lines, c(others, c('party')))
+
+### We're careful to merge in ndrinking_estabs according to the PREV game played.
+lines <- merge(lines, drinks, 
+               by.x = c('last.game.loc', 'season'), 
+               by.y = c('team',          'season'))
+setkey(lines, date)
+others <- grep("(party)|(last.game)", names(lines), value = T, invert = T)
+setcolorder(lines, c(others, c('last.game.loc', 'party')))
+
+
+require(sampling)
+set.seed(04052017)
+setkey(lines, season, last.game.loc)
+
+n = length(unique(lines$last.game.loc))
+m = length(unique(lines$season))
+s = strata(data = lines, stratanames = c('season', 'last.game.loc'),
+           size = rep(5, n*m), method = 'srswor')
+
+var.creation.indices = s$ID_unit
+var.creation = lines[var.creation.indices]
+training     = lines[-var.creation.indices]
+
+m = glm(outcome == 'W' ~ 0 + last.game.loc, data = var.creation, family = 'binomial')
+coef <- m$coef
+names(coef) <- gsub('last.game.loc', '', names(coef))
+coef = data.table(last.game.loc = names(coef), coef)
+
+setkey(training, last.game.loc)
+training = training[coef]
+
+m = glm(outcome == 'W' ~ I(coef*(ndays.lgame==1)), data = training, family = 'binomial', subset = season < 2017) # Significant.
+
+### Not quite worth betting on, yet.
+yhat <- predict(m, newdata = training[season >= 2017 & ndays.lgame == 1], type = 'response')
+yhat <- ifelse(yhat < 0.519, 0, 1)
+table(yhat, training[season >= 2017 & ndays.lgame==1, outcome])
+
 @ 
 
 \subsection*{Data} We obtained data from \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, which records the outcome of each game alongside the line set by a betting house. To this data, we've added features such as 
 the number of days since last game, the last game location, the travel distance,
 average age\footnote{We use $\log \textrm{\# days old}$, at the time the game is played.}, and a party indicator.
 
-
-<<>>= 
+<<>>=
 head(lines)
 @ 
 Our data range from 2010-2011 season through present, which includes part of the 2016-2017 season.
@@ -63,7 +101,8 @@ Our data range from 2010-2011 season through present, which includes part of the
 
 <<>>= 
 
-model <- glm(outcome == 'W' ~ party + ndays.lgame + I(log(travel.dist+1)) + season,
+model <- glm(outcome == 'W' ~ party + ndays.lgame + I(log(travel.dist+1)) + 
+                 season + nmusicians,
              data = lines, family = 'binomial', subset = season < 2016)
 
 summary(model)
@@ -77,7 +116,7 @@ statistically significant.
 We mention that we don't have very many games to bet on, but that we do make a profit in expectation.
 
 <<>>=
-### We're only interested in making predictions when teams party.
+### We're only interested in making predictions when teams party. When they do, we bet against them.
 yhat <- predict(model, newdata = lines[season >= 2016 & party == 1], type = 'response')
 yhat <- ifelse(yhat < 0.41325, 0, 1) # We use a simple threshold based on hist(yhat).
 table(yhat, lines[season >= 2016 & party == 1, outcome])
