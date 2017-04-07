@@ -33,72 +33,92 @@
 
 <<echo=F,results='hide'>>=
 
-### To Do: estimate coef by last.game.loc but exclude obs if last.game.loc == team
-### i.e. just like in estimating party coef, we don't want to estimate effect of last 
-### playing in boston if the team itself is boston.
-### 
+### Reshape data
+### One model, outcome ~ loast.game.llocation, last.city.size, last.city.region,
+
+### Group data by region.
+
 require(data.table)
 require(ggplot2)
+require(magrittr)
+require(sampling)
+set.seed(4052017)
+
 load(file = 'tmp_data/covers_lines.RData')
 load(file = 'tmp_data/ndrink_estabs.RData')
-drinks[, county := NULL]
 
+lines <- merge(lines, drinks, 
+               by.x = c('season', 'last.game.loc'),
+               by.y = c('season', 'team'), all.x = T)
+
+m <- glm(outcome == 'W' ~ I(nmusicians*(ndays.lgame==1)), 
+         data = lines[season < 2017 & last.game.loc != team])
+p <- predict(m, newdata = lines[season == 2017 & ndays.lgame == 1 & last.game.loc != team], type = 'response')
+table(round(p), lines[season == 2017 & ndays.lgame == 1 & last.game.loc != team, outcome])
+
+## lines = lines[team != last.game.loc]
 lines[, `:=`(pct = NULL, weekend = NULL)]
 
-inner.merge = merge(lines, drinks, 
-                    by.x = c('last.game.loc', 'season'),
-                    by.y = c('team',          'season'))
-setkey(lines, season, team, date)
-setkey(inner.merge, season, team, date)
-outter = lines[!inner.merge]
+melted = melt(lines, id.vars = c('season', 'date', 'location'))
+setkey(melted, season, date, location)
+melted = melted[variable == 'team']
+casted = dcast(melted, formula = season + date + location ~ .)
 
-### We're careful to merge in ndrinking_estabs according to the PREV game played.
-## lines <- merge(lines, drinks, 
-##                by.x = c('last.game.loc', 'season'), 
-##                by.y = c('team',          'season'), all.x = T) ## Toronto raptors?
-## setkey(lines, date)
-## others <- grep("(party)|(last.game)", names(lines), value = T, invert = T)
-## setcolorder(lines, c(others, c('last.game.loc', 'party')))
-
-require(sampling)
-set.seed(04052017)
-setkey(lines, season, last.game.loc, date)
+valid.idx = which(lines$season == 2017) %>% sample(., size = floor(length(.) / 12))
+valid = lines[valid.idx]
+lines = lines[-valid.idx]
 
 n = length(unique(lines$last.game.loc))
 m = length(unique(lines$season))
-s = strata(data = lines, stratanames = c('season', 'last.game.loc'),
-           size = rep(5, n*m), method = 'srswor')
+setkey(lines, season, last.game.loc, date)
 
+### Stratified random sampling.
+s = strata(data = lines, stratanames = c('season', 'last.game.loc'),
+           size = rep(7, n*m), method = 'srswor')
+
+### Partition data for two-stage least-squares.
 var.creation.indices = s$ID_unit
 var.creation = lines[var.creation.indices]
 training     = lines[-var.creation.indices]
 
-m = glm(outcome == 'W' ~ 0 + last.game.loc, data = var.creation, family = 'binomial',
-        subset = last.game.loc != team)
-coef <- m$coef
-names(coef) <- gsub('last.game.loc', '', names(coef))
-coef = data.table(last.game.loc = names(coef), coef)
+### First stage model.
+coefs <- sapply(1:60, function(x) {
+    indices = sample(1:nrow(var.creation), size = nrow(var.creation), replace = T)
+    glm(outcome == 'W' ~ 0 + last.game.loc, 
+        data = var.creation[indices], family = 'binomial')$coef
+})
+
+rownames(coefs) <- gsub('last.game.loc', '', rownames(coefs))
+coef = data.table(last.game.loc = rownames(coefs), coef = rowMeans(coefs))
+
+## m = glm(outcome == 'W' ~ 0 + last.game.loc, 
+##         data = var.creation[last.game.loc != team], 
+##         family = 'binomial')
+## coef <- m$coef
+## names(coef) <- gsub('last.game.loc', '', names(coef))
+## coef = data.table(last.game.loc = names(coef), coef)
 
 setkey(training, last.game.loc)
 training = training[coef]
 
-m = glm(outcome == 'W' ~ 0 + coef + I(coef*(ndays.lgame==1)) + ndays.lgame + travel.dist,
-        data = training, family = 'binomial', subset = season < 2017) # Significant.
+### Second stage model.
+m = glm(outcome == 'W' ~ 1 + I(coef*(ndays.lgame==1)),
+        data = training[last.game.loc != team], 
+        family = 'binomial', subset = season < 2017) # Significant.
 
-synth  = cbind(coef, ndays.lgame = 1)
-actual = lines[ndays.lgame == 1, list(meet.spread = mean(outcome == 'W')), keyby = last.game.loc]
-preds  = predict(m, newdata = synth, type = 'response')
-actual$preds = preds
-require(ggplot2)
-ggplot(actual, aes(x = meet.spread, y = preds, label = last.game.loc)) + 
-    geom_point()+
-    geom_label()
-plot(actual$meet.spread, preds)
+### Meet the spread on 2017 data vs. prediction.
+setkey(valid, last.game.loc)
+valid = valid[coef]
+preds = predict(m, newdata = valid[ndays.lgame == 1], type = 'response')
+table(round(preds), valid[ndays.lgame == 1, outcome])
+
+## ggplot(actual, aes(x = meet.spread, y = preds, label = last.game.loc)) + 
+##     geom_point()+
+##     geom_label()
 
 ### Not quite worth betting on, yet.
-yhat <- predict(m, newdata = training[season >= 2017 & ndays.lgame == 1], type = 'response')
-yhat <- ifelse(yhat < 0.519, 0, 1)
-table(yhat, training[season >= 2017 & ndays.lgame==1, outcome])
+## yhat <- predict(m, newdata = training[season >= 2017 & ndays.lgame == 1], type = 'response') %>% round
+## table(yhat, training[season >= 2017 & ndays.lgame==1, outcome])
 
 @ 
 
