@@ -19,7 +19,7 @@
 \newcommand{\D}{\mathrm{d}} 
 
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil} 
-\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor} 
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
 
 \SetKwInput{KwInput}{Input} 
 \SetKwInput{KwOutput}{Output}  
@@ -32,6 +32,11 @@
 \maketitle
 
 <<echo=F,results='hide'>>=
+
+### To Do: estimate coef by last.game.loc but exclude obs if last.game.loc == team
+### i.e. just like in estimating party coef, we don't want to estimate effect of last 
+### playing in boston if the team itself is boston.
+### 
 require(data.table)
 require(ggplot2)
 load(file = 'tmp_data/covers_lines.RData')
@@ -40,18 +45,24 @@ drinks[, county := NULL]
 
 lines[, `:=`(pct = NULL, weekend = NULL)]
 
-### We're careful to merge in ndrinking_estabs according to the PREV game played.
-lines <- merge(lines, drinks, 
-               by.x = c('last.game.loc', 'season'), 
-               by.y = c('team',          'season'))
-setkey(lines, date)
-others <- grep("(party)|(last.game)", names(lines), value = T, invert = T)
-setcolorder(lines, c(others, c('last.game.loc', 'party')))
+inner.merge = merge(lines, drinks, 
+                    by.x = c('last.game.loc', 'season'),
+                    by.y = c('team',          'season'))
+setkey(lines, season, team, date)
+setkey(inner.merge, season, team, date)
+outter = lines[!inner.merge]
 
+### We're careful to merge in ndrinking_estabs according to the PREV game played.
+## lines <- merge(lines, drinks, 
+##                by.x = c('last.game.loc', 'season'), 
+##                by.y = c('team',          'season'), all.x = T) ## Toronto raptors?
+## setkey(lines, date)
+## others <- grep("(party)|(last.game)", names(lines), value = T, invert = T)
+## setcolorder(lines, c(others, c('last.game.loc', 'party')))
 
 require(sampling)
 set.seed(04052017)
-setkey(lines, season, last.game.loc)
+setkey(lines, season, last.game.loc, date)
 
 n = length(unique(lines$last.game.loc))
 m = length(unique(lines$season))
@@ -62,7 +73,8 @@ var.creation.indices = s$ID_unit
 var.creation = lines[var.creation.indices]
 training     = lines[-var.creation.indices]
 
-m = glm(outcome == 'W' ~ 0 + last.game.loc, data = var.creation, family = 'binomial')
+m = glm(outcome == 'W' ~ 0 + last.game.loc, data = var.creation, family = 'binomial',
+        subset = last.game.loc != team)
 coef <- m$coef
 names(coef) <- gsub('last.game.loc', '', names(coef))
 coef = data.table(last.game.loc = names(coef), coef)
@@ -70,7 +82,18 @@ coef = data.table(last.game.loc = names(coef), coef)
 setkey(training, last.game.loc)
 training = training[coef]
 
-m = glm(outcome == 'W' ~ I(coef*(ndays.lgame==1)), data = training, family = 'binomial', subset = season < 2017) # Significant.
+m = glm(outcome == 'W' ~ 0 + coef + I(coef*(ndays.lgame==1)) + ndays.lgame + travel.dist,
+        data = training, family = 'binomial', subset = season < 2017) # Significant.
+
+synth  = cbind(coef, ndays.lgame = 1)
+actual = lines[ndays.lgame == 1, list(meet.spread = mean(outcome == 'W')), keyby = last.game.loc]
+preds  = predict(m, newdata = synth, type = 'response')
+actual$preds = preds
+require(ggplot2)
+ggplot(actual, aes(x = meet.spread, y = preds, label = last.game.loc)) + 
+    geom_point()+
+    geom_label()
+plot(actual$meet.spread, preds)
 
 ### Not quite worth betting on, yet.
 yhat <- predict(m, newdata = training[season >= 2017 & ndays.lgame == 1], type = 'response')
