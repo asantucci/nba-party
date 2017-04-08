@@ -43,3 +43,16 @@ sapply(files, unzip, exdir = 'raw_data/bls')
 ## links <- xpathSApply(doc, '//a[@href]', xmlGetAttr, name = 'href')
 ## links <- grep('/[0-9]{4}_qtrly_by_area', links, value = T)
 ## links <- grep('/201', links, value = T)
+
+### This code scrapes the number of rappers by city (unrelated idea).
+## pg <- 'https://en.wikipedia.org/wiki/Category:American_rappers_by_city'
+## doc <- getURL(pg, ssl.verifypeer = F) %>% htmlParse %>% readHTMLList
+## rap <- rapply(doc, grep, pattern = "Rappers from", value = T)
+## rap <- sapply(rap, strsplit, split = 'Rappers from ', USE.NAMES = F)
+## rap <- sapply(rap, `[`, 2)
+
+## rap <- strsplit(rap, split = ' (', fixed = T)
+## cities <- sapply(rap, `[`, 1)
+## rapprs <- sapply(rap, `[`, 2) %>% gsub(' P\\)', '', .) %>% as.numeric
+
+## rappers <- data.table(city = cities, nrappers = rapprs)
