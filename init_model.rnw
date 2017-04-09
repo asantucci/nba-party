@@ -33,11 +33,6 @@
 
 <<echo=F,results='hide'>>=
 
-### Reshape data
-### One model, outcome ~ loast.game.llocation, last.city.size, last.city.region,
-
-### Group data by region.
-
 require(data.table)
 require(ggplot2)
 require(magrittr)
@@ -45,278 +40,89 @@ require(sampling)
 set.seed(4052017)
 
 load(file = 'tmp_data/covers_lines.RData')
-load(file = 'tmp_data/ndrink_estabs.RData')
+load(file = 'tmp_data/nmusician_estabs.RData')
 
-lines <- merge(lines, drinks, 
+@ 
+
+\subsection*{Data} 
+
+\paragraph{Lines data} We obtained data from \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, which records the outcome of each game alongside the line set by a betting house. To this data, we've added features such as 
+the number of days since last game, the last game location, the travel distance, and
+average age\footnote{We use $\log \textrm{\# days old}$, at the time the game is played.}.
+
+\paragraph{BLS data} We also obtained data from
+\href{https://www.bls.gov/data/}{Bureau of Labor Statistics} which records the number of
+establishments by business type at the county level. As a proxy for how much night-life
+there is in a city, we look toward the number of sound recording studios, musical groups,
+and music publishers there are. For each year and each county, we simply calculate
+the average number of establishments across all three music categories listed above. 
+
+We caveat that since the Toronto Raptors are located in Canada, we don't have BLS data
+for this team.
+
+<<>>=
+musicians[, list(team, season, nmusicians)]
+@ 
+
+We then merge this in with our lines data, taking care to do so according to the
+last game's location. We also lag our BLS data by one year.
+
+<<>>=
+### Merge lines data with BLS data.
+lines <- merge(lines, musicians,
                by.x = c('season', 'last.game.loc'),
                by.y = c('season', 'team'), all.x = T)
 
-m <- glm(outcome == 'W' ~ I(nmusicians*(ndays.lgame==1)), 
-         data = lines[season < 2017 & last.game.loc != team])
-p <- predict(m, newdata = lines[season == 2017 & ndays.lgame == 1 & last.game.loc != team], type = 'response')
-table(round(p), lines[season == 2017 & ndays.lgame == 1 & last.game.loc != team, outcome])
-
-## lines = lines[team != last.game.loc]
-lines[, `:=`(pct = NULL, weekend = NULL)]
-
-melted = melt(lines, id.vars = c('season', 'date', 'location'))
-setkey(melted, season, date, location)
-melted = melted[variable == 'team']
-casted = dcast(melted, formula = season + date + location ~ .)
-
-valid.idx = which(lines$season == 2017) %>% sample(., size = floor(length(.) / 12))
-valid = lines[valid.idx]
-lines = lines[-valid.idx]
-
-n = length(unique(lines$last.game.loc))
-m = length(unique(lines$season))
-setkey(lines, season, last.game.loc, date)
-
-### Stratified random sampling.
-s = strata(data = lines, stratanames = c('season', 'last.game.loc'),
-           size = rep(7, n*m), method = 'srswor')
-
-### Partition data for two-stage least-squares.
-var.creation.indices = s$ID_unit
-var.creation = lines[var.creation.indices]
-training     = lines[-var.creation.indices]
-
-### First stage model.
-coefs <- sapply(1:60, function(x) {
-    indices = sample(1:nrow(var.creation), size = nrow(var.creation), replace = T)
-    glm(outcome == 'W' ~ 0 + last.game.loc, 
-        data = var.creation[indices], family = 'binomial')$coef
-})
-
-rownames(coefs) <- gsub('last.game.loc', '', rownames(coefs))
-coef = data.table(last.game.loc = rownames(coefs), coef = rowMeans(coefs))
-
-## m = glm(outcome == 'W' ~ 0 + last.game.loc, 
-##         data = var.creation[last.game.loc != team], 
-##         family = 'binomial')
-## coef <- m$coef
-## names(coef) <- gsub('last.game.loc', '', names(coef))
-## coef = data.table(last.game.loc = names(coef), coef)
-
-setkey(training, last.game.loc)
-training = training[coef]
-
-### Second stage model.
-m = glm(outcome == 'W' ~ 1 + I(coef*(ndays.lgame==1)),
-        data = training[last.game.loc != team], 
-        family = 'binomial', subset = season < 2017) # Significant.
-
-### Meet the spread on 2017 data vs. prediction.
-setkey(valid, last.game.loc)
-valid = valid[coef]
-preds = predict(m, newdata = valid[ndays.lgame == 1], type = 'response')
-table(round(preds), valid[ndays.lgame == 1, outcome])
-
-## ggplot(actual, aes(x = meet.spread, y = preds, label = last.game.loc)) + 
-##     geom_point()+
-##     geom_label()
-
-### Not quite worth betting on, yet.
-## yhat <- predict(m, newdata = training[season >= 2017 & ndays.lgame == 1], type = 'response') %>% round
-## table(yhat, training[season >= 2017 & ndays.lgame==1, outcome])
+setkey(lines, season, team, date)
+lines[, list(date, team, opponent, location, 
+             line, score, outcome, ndays.lgame, 
+             travel.dist, avg.age, nmusicians)]
 
 @ 
 
-\subsection*{Data} We obtained data from \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, which records the outcome of each game alongside the line set by a betting house. To this data, we've added features such as 
-the number of days since last game, the last game location, the travel distance,
-average age\footnote{We use $\log \textrm{\# days old}$, at the time the game is played.}, and a party indicator.
-
-<<>>=
-head(lines)
-@ 
 Our data range from 2010-2011 season through present, which includes part of the 2016-2017 season.
 
-\paragraph{What does it mean to party?}
+\paragraph{What cities have nightlife?}
 
-\begin{align*}   
-  \texttt{party} = \begin{cases}     
-    1 &\textrm{ if } \textrm{ team played in Brooklyn, Los Angeles, or New York yesterday} \\ 
-    0 &\textrm{ otherwise}   \end{cases} 
-\end{align*}
+We examine which cities have a notable nightlife, as measured by our proxy.
 
+<<>>= 
+musicians[, list(average.nmusicians = mean(nmusicians) %>% round(., digits = 1)), by = team]
+@ 
 
-\subsection*{A significant first model}
+Los Angeles stands out, as does New York. Some runner ups include Chicago and Miami. 
+
+\subsection*{A significant first model} We keep things simple, and try to explain the likelihood
+of meeting the spread as a function of whether a team visited a city with an active night-life
+the day before.
 
 <<>>= 
 
-model <- glm(outcome == 'W' ~ party + ndays.lgame + I(log(travel.dist+1)) + 
-                 season + nmusicians,
-             data = lines, family = 'binomial', subset = season < 2016)
+m <- glm(outcome == 'W' ~ I(nmusicians*(ndays.lgame==1)) + ndays.lgame + travel.dist + avg.age, 
+         data = lines[season < 2017 & last.game.loc != team])
 
-summary(model)
+summary(m)
+
 
 @ 
 
-The magnitude of our \texttt{party} variable is both practically and 
+The magnitude of our ``\texttt{party}'' variable is both practically and 
 statistically significant. 
 
 \subsection*{A model worth betting on}
-We mention that we don't have very many games to bet on, but that we do make a profit in expectation.
+If we re-train an even simpler model, regressing on only the variable of interest, 
+we get great betting performance.
 
 <<>>=
-### We're only interested in making predictions when teams party. When they do, we bet against them.
-yhat <- predict(model, newdata = lines[season >= 2016 & party == 1], type = 'response')
-yhat <- ifelse(yhat < 0.41325, 0, 1) # We use a simple threshold based on hist(yhat).
-table(yhat, lines[season >= 2016 & party == 1, outcome])
+m <- glm(outcome == 'W' ~ I(nmusicians*(ndays.lgame==1)), 
+         data = lines[season < 2017 & last.game.loc != team])
+
+### We're only interested in making predictions when teams party.
+p <- predict(m, newdata = lines[season == 2017 & 
+                                ndays.lgame == 1 & 
+                                last.game.loc != team], type = 'response')
+table(round(p), lines[season == 2017 & ndays.lgame == 1 & last.game.loc != team, outcome])
+
 @ 
 
-\subsection*{Where to go from here?}
-There are several approaches.
-
-\paragraph{Refining the definition of party, Estimating travel schedules} Right now, we define our party variable
-crudely, that is, we use whether the team played in a party city the day before
-as a proxy for whether the team spent the night in a party city the day before the 
-game. Realize that we could further identify our effect if we could more accurately
-distinguish when treatment is applied.
-
-One idea is to utilize the time each game is played alongside a sample flight schedule
-between stadiums. In the simplest example, if we know that a team plays a game on the one coast and a game on the opposing coast the following day, it may be possible to 
-infer with reasonable accuracy which day the team \emph{actually} traveled. We can
-then use this logical prediction (on where the team spent the night) to define
-our \texttt{party} variable accordingly.
-
-The general idea is that we either hope to add a few more treatment observations
-to our data, or refine the fidelity of existing observations, so that we may identify
-a more concentrated effect.
-
-\paragraph{Focusing on player demographics} We remark that we do not have
-player age in the model, even though we did take time to incorporate this into our data. Including an interaction between \texttt{party} and \texttt{avg.age} introduces
-colinearity in our model and robs us of statistical significance. However, there
-is both intuition and mild evidence that younger teams are affected more by our treatment effect. We also hypothesize that the effect is stronger for unmarried players.
-With this in mind, we may consider exploring in more detail the demographics of our teams. We detail a few approaches.
-
-One idea is to create an \texttt{average age} variable for each observation which, instead of simply taking the average across all players on the roster, uses a weighted average based on which players are estimated to be starters and which are on the bench (this can be determined either from the ``depth chart'' or from an estimate based on the current season's historical minutes). The problem here is that further refining our age variable isn't going to help if it's colinear with \texttt{party}.
-
-Another idea is to look at the proportion of players on a team which are unmarried. Our intuition is that younger, unmarried players will tend to exhibit a stronger treatment effect. If adding
-carefully constructed demographic features helps our model predict team-performance, this may motivate us to further consider individual bets. That is, we can build a more granular model which
-examines the performance of each player each game. This has the added benefit that with 5 players on each team each game, we get a 10x increase in the number of bets we can take.
-This is helpful since right now, although our margins are high, our profits limited due to limited number of bets we can take.
-
-
-\paragraph{Knowing our own data better}
-We remark that there are still unanswered questions in our existing data.
-For example, we tried scraping the team's performance in the season prior and using this as a feature to predict whether the team will meet the spread. Although the magnitude of the coefficient wasn't practically significant, it was still extremely statistically significant in our model. This is surprising, since we expect the House to take advantage of such an obvious feature when constructing their model.
-This opens up the question: can we back out from our black-box how Vegas builds their model?
-
 \end{document}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
