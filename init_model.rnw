@@ -44,30 +44,32 @@ load(file = 'tmp_data/nmusician_estabs.RData')
 
 @ 
 
-\subsection*{Data} 
+\section*{Data Sources} 
 
-\paragraph{Lines data} We obtained data from \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, which records the outcome of each game alongside the line set by a betting house. To this data, we've added features such as 
-the number of days since last game, the last game location, the travel distance, and
-average age\footnote{We use $\log \textrm{\# days old}$, at the time the game is played.}.
+\paragraph{Lines data} We obtained data from \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, which records the outcome of each game alongside the line set by a betting house.
+<<echo=F>>=
+lines[, list(date, team, opponent, line, score)]
+@ 
 
 \paragraph{BLS data} We also obtained data from
-\href{https://www.bls.gov/data/}{Bureau of Labor Statistics} which records the number of
-establishments by business type at the county level. As a proxy for how much night-life
-there is in a city, we look toward the number of sound recording studios, musical groups,
-and music publishers there are. For each year and each county, we simply calculate
-the average number of establishments across all three music categories listed above. 
+\href{https://www.bls.gov/data/}{Bureau of Labor Statistics} which records the number of establishments by business type at the county-quarter level. \ul{As a 
+proxy for how much night-life there is in a city, we look toward the 
+number of sound recording studios, musical groups, and music publishers there 
+are for a particular county-year}: we simply calculate the average number of establishments across all three music categories listed above.\footnote{We caveat that since the Toronto Raptors are located in Canada, we don't have BLS data for this team.}
 
-We caveat that since the Toronto Raptors are located in Canada, we don't have BLS data
-for this team.
-
-<<>>=
-musicians[, list(team, season, nmusicians)]
+<<echo=F>>=
+musicians[, county := gsub(' (county)|(division),.*$', '', county, ignore.case = T)]
+musicians[, list(county, team, season, nmusicians = round(nmusicians, 1))]
 @ 
 
 We then merge this in with our lines data, taking care to do so according to the
 last game's location. We also lag our BLS data by one year.
+To this data, we've created features such as 
+the number of days since last game, the last game location, the travel distance, and
+average age\footnote{We use $\log \textrm{\# days old}$, at the time the game is played.}.
 
-<<>>=
+
+<<echo=2>>=
 ### Merge lines data with BLS data.
 lines <- merge(lines, musicians,
                by.x = c('season', 'last.game.loc'),
@@ -82,23 +84,24 @@ lines[, list(date, team, opponent, location,
 
 Our data range from 2010-2011 season through present, which includes part of the 2016-2017 season.
 
-\paragraph{What cities have nightlife?}
+\subsection*{What cities have nightlife?}
 
 We examine which cities have a notable nightlife, as measured by our proxy.
 
 <<>>= 
-musicians[, list(average.nmusicians = mean(nmusicians) %>% round(., digits = 1)), by = team]
+musicians[, list(average.nmusicians = mean(nmusicians) %>% round(., digits = 1)), by = team][order(average.nmusicians)]
 @ 
 
 Los Angeles stands out, as does New York. Some runner ups include Chicago and Miami. 
 
-\subsection*{A significant first model} We keep things simple, and try to explain the likelihood
+\subsection*{A significant model} We keep things simple, and try to explain the likelihood
 of meeting the spread as a function of whether a team visited a city with an active night-life
 the day before.
 
-<<>>= 
+<<echo=-4>>= 
+lines[, party := ifelse(ndays.lgame == 1, nmusicians, 0)]
 
-m <- glm(outcome == 'W' ~ I(nmusicians*(ndays.lgame==1)) + ndays.lgame + travel.dist + avg.age, 
+m <- glm(outcome == 'W' ~ party + ndays.lgame + travel.dist + avg.age, 
          data = lines[season < 2017 & last.game.loc != team])
 
 summary(m)
@@ -106,21 +109,21 @@ summary(m)
 
 @ 
 
-The magnitude of our ``\texttt{party}'' variable is both practically and 
+The sign of our ``\texttt{party}'' variable is intuitively correct, and 
 statistically significant. 
 
 \subsection*{A model worth betting on}
-If we re-train an even simpler model, regressing on only the variable of interest, 
-we get great betting performance.
+If we re-train an even simpler model, we obtain fantastic betting performance.
 
 <<>>=
 m <- glm(outcome == 'W' ~ I(nmusicians*(ndays.lgame==1)), 
          data = lines[season < 2017 & last.game.loc != team])
 
+summary(m)$coef %>% round(., 5)
+
 ### We're only interested in making predictions when teams party.
-p <- predict(m, newdata = lines[season == 2017 & 
-                                ndays.lgame == 1 & 
-                                last.game.loc != team], type = 'response')
+p <- predict(m, newdata = lines[season == 2017 & ndays.lgame == 1 & last.game.loc != team], 
+             type = 'response')
 table(round(p), lines[season == 2017 & ndays.lgame == 1 & last.game.loc != team, outcome])
 
 @ 
