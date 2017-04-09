@@ -15,6 +15,18 @@
 ################################################################################
 ################################################################################
 
+### 1. Investigate party cities -- Increase quality of observations, be really confident they *stayed* in a party city overnight.
+###    Intuitively: you stayed in a city the night before where there is a lot of partying
+###    E.g. an East Coast team may fly into LA the day before and we may want to define that game to be a party city
+###    they may also fly out after an afternoon game and miss the party-effect completely.
+###    Data Sources: tweets
+###    Figure out: LA -- rest day -- Boston, we know they won't take the red-eye
+### 2. Weighting age by starting minutes
+### 3. Marital status
+
+### Bring game-time into data
+### Try and get a sense of what a travel schedule might be..
+
 ##################################################
 ### Set up Workspace, Read in Raw Data
 ##################################################
@@ -37,7 +49,7 @@ lines[, date := as.Date(date, format = '%A, %B %d %Y')]
 lines[, line := gsub('^(-?[0-9.]+)/.*$', '\\1', line)]
 lines[, line.ts := NULL]
 lines[, ou := NULL]
-lines[, game.time := NULL]
+## lines[, game.time := NULL]
 
 ##################################################
 ### Expand team abbreviations.
@@ -65,7 +77,7 @@ setnames(lines, 'team', 'away.team')
 ### Remove missing observations. Set line as numeric.
 ##################################################
 
-lines <- lines[line != 'OFF', list(date, home.team, away.team, home.pts, away.pts, line)]
+lines <- lines[line != 'OFF', list(date, game.time, home.team, away.team, home.pts, away.pts, line)]
 lines[, line := as.numeric(line)]
 
 ### Season spans the new year, i.e. starts in October ends in April.
@@ -85,7 +97,7 @@ lines[, outcome := ifelse(home.pts + line >= away.pts, 'W', 'L')]  # Ties?
 lines[, score := paste(home.pts, away.pts, sep = '-')]
 lines[, `:=`(home.pts = NULL, away.pts = NULL)]
 lines[, location := team]
-lines <- lines[, list(season, date, team, opponent, location, line, score, outcome)]
+lines <- lines[, list(season, date, game.time, team, opponent, location, line, score, outcome)]
 
 ##################################################
 ### Creating a panel-data set.
@@ -136,18 +148,6 @@ getDist <- function(current, last, distances)
 
 lines[, travel.dist := getDist(location, last.game.loc, dmat), by = list(location, last.game.loc)]
 
-
-##################################################
-### Merge in older data?
-##################################################
-## load(file = 'tmp_data/spreads_wdist.RData')
-## data[, season := substr(season, 6, 9)]
-## data[, `:=`(location = NULL, ou = NULL, ou.out = NULL, day = NULL)]
-## setnames(data, c('spread', 'game.loc'), c('line', 'location'))
-## lines <- rbind(lines[season > 2011], data[season <= 2011])
-## setkey(lines, season, team)
-## lines[, season := as.integer(season)]
-
 ##################################################
 ### Standings from last season
 ##################################################
@@ -165,8 +165,9 @@ lines <- merge(lines, standings, by = c('season', 'team'), all.x = T)
 ##################################################
 
 ### Define a Party Variable
-lines[ndays.lgame == 1, list(meet.spread = mean(outcome == 'W'), .N), by = list(season, last.game.loc)][order(meet.spread)]
-party.cities <- c('boston', 'brooklyn', 'dallas', 'los angeles')
+lines[ndays.lgame == 1, list(meet.spread = mean(outcome == 'W'), .N), by = list(last.game.loc)][order(meet.spread)]
+## party.cities <- c('boston', 'brooklyn', 'dallas', 'los angeles')
+party.cities <- c('brooklyn', 'los angeles', 'new york')
 party.rgx <- paste0('(', party.cities, ')', collapse = "|")
 
 lines[, party := 0]
@@ -188,77 +189,18 @@ getAvgAge <- function(t, s, game.date, roster) {
 lines[, avg.age := getAvgAge(team, season, date, roster), by = list(team, season, date)]
 lines[, avg.age := as.numeric(avg.age) %>% log]
 
-#save(lines, file = 'tmp_data/covers_lines.RData')
+save(lines, file = 'tmp_data/covers_lines.RData')
 
-##################################################
-### Exploring data
-##################################################
 
-require(ggplot2)
 
-hist(lines[, mean(outcome == 'W'), by = list(season, team)][, V1],
-     breaks = seq(0.3, 0.75, by = 0.025),
-     main = "How often are teams meeting the spread?",
-     xlab = "Proportion of games for which a team-year meets the spread")
 
-tmp <- lines[, list(meet.spread = mean(outcome == 'W'), .N),
-             by = list(last.game.loc, ndays.lgame)][order(ndays.lgame)]
 
-ggplot(tmp %>% na.omit, aes(x = ndays.lgame, y = meet.spread, label = N)) +
-    geom_point() +
-    geom_label() + 
-    geom_hline(yintercept = 0.5) + 
-    facet_wrap(facets = ~ last.game.loc)
 
-lines[party==1, .N, by = list(season, team)][, N] %>%
-    hist(main = "Number of party days by season-team", xlab = "Number of days",
-         ylab = "Frequency")
 
-tmp <- lines[, list(meet.spread = mean(outcome == 'W'), .N), 
-            by = list(pct, party)][order(pct)]
-ggplot(tmp, aes(x = pct, y = meet.spread, color = as.factor(party), label = N)) + 
-    geom_label() +
-    geom_smooth()
 
-m <- lines[,#grepl(party.rgx, game.loc) & !grepl(party.rgx, team),
-          list(meet.spread = mean(outcome == 'W'), pct = unique(pct), .N), by = list(team, season)]
-ggplot(m, aes(x = pct, y = meet.spread)) +
-    geom_point() +
-    facet_wrap(facets = ~season) + 
-    labs(title = "In select seasons, lagged performance not predictive of meet the spread",
-         x = "Percentage of games won last season",
-         y = "Proportion of games for which spread was met in current season")
 
-m <- lines[, list(meet.spread = mean(outcome == 'W'), .N), by = ndays.lgame][order(ndays.lgame)]
-ggplot(m, aes(x = ndays.lgame, y = meet.spread, label = N)) +
-    geom_point() +
-    geom_label(nudge_y = -.04) +
-    geom_hline(yintercept = 0.5) +
-    scale_x_continuous(limits = c(1, 12), breaks = 1:12, labels = 1:12) +
-    labs(x = "Number of days since last game", y = "Met the Spread",
-         title = paste("Proportion of games which meet spread",
-                       "as a function of rest-time",
-                       "(Counts indicate number of observations used)", sep = "\n"))
 
-tmp <- lines[, list(meet.spread = mean(outcome == 'W'), .N), by = list(team, party)][order(team, party)]
 
-hist(lines$avg.age)
 
-tmp <- lines[, list(meet.spread = mean(outcome == 'W'), .N), 
-            by = list(avg.age = round(avg.age, 2), party)][
-    order(avg.age, party)] %>% na.omit
 
-ggplot(tmp, aes(x = avg.age, y = meet.spread, 
-                color = party %>% as.factor, label = N)) + 
-    geom_point() +
-    geom_label() +
-    geom_smooth()
 
-##################################################
-### Toy model.
-##################################################
-
-model <- glm(outcome == 'W' ~ party + avg.age + party:avg.age + ndays.lgame + 
-                 pct + weekend + I(log(travel.dist+1)) + as.factor(season),
-             data = lines, family = 'binomial', subset = season > 2011 & season < 2017)
-summary(model)
