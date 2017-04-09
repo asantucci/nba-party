@@ -15,6 +15,9 @@
 ################################################################################
 ################################################################################
 
+### Notes and data-sources.
+  # http://www.nciaa.com/content.aspx?page_id=22&club_id=160641&module_id=29898
+
 ##################################################
 ### Set up Workspace
 ##################################################
@@ -36,8 +39,10 @@ clusterCall(cl, function() {
 ### Subset BLS Data into manageable chunks.
 ##############################
 
-SubsetBLS <- function(year, raw.path = 'raw_data/bls/', save.path = 'tmp_data/bls/',
-                      party = c('wine', 'spirit', 'beer', 'liquor', 'drinking')) {
+party <- c('sound recording', 'music publisher', 'musical group')
+
+SubsetBLS <- function(year, party.regex,
+                      raw.path = 'raw_data/bls/', save.path = 'tmp_data/bls/') {
     ### Create a listing of files for all relevant counties, load data.
     foldr <- list.files(path = raw.path, pattern = paste0(year, '.q1'), full.names = T)
     files <- list.files(path = foldr,
@@ -51,16 +56,16 @@ SubsetBLS <- function(year, raw.path = 'raw_data/bls/', save.path = 'tmp_data/bl
     ### We will take our own total later, so for now we take granular data.
     bls <- bls[grep("County, NAICS 6-digit", agglvl.title)]
     ### Create regex to subset to drinking establshimensts.
-    party <- paste0('(\\<', party, '\\>)', collapse = '|')
-    bls <- bls[grep(party, industry.title, ignore.case = T)]    
-    write.csv(x = bls, file = paste0(save.path, year, '.csv'))
+    party.regex <- paste0('(', party.regex, ')', collapse = '|')
+    bls <- bls[grep(party.regex, industry.title, ignore.case = T)]    
+    write.csv(x = bls, file = paste0(save.path, year, '.csv'), row.names = F)
     rm(bls)
     gc()
     return(NULL)
 }
 
 years <- 2010:2016
-parLapplyLB(cl, years, SubsetBLS)
+parLapplyLB(cl, years, SubsetBLS, party.regex = party)
 
 ##################################################
 ### Merge in BLS data with corresponding NBA teams.
@@ -90,14 +95,19 @@ locs[, county := ifelse(is.na(administrative.area.level.2),
 locs <- data.table(team = teams, county = locs$county)
 save(locs, file = 'tmp_data/team_locations.RData')
 
-drinks <- merge(locs, bls, by.x = 'county', by.y = 'area.title', all.x = T)
+musicians <- merge(locs, bls, by.x = 'county', by.y = 'area.title', all.x = T)
+musicians <- musicians[, list(nmusicians = mean(qtrly.estabs.count %>% as.numeric)),
+                       by = list(county, team, year)][order(year, nmusicians)]
 
-drinks <- drinks[, list(ndrinking.estabs = mean(qtrly.estabs.count %>% as.numeric)),
-                 by = list(county, team, year)][order(year, ndrinking.estabs)]
-save(drinks, file = 'tmp_data/ndrink_estabs.RData')
+### We'll use lagged data (sentiment about which city has the most bars/drinking
+  #  establshmnets may evolve slowly, so this is not unreasonable)
+setnames(musicians, 'year', 'season')
+musicians[, season := season %>% as.numeric %>% `+`(1)] 
+save(musicians, file = 'tmp_data/nmusician_estabs.RData')
 
 ### Used to check that each team matches exactly one county in BLS data
-### (Except for Toronto Raptors)
+  # (Except for Toronto Raptors)
 ## for (t in locs$county)
 ##     cat(paste0("Team ", t, " matched with ",
 ##                bls[grep(t, area.title, ignore.case = T), length(unique(area.title))], '\n'))
+
