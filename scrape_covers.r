@@ -29,7 +29,9 @@ clusterCall(cl, function() {
 })
 
 load(file = 'tmp_data/game_days.RData')
-game.days <- Filter(function(x) grepl("^201[^0]", x), game.days) 
+game.days <- Filter(function(x) x < Sys.Date() & x > '2010-11-25', game.days)
+## game.days <- Filter(function(x) grepl("^201[^0]", x), game.days)
+## game.days <- Filter(function(x) x < Sys.Date(), game.days)
 game.days <- gsub('-0([0-9])-', '-\\1-', game.days)
 
 ##############################
@@ -57,7 +59,8 @@ scrapeGame <- function(link) {
     })
 }
 
-scrapeCoverLines <- function(date, rescrape = F, save.path = 'raw_data/covers/') {
+scrapeCoverLines <- function(date, rescrape = F, save.path = 'raw_data/covers/', ntries = 0) {
+    if (ntries > 5) return(NULL)
     if (!rescrape && file.exists(paste0(save.path, date, '.csv')))
         return(NULL)
     cat(paste0("Now trying to download covers for date: ", date, "\n"))
@@ -83,7 +86,7 @@ scrapeCoverLines <- function(date, rescrape = F, save.path = 'raw_data/covers/')
     }, error = function(e) {
         Sys.sleep(1)
         cat(paste0('Error when downloading data for date: ', date, '\n'))
-        scrapeCoverLines(date)
+        scrapeCoverLines(date, ntries = ntries + 1)
     })
 }
 
@@ -95,4 +98,4 @@ scrapeCoverLines <- function(date, rescrape = F, save.path = 'raw_data/covers/')
 ### an individual core will need to re-call this function.
 clusterExport(cl, c('scrapeGame', 'scrapeCoverLines'))
 lines <- parLapplyLB(cl, game.days, scrapeCoverLines)
-
+#lapply(game.days, scrapeCoverLines)
