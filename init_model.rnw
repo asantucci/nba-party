@@ -41,6 +41,9 @@ set.seed(4052017)
 
 load(file = 'tmp_data/covers_lines.RData')
 load(file = 'tmp_data/nmusician_estabs.RData')
+load(file = 'tmp_data/population_by_county_year.RData')
+
+musicians <- merge(musicians, pop, by = c('county', 'season'), all.x = T)
 
 @ 
 
@@ -89,7 +92,8 @@ Our data range from 2010-2011 season through present, which includes part of the
 We examine which cities have a notable nightlife, as measured by our proxy.
 
 <<>>= 
-musicians[, list(average.nmusicians = mean(nmusicians) %>% round(., digits = 1)), by = team][order(average.nmusicians)]
+musicians[, list(average.nmusicians = mean(nmusicians) %>% round(., digits = 1)),
+          by = team][order(average.nmusicians)]
 @ 
 
 Los Angeles stands out, as does New York. Some runner ups include Chicago and Miami. 
