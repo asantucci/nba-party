@@ -80,7 +80,7 @@ lines <- merge(lines, musicians,
 
 setkey(lines, season, team, date)
 lines[, list(date, team, opponent, location, 
-             line, score, outcome, ndays.lgame, 
+             line, score, outcome, nhours.lgame, 
              travel.dist, avg.age, nmusicians)]
 
 @ 
@@ -103,13 +103,14 @@ of meeting the spread as a function of whether a team visited a city with an act
 the day before.
 
 <<echo=-4>>= 
-lines[, party := ifelse(ndays.lgame == 1, nmusicians, 0)]
 
-m <- glm(outcome == 'W' ~ party + ndays.lgame + travel.dist + avg.age, 
+HOURS <- 24
+lines[, party := ifelse(nhours.lgame <= HOURS, nmusicians, 0)]
+
+m <- glm(outcome == 'W' ~ party + nhours.lgame + travel.dist + avg.age, 
          data = lines[season < 2017 & last.game.loc != team])
 
 summary(m)
-
 
 @ 
 
@@ -120,15 +121,43 @@ statistically significant.
 If we re-train an even simpler model, we obtain fantastic betting performance.
 
 <<>>=
-m <- glm(outcome == 'W' ~ I(nmusicians*(ndays.lgame==1)), 
+HOURS <- 24
+m <- glm(outcome == 'W' ~ I(nmusicians*(nhours.lgame <= HOURS)), 
          data = lines[season < 2017 & last.game.loc != team])
 
 summary(m)$coef %>% round(., 5)
 
 ### We're only interested in making predictions when teams party.
-p <- predict(m, newdata = lines[season == 2017 & ndays.lgame == 1 & last.game.loc != team], 
+p <- predict(m, newdata = lines[season == 2017 & nhours.lgame <= HOURS & last.game.loc != team], 
              type = 'response')
-table(round(p), lines[season == 2017 & ndays.lgame == 1 & last.game.loc != team, outcome])
+p <- ifelse(p < .45, 0, 1)
+table(round(p), lines[season == 2017 & nhours.lgame <= HOURS & last.game.loc != team, outcome])
+
+@ 
+
+<<>>=
+
+require(lubridate)
+
+lines[, tpa := team.pts.admitted - mean(team.pts.admitted), by = list(team, season)]
+lines[, tps := team.pts.scored   - mean(team.pts.scored), by = list(team, season)]
+
+lm(tpa ~ last.game.time:party + I(hour(date))  + nhours.lgame, data = lines[nhours.lgame <= HOURS & last.game.loc != team]) %>% summary
+#lm(tps ~ party, data = lines) %>% summary
+
+lines[nhours.lgame <= 36, mean(tpa), by = last.game.loc][order(V1)]
+lines[nhours.lgame <= 36, mean(tps), by = last.game.loc][order(V1)]
+lines[nhours.lgame <= 36, mean(tps) - mean(tpa), by = last.game.loc][order(V1)]
+
+
+
+HOURS <- 24
+lines[, party := ifelse(nhours.lgame <= HOURS, nmusicians / log(population), 0)]
+m <- glm(outcome == 'W' ~ party + nhours.lgame + travel.dist + avg.age, 
+         data = lines[season < 2017 & last.game.loc != team])
+
+summary(m)
+
 
 @ 
 
