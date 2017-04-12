@@ -48,21 +48,26 @@ scrapeGame <- function(gameID, date, save.path = 'tmp_data/espn/') {
     away <- teams[1]
     home <- teams[2]
     names(data) <- c('linescore', away, home)
-    data <- rbind(cbind(data[[2]], team = away, date),
-                  cbind(data[[3]], team = home, date))
-    write.csv(data, file = paste0(save.path, gameID, '.csv'), row.names = F)
+    tryCatch(expr = {
+        data <- rbind(cbind(data[[2]], team = away, date),
+                      cbind(data[[3]], team = home, date))
+        write.csv(data, file = paste0(save.path, gameID, '.csv'), row.names = F)
+    }, error = function(e) return(NULL))
     return(NULL)
 }
 
-scrapeGames <- function(date, gameIDs)
+scrapeGames <- function(date, gameIDs, rescrape = F, path = 'tmp_data/espn') {
+    if (!rescrape) {
+        scraped <- list.files(path) %>% gsub('\\.csv', '', .)
+        gameIDs <- setdiff(gameIDs, scraped)
+    }
     lapply(gameIDs, scrapeGame, date = date)
+}
 
 ### Scrape.
 clusterExport(cl, varlist = c('scrapeGame', 'readHTMLTable', '%>%'))
-clusterMap(cl, fun = scrapeGames, gameID = gameIDs, date = game.days,
+clusterMap(cl, fun = scrapeGames, gameIDs = gameIDs, date = game.days,
            .scheduling = 'dynamic')
-
-
 
 
 
