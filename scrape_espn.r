@@ -41,22 +41,29 @@ gameIDs <- parSapplyLB(cl, game.days, extractGameIDs, simplify = F)
 save(gameIDs, file = 'tmp_data/espn_gameIDs.RData')
 
 ### For each game ID, we scrape the player data.
-scrapeGame <- function(gameID, date, save.path = 'tmp_data/espn/') {
+scrapeGame <- function(gameID, date, save.path = 'raw_data/espn/') {
     pg <- paste0('http://www.espn.com/nba/boxscore?gameId=', gameID)
+    doc <- htmlParse(pg)
+    l <- xpathApply(doc, path = '//tbody/tr/td')
+    a <- sapply(l, xmlValue)
+    Extract <- function(xmlvals, starting = 1) {
+        xmlvals <- xmlvals[starting:length(xmlvals)]
+        bidx <- grep("^(.{2,})\\1[A-Z]{1,2}$", xmlvals)[1]
+        lidx <- grep("(DNP)|(TEAM)", xmlvals)[1]
+        offset <- ifelse(xmlvals[lidx] == 'DNP', 2, 1)
+        return(xmlvals[bidx:(lidx-offset)] %>% matrix(., ncol = 15, byrow = T))
+    }
+    away <- Extract(a, 1)
+    home <- Extract(a, starting = grep("%", a)[1])
     data <- readHTMLTable(pg)[1:3]
     teams <- data$linescore[[1]] %>% as.character
-    away <- teams[1]
-    home <- teams[2]
-    names(data) <- c('linescore', away, home)
-    tryCatch(expr = {
-        data <- rbind(cbind(data[[2]], team = away, date),
-                      cbind(data[[3]], team = home, date))
-        write.csv(data, file = paste0(save.path, gameID, '.csv'), row.names = F)
-    }, error = function(e) return(NULL))
+    data <- rbind(cbind(away, teams[1], date %>% as.character),
+                  cbind(home, teams[2], date %>% as.character))
+    write.csv(data, file = paste0(save.path, gameID, '.csv'), row.names = F)
     return(NULL)
 }
 
-scrapeGames <- function(date, gameIDs, rescrape = F, path = 'tmp_data/espn') {
+scrapeGames <- function(date, gameIDs, rescrape = F, path = 'raw_data/espn') {
     if (!rescrape) {
         scraped <- list.files(path) %>% gsub('\\.csv', '', .)
         gameIDs <- setdiff(gameIDs, scraped)
@@ -65,7 +72,13 @@ scrapeGames <- function(date, gameIDs, rescrape = F, path = 'tmp_data/espn') {
 }
 
 ### Scrape.
-clusterExport(cl, varlist = c('scrapeGame', 'readHTMLTable', '%>%'))
+clusterExport(cl, varlist = 'scrapeGame')
+clusterCall(cl, function() {
+    require(data.table)
+    require(magrittr)
+    require(XML)
+})
+
 clusterMap(cl, fun = scrapeGames, gameIDs = gameIDs, date = game.days,
            .scheduling = 'dynamic')
 
