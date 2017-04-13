@@ -55,26 +55,35 @@ lm(tpa ~ party + I(hour(date))  + nhours.lgame, data = lines[nhours.lgame <= HOU
 
 espn <- fread('tmp_data/espn_player_data.csv')
 
-### Wow, keeping starters makes a big difference in lag.chg.pos effect!
-espn <- espn[espn[, .I[1:5], by = list(team, date)][, V1]]
+### keeping starters makes a big difference in lag.chg.pos effect
+#espn <- espn[espn[, .I[1:5], by = list(team, date)][, V1]]
 espn[, date := as.Date(date)]
 lines[, simple.date := as.character(date) %>% substr(., 1, 10) %>% as.Date]
 data <- merge(lines, espn,
-              by.x = c('team', 'simple.date'),
-              by.y = c('team', 'date'), all.x = T)
+              by.x = c('team', 'season', 'simple.date'),
+              by.y = c('team', 'season', 'date'), all.x = T)
 
 ### Create player-season demeaned features.
-data[, d.free  := free.made/min - mean(free.made/min), by = list(player, season)]
-data[, d.three := three.made/min - mean(three.made/min), by = list(player, season)]
-data[, d.reb   := reb  / min - mean(reb  / min), by = list(player, season)]
-data[, d.oreb  := oreb / min - mean(oreb / min), by = list(player, season)]
-data[, d.dreb  := dreb / min - mean(dreb / min), by = list(player, season)]
-data[, d.pts   := pts  / min - mean(pts  / min, na.rm=T), by = list(player, season)]
+## data[, d.free  := free.made/mins - mean(free.made/mins), by = list(player, season)]
+## data[, d.three := three.made/mins - mean(three.made/mins), by = list(player, season)]
+## data[, d.reb   := reb  / mins - mean(reb  / mins), by = list(player, season)]
+## data[, d.oreb  := oreb / mins - mean(oreb / mins), by = list(player, season)]
+## data[, d.dreb  := dreb / mins - mean(dreb / mins), by = list(player, season)]
+## data[, d.pts   := pts  / mins - mean(pts  / mins, na.rm=T), by = list(player, season)]
 
 ### Estimate player fatigue, by looking at number of changes in posession.
 data[, chg.pos := three.made + fg.made + free.attempted/2 + 
            to + (fg.attempted-fg.made + three.attempted - three.made - oreb)]
-changes <- data[, list(ttl.chg.pos = sum(chg.pos) / 2), # Since we sum by location-date we double count. 
+setkey(data, season, player, date)
+data[, lag.chg.pos := shift(chg.pos), by = list(season, player)]
+
+ggplot(data, aes(jitter(lag.chg.pos), jitter(lag.dreb.per.min))) +
+    geom_point() +
+    geom_smooth()
+
+
+
+changes <- data[, list(ttl.chg.pos = sum(chg.pos) / 2), # Since we sum by location-date we double count.
             keyby = list(season, location, date)]
 lines <- merge(lines, changes, by = c('season', 'location', 'date'))
 
@@ -86,12 +95,9 @@ glm(outcome == 'W' ~ party + nhours.lgame + I(log(travel.dist+1)) + lag.chg.pos,
     family = 'binomial') %>% summary
 
 glm(outcome == 'W' ~ lag.chg.pos,
-    data = lines[season < 2017 &
-                 lag.chg.pos < quantile(lag.chg.pos, 0.98,na.rm=T)],
+    data = lines[season < 2017],
     family = 'binomial') %>%
     summary
-
-require(ggplot2)
 
 
 ggplot(data = lines, aes(x = lag.chg.pos, y = jitter((outcome == 'W') %>% as.numeric))) +
@@ -107,7 +113,7 @@ data[, pm := as.numeric(pm)]
 data[, pf := as.numeric(pf)]
 
 ### WOW! Earn 1-2 points less per minute on average
-lm(I(pm / min) ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
+lm(I(pm / mins) ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
 
 lm(d.pts ~ party, data = data[season < 2017 & last.game.loc != team]%>%na.omit) %>% summary
 
