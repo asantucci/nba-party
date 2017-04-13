@@ -39,7 +39,6 @@ setkey(lines, season, team, date)
 HOURS <- 24
 lines[, party := ifelse(nhours.lgame <= HOURS, nmusicians, 0)]
 
-
 ##################################################
 ### Total Points Allowed
 ##################################################
@@ -63,27 +62,24 @@ data <- merge(lines, espn,
               by.x = c('team', 'season', 'simple.date'),
               by.y = c('team', 'season', 'date'), all.x = T)
 
-### Create player-season demeaned features.
-## data[, d.free  := free.made/mins - mean(free.made/mins), by = list(player, season)]
-## data[, d.three := three.made/mins - mean(three.made/mins), by = list(player, season)]
-## data[, d.reb   := reb  / mins - mean(reb  / mins), by = list(player, season)]
-## data[, d.oreb  := oreb / mins - mean(oreb / mins), by = list(player, season)]
-## data[, d.dreb  := dreb / mins - mean(dreb / mins), by = list(player, season)]
-## data[, d.pts   := pts  / mins - mean(pts  / mins, na.rm=T), by = list(player, season)]
-
 ### Estimate player fatigue, by looking at number of changes in posession.
 data[, chg.pos := three.made + fg.made + free.attempted/2 + 
            to + (fg.attempted-fg.made + three.attempted - three.made - oreb)]
 setkey(data, season, player, date)
 data[, lag.chg.pos := shift(chg.pos), by = list(season, player)]
 
-ggplot(data, aes(jitter(lag.chg.pos), jitter(lag.dreb.per.min))) +
+cor(data[, grep('per', names(data)), with = F], data$lag.chg.pos, use = 'complete')
+
+ggplot(data, aes(jitter(lag.chg.pos), jitter(dreb.per.min))) +
     geom_point() +
     geom_smooth()
 
+ggplot(data, aes(jitter(lag.chg.pos), jitter(pts.per.min))) +
+    geom_point() +
+    geom_smooth()
 
-
-changes <- data[, list(ttl.chg.pos = sum(chg.pos) / 2), # Since we sum by location-date we double count.
+# Since we sum by location-date we double count.
+changes <- data[, list(ttl.chg.pos = sum(chg.pos) / 2), 
             keyby = list(season, location, date)]
 lines <- merge(lines, changes, by = c('season', 'location', 'date'))
 
@@ -94,28 +90,15 @@ glm(outcome == 'W' ~ party + nhours.lgame + I(log(travel.dist+1)) + lag.chg.pos,
     data = lines[season < 2017 & last.game.loc != team],
     family = 'binomial') %>% summary
 
-glm(outcome == 'W' ~ lag.chg.pos,
-    data = lines[season < 2017],
-    family = 'binomial') %>%
+glm(reb.per.min ~ lag.chg.pos,
+    data = data[season < 2017]) %>%
     summary
 
-
-ggplot(data = lines, aes(x = lag.chg.pos, y = jitter((outcome == 'W') %>% as.numeric))) +
-    geom_point()
-
-setnames(data, '+/-', 'pm')
-
-lm(d.three ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
-lm(d.reb ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
-lm(d.dreb ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
-
-data[, pm := as.numeric(pm)]
-data[, pf := as.numeric(pf)]
+lm(reb.per.min ~ party,
+   data = data[season < 2017 & last.game.loc != team]) %>% summary
 
 ### WOW! Earn 1-2 points less per minute on average
-lm(I(pm / mins) ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
-
-lm(d.pts ~ party, data = data[season < 2017 & last.game.loc != team]%>%na.omit) %>% summary
+lm(pm.per.min ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
 
 ## data[grep("(los angeles)|(new york)|(brooklyn)", last.game.loc), 
 ##      list(average.d.dreb = mean(d.dreb)), by = player][order(average.d.dreb)] %>%
@@ -124,4 +107,7 @@ lm(d.pts ~ party, data = data[season < 2017 & last.game.loc != team]%>%na.omit) 
 ## data[grep("(los angeles)|(new york)|(brooklyn)", last.game.loc), 
 ##      list(average.d.pts = mean(d.pts)), by = player][order(average.d.pts)] %>%
 ##     write.csv(., file = 'dmeaned.pts.csv')
+
+
+
 
