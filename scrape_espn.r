@@ -48,18 +48,21 @@ scrapeGame <- function(gameID, date, save.path = 'raw_data/espn/') {
     a <- sapply(l, xmlValue)
     Extract <- function(xmlvals, starting = 1) {
         xmlvals <- xmlvals[starting:length(xmlvals)]
+        browser()
         bidx <- grep("^(.{2,})\\1[A-Z]{1,2}$", xmlvals)[1]
         lidx <- grep("(DNP)|(TEAM)", xmlvals)[1]
         offset <- ifelse(xmlvals[lidx] == 'DNP', 2, 1)
         return(xmlvals[bidx:(lidx-offset)] %>% matrix(., ncol = 15, byrow = T))
     }
-    away <- Extract(a, 1)
-    home <- Extract(a, starting = grep("%", a)[1])
-    data <- readHTMLTable(pg)[1:3]
-    teams <- data$linescore[[1]] %>% as.character
-    data <- rbind(cbind(away, teams[1], date %>% as.character),
-                  cbind(home, teams[2], date %>% as.character))
-    write.csv(data, file = paste0(save.path, gameID, '.csv'), row.names = F)
+    try(expr = {
+        away <- Extract(a, 1)
+        home <- Extract(a, starting = grep("%", a)[1])
+        data <- readHTMLTable(pg)[1:3]
+        teams <- data$linescore[[1]] %>% as.character
+        data <- rbind(cbind(away, teams[1], date %>% as.character),
+                      cbind(home, teams[2], date %>% as.character))
+        write.csv(data, file = paste0(save.path, gameID, '.csv'), row.names = F)
+    }, error = function(e) return(NULL))
     return(NULL)
 }
 
@@ -81,6 +84,7 @@ clusterCall(cl, function() {
 
 clusterMap(cl, fun = scrapeGames, gameIDs = gameIDs, date = game.days,
            .scheduling = 'dynamic')
+#mapply(scrapeGames, gameIDs = gameIDs, date = game.days)
 
 
 
