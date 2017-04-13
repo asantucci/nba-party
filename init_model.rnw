@@ -121,7 +121,7 @@ statistically significant.
 If we re-train an even simpler model, we obtain fantastic betting performance.
 
 <<>>=
-HOURS <- 24
+HOURS <- 36
 m <- glm(outcome == 'W' ~ I(nmusicians*(nhours.lgame <= HOURS)), 
          data = lines[season < 2017 & last.game.loc != team])
 
@@ -130,7 +130,6 @@ summary(m)$coef %>% round(., 5)
 ### We're only interested in making predictions when teams party.
 p <- predict(m, newdata = lines[season == 2017 & nhours.lgame <= HOURS & last.game.loc != team], 
              type = 'response')
-p <- ifelse(p < .45, 0, 1)
 table(round(p), lines[season == 2017 & nhours.lgame <= HOURS & last.game.loc != team, outcome])
 
 @ 
@@ -149,11 +148,9 @@ lines[, tps := team.pts.scored   - mean(team.pts.scored), by = list(team, season
 lm(tpa ~ last.game.time:party + I(hour(date))  + nhours.lgame, data = lines[nhours.lgame <= HOURS & last.game.loc != team]) %>% summary
 #lm(tps ~ party, data = lines) %>% summary
 
-lines[nhours.lgame <= 36, mean(tpa), by = last.game.loc][order(V1)]
-lines[nhours.lgame <= 36, mean(tps), by = last.game.loc][order(V1)]
-lines[nhours.lgame <= 36, mean(tps) - mean(tpa), by = last.game.loc][order(V1)]
-
-
+## lines[nhours.lgame <= 36, mean(tpa), by = last.game.loc][order(V1)]
+## lines[nhours.lgame <= 36, mean(tps), by = last.game.loc][order(V1)]
+## lines[nhours.lgame <= 36, mean(tps) - mean(tpa), by = last.game.loc][order(V1)]
 
 ##################################################
 ### musicians per log population
@@ -172,22 +169,53 @@ summary(m)
 
 espn <- fread('tmp_data/espn_player_data.csv')
 espn[, date := as.Date(date)]
-lines[, simple.date := as.Date(date)]
-data <- merge(lines, espn, by.x = c('team', 'simple.date'), by.y = c('team', 'date')) ### Careful which obs we keep!
+lines[, simple.date := as.character(date) %>% substr(., 1, 10) %>% as.Date]
+data <- merge(lines, espn, by.x = c('team', 'simple.date'), by.y = c('team', 'date'), all.x = T) ### Careful which obs we keep!
 
 data[, dmeaned.free  := free.made/min - mean(free.made/min), by = list(starters, season)]
 data[, dmeaned.three := three.made/min - mean(three.made/min), by = list(starters, season)]
 data[, dmeaned.reb   := reb / min - mean(reb / min), by = list(starters, season)]
+data[, dmeaned.oreb   := oreb / min - mean(oreb / min), by = list(starters, season)]
+data[, dmeaned.dreb   := dreb / min - mean(dreb / min), by = list(starters, season)]
+data[, dmeaned.pts   := pts / min - mean(pts / min,na.rm=T), by = list(starters, season)]
+
+data[, chg.pos := three.made + fg.made + free.attempted/2 + 
+           to + (fg.attempted-fg.made + three.attempted - three.made - oreb)]
+
+changes <- data[, list(ttl.chg.pos = sum(chg.pos)), 
+            keyby = list(season, team, date, opponent)]
+lines <- merge(lines, changes, by = c('season', 'team', 'date', 'opponent'))
+
+setkey(lines, season, team, date)
+lines[, lag.chg.pos := c(NA, lag(ttl.chg.pos)[1:.N-1]), by = list(season, team)]
+
+glm(outcome == 'W' ~ party + nhours.lgame + I(log(travel.dist+1)) + lag.chg.pos,
+    data = lines[season < 2017 & last.game.loc != team], family = 'binomial') %>% summary
+
 
 setnames(data, '+/-', 'pm')
 
 lm(dmeaned.three ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
 lm(dmeaned.reb ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
+lm(dmeaned.dreb ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
 
+data[, pm := as.numeric(pm)]
+data[, pf := as.numeric(pf)]
 ### WOW! Earn 1-2 points less per minute on average. (Further condition on player position?)
 ### Next goal: we should be able to recover our grand mean estimate above. That is, test model efficacy 
 ### by predicting the number of points a team will score using ex-ante minutes of play-time.
-lm(I(as.numeric(pm) / min) ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
+lm(I(pm / min) ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
+
+lm(dmeaned.pts ~ party, data = data[season < 2017 & last.game.loc != team]%>%na.omit) %>% summary
+
+## data[grep("(los angeles)|(new york)|(brooklyn)", last.game.loc), 
+##      list(average.dmeaned.dreb = mean(dmeaned.dreb)), by = starters][order(average.dmeaned.dreb)] %>%
+##     write.csv(., file = 'dmeaned.dreb.csv')
+
+## data[grep("(los angeles)|(new york)|(brooklyn)", last.game.loc), 
+##      list(average.dmeaned.pts = mean(dmeaned.pts)), by = starters][order(average.dmeaned.pts)] %>%
+##     write.csv(., file = 'dmeaned.pts.csv')
+
 
 @ 
 
