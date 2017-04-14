@@ -77,20 +77,41 @@ setkey(lines, season, team, date)
 lines[, lag.chg.pos := c(NA, lag(ttl.chg.pos)[1:.N-1]), by = list(season, team)]
 
 ### Good news: party significant after accounting for fatigue.
-m <- glm(outcome == 'W' ~ party + lag.chg.pos + travel.dist + nhours.lgame +
+m <- glm(outcome == 'W' ~ party + lag.chg.pos + I(travel.dist*(travel.dist>1800)) + nhours.lgame +
              I(hour(date)),
          data = lines[season < 2017 & last.game.loc != team], family = 'binomial')
 
 ### SVM for out of the box performance.
-lines <- lines[last.game.loc != team, list(hour = hour(date), last.game.time, travel.dist, party, lag.chg.pos, season, outcome)] %>% na.omit
+lines <- lines[last.game.loc != team,
+               list(hour = hour(date), last.game.time, travel.dist,
+                    party, lag.chg.pos, season, outcome)] %>% na.omit
 
-m <- svm(x = lines[season < 2017, -c("outcome", "season"), with = F],
-         y = lines[season < 2017, outcome == 'W'],
+require(e1071)
+m <- svm(x = lines[season < 2016, -c("outcome", "season"), with = F],
+         y = lines[season < 2016, outcome == 'W'],
          scale = T, type = 'C-classification', probability = T, kernel = 'sigmoid')
 
+preds <- predict(m, newdata = lines[season == 2016, -c("outcome", "season"), with = F])
+table(preds, lines[season == 2016, outcome])
 
-preds <- predict(m, newdata = lines[season == 2017, -c("outcome", "season"), with = F])
-table(preds, lines[season == 2017, outcome])
+require(mboost)
+lines[, game.time := hour(date)]
+m <- gamboost(as.factor(outcome == 'W') ~ party + lag.chg.pos + travel.dist + nhours.lgame + last.game.time + game.time, data = lines[season < 2017], family = Binomial())
+plot(m, which = "party", main = "Partial effect of Party on Meet Spread")
+plot(m, which = "lag.chg.pos", main = "Partial effect of lagged change in possesons on Meet Spread")
+plot(m, which = "travel.dist", main = "Partial effect of travel distance on Meet Spread") ## Gives intuition to add linear effect for travel.dist > 2k miles.
+abline(v = 400)   # When teams get off the bus and start to fly?
+abline(v = 1800)  # When jet-lag becomes too much and gets in the way of sleep?
+plot(m, which = "last.game.time")
+plot(m, which = "nhours.lgame")
+preds <- predict(m, newdata = lines[season == 2017 & last.game.loc != team] %>% data.frame, type = 'response')
+table(round(preds), lines[season == 2017 & last.game.loc != team, outcome])
+
+### Defensive rebounds.
+m <- gamboost(dreb.per.min ~ lag.mins + lag.chg.pos + party + nhours.lgame + last.game.time + travel.dist, data = data[season < 2017], family = Gaussian())
+plot(m, which = "lag.mins") # It's not as though playing more minutes hurts you...
+plot(m, which = 'lag.chg.pos', main = "The effect of lagged # changes in possesion for a player on rebound performance") # Too many chg. in possesions does hurt though...
+abline(h = 0, col = 'red')
 
 ### Just making sure we can recover our old betting numbers.
 HOURS <- 36
@@ -113,12 +134,11 @@ glm(outcome == 'W' ~ party + nhours.lgame + I(log(travel.dist+1)) + lag.chg.pos,
     data = lines[season < 2017 & last.game.loc != team],
     family = 'binomial') %>% summary
 
-glm(reb.per.min ~ lag.chg.pos,
-    data = data[season < 2017]) %>%
-    summary
-
-lm(reb.per.min ~ party,
-   data = data[season < 2017 & last.game.loc != team]) %>% summary
+#data[, fatigue := ifelse(nhours.lgame < 36, lag.chg.pos, 0)]
+lm(demeaned.reb.per.min ~ party + lag.chg.pos +
+       I(log(travel.dist+1)/nhours.lgame) + nhours.lgame,
+   data = data[season < 2017 & last.game.loc != team]) %>%
+   summary
 
 ### WOW! Earn 1-2 points less per minute on average
 lm(pm.per.min ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
