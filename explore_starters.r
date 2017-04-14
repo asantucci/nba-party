@@ -68,16 +68,6 @@ data[, chg.pos := three.made + fg.made + free.attempted/2 +
 setkey(data, season, player, date)
 data[, lag.chg.pos := shift(chg.pos), by = list(season, player)]
 
-cor(data[, grep('per', names(data)), with = F], data$lag.chg.pos, use = 'complete')
-
-ggplot(data, aes(jitter(lag.chg.pos), jitter(dreb.per.min))) +
-    geom_point() +
-    geom_smooth()
-
-ggplot(data, aes(jitter(lag.chg.pos), jitter(pts.per.min))) +
-    geom_point() +
-    geom_smooth()
-
 # Since we sum by location-date we double count.
 changes <- data[, list(ttl.chg.pos = sum(chg.pos) / 2), 
             keyby = list(season, location, date)]
@@ -85,6 +75,39 @@ lines <- merge(lines, changes, by = c('season', 'location', 'date'))
 
 setkey(lines, season, team, date)
 lines[, lag.chg.pos := c(NA, lag(ttl.chg.pos)[1:.N-1]), by = list(season, team)]
+
+### Good news: party significant after accounting for fatigue.
+m <- glm(outcome == 'W' ~ party + lag.chg.pos + travel.dist + nhours.lgame +
+             I(hour(date)),
+         data = lines[season < 2017 & last.game.loc != team], family = 'binomial')
+
+### SVM for out of the box performance.
+lines <- lines[last.game.loc != team, list(hour = hour(date), last.game.time, travel.dist, party, lag.chg.pos, season, outcome)] %>% na.omit
+
+m <- svm(x = lines[season < 2017, -c("outcome", "season"), with = F],
+         y = lines[season < 2017, outcome == 'W'],
+         scale = T, type = 'C-classification', probability = T, kernel = 'sigmoid')
+
+
+preds <- predict(m, newdata = lines[season == 2017, -c("outcome", "season"), with = F])
+table(preds, lines[season == 2017, outcome])
+
+### Just making sure we can recover our old betting numbers.
+HOURS <- 36
+m <- glm(outcome == 'W' ~ I(nmusicians * (nhours.lgame < HOURS)),
+         data = lines[season < 2017 & last.game.loc != team], family = 'binomial')
+
+preds <- predict(m, newdata = lines[season == 2017 & last.game.loc != team & nhours.lgame < HOURS], type = 'response')
+table(round(preds), lines[season == 2017 & last.game.loc != team & nhours.lgame < HOURS, outcome])
+#cor(data[, grep('per', names(data)), with = F], data$lag.chg.pos, use = 'complete')
+
+ggplot(data[nhours.lgame < 36],
+       aes(jitter(lag.chg.pos), jitter(demeaned.dreb.per.min), color = party)) +
+    geom_point()
+
+ggplot(data, aes(jitter(lag.chg.pos), jitter(demeaned.pts.per.min))) +
+    geom_point() +
+    geom_smooth()
 
 glm(outcome == 'W' ~ party + nhours.lgame + I(log(travel.dist+1)) + lag.chg.pos,
     data = lines[season < 2017 & last.game.loc != team],
@@ -109,5 +132,8 @@ lm(pm.per.min ~ party, data = data[season < 2017 & last.game.loc != team]) %>% s
 ##     write.csv(., file = 'dmeaned.pts.csv')
 
 
+cur.cols <- grep("^((fg)|(three)|(free)|([od]?reb)|(pts)|(pm)|(demeaned)|(chg.pos)|(ast)|(blk)|(to)|(pf)|(stl)|(score)|(line)|(tps)|(tpa)|(team\\.pts)|(nmusicians)|(population)|(roll.demeaned.pm.per.min)|(roll.demeaned.pts.per.min))",
+                 names(data), value = T)
+data[, (cur.cols) := NULL]
 
-
+m <- rpart(outcome == 'W' ~ ., data = data)
