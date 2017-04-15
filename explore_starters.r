@@ -37,7 +37,7 @@ lines <- merge(lines, musicians,
 setkey(lines, season, team, date)
 
 HOURS <- 24
-lines[, party := ifelse(nhours.lgame <= HOURS, nmusicians, 0)]
+lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team, nmusicians, 0)]
 
 ##################################################
 ### Total Points Allowed
@@ -46,7 +46,7 @@ lines[, party := ifelse(nhours.lgame <= HOURS, nmusicians, 0)]
 lines[, tpa := team.pts.admitted - mean(team.pts.admitted), by = list(team, season)]
 lines[, tps := team.pts.scored   - mean(team.pts.scored), by = list(team, season)]
 
-lm(tpa ~ party + I(hour(date))  + nhours.lgame, data = lines[nhours.lgame <= HOURS & last.game.loc != team]) %>% summary
+lm(tpa ~ party + I(hour(date))  + nhours.lgame, data = lines[nhours.lgame <= HOURS]) %>% summary
 
 ##################################################
 ### ESPN
@@ -77,22 +77,26 @@ setkey(lines, season, team, date)
 lines[, lag.chg.pos := c(NA, lag(ttl.chg.pos)[1:.N-1]), by = list(season, team)]
 
 ### Good news: party significant after accounting for fatigue.
-m <- glm(outcome == 'W' ~ party + lag.chg.pos + I(travel.dist*(travel.dist>1800)) + nhours.lgame +
-             I(hour(date)),
-         data = lines[season < 2017 & last.game.loc != team], family = 'binomial')
+require(splines)
+m <- glm(outcome == 'W' ~ party + lag.chg.pos + travel.dist + 
+             nhours.lgame + I(hour(date)),
+         data = lines[season < 2017], family = 'binomial',
+         na.action = 'na.exclude')
+
+#plot(m$data$nhours.lgame, residuals(m))
 
 ### SVM for out of the box performance.
-lines <- lines[last.game.loc != team,
-               list(hour = hour(date), last.game.time, travel.dist,
-                    party, lag.chg.pos, season, outcome)] %>% na.omit
+## lines <- lines[last.game.loc != team,
+##                list(hour = hour(date), last.game.time, travel.dist,
+##                     party, lag.chg.pos, season, outcome)] %>% na.omit
 
-require(e1071)
-m <- svm(x = lines[season < 2016, -c("outcome", "season"), with = F],
-         y = lines[season < 2016, outcome == 'W'],
-         scale = T, type = 'C-classification', probability = T, kernel = 'sigmoid')
+## require(e1071)
+## m <- svm(x = lines[season < 2016, -c("outcome", "season"), with = F],
+##          y = lines[season < 2016, outcome == 'W'],
+##          scale = T, type = 'C-classification', probability = T, kernel = 'radial')
 
-preds <- predict(m, newdata = lines[season == 2016, -c("outcome", "season"), with = F])
-table(preds, lines[season == 2016, outcome])
+## preds <- predict(m, newdata = lines[season == 2016, -c("outcome", "season"), with = F])
+## table(preds, lines[season == 2016, outcome])
 
 require(mboost)
 lines[, game.time := hour(date)]
@@ -100,8 +104,9 @@ m <- gamboost(as.factor(outcome == 'W') ~ party + lag.chg.pos + travel.dist + nh
 plot(m, which = "party", main = "Partial effect of Party on Meet Spread")
 plot(m, which = "lag.chg.pos", main = "Partial effect of lagged change in possesons on Meet Spread")
 plot(m, which = "travel.dist", main = "Partial effect of travel distance on Meet Spread") ## Gives intuition to add linear effect for travel.dist > 2k miles.
-abline(v = 400)   # When teams get off the bus and start to fly?
-abline(v = 1800)  # When jet-lag becomes too much and gets in the way of sleep?
+## abline(v = 400)   # When teams get off the bus and start to fly?
+## abline(v = 1800)  # When jet-lag becomes too much and gets in the way of sleep?
+abline(h = 0, lty = 'dashed')
 plot(m, which = "last.game.time")
 plot(m, which = "nhours.lgame")
 preds <- predict(m, newdata = lines[season == 2017 & last.game.loc != team] %>% data.frame, type = 'response')
@@ -115,7 +120,7 @@ abline(h = 0, col = 'red')
 
 ### Just making sure we can recover our old betting numbers.
 HOURS <- 36
-m <- glm(outcome == 'W' ~ I(nmusicians * (nhours.lgame < HOURS)),
+m <- glm(outcome == 'W' ~ I(nmusicians * (nhours.lgame < HOURS) / avg.age),
          data = lines[season < 2017 & last.game.loc != team], family = 'binomial')
 
 preds <- predict(m, newdata = lines[season == 2017 & last.game.loc != team & nhours.lgame < HOURS], type = 'response')
@@ -152,8 +157,37 @@ lm(pm.per.min ~ party, data = data[season < 2017 & last.game.loc != team]) %>% s
 ##     write.csv(., file = 'dmeaned.pts.csv')
 
 
+
 cur.cols <- grep("^((fg)|(three)|(free)|([od]?reb)|(pts)|(pm)|(demeaned)|(chg.pos)|(ast)|(blk)|(to)|(pf)|(stl)|(score)|(line)|(tps)|(tpa)|(team\\.pts)|(nmusicians)|(population)|(roll.demeaned.pm.per.min)|(roll.demeaned.pts.per.min))",
                  names(data), value = T)
 data[, (cur.cols) := NULL]
-
+require(rpart)
 m <- rpart(outcome == 'W' ~ ., data = data)
+plot(m)
+text(m, fancy=T, use.n = T)
+
+m <- rpart(as.factor(outcome == 'W') ~ season + nhours.lgame + last.game.time + travel.dist + avg.age + pct + party + lag.chg.pos + population, data = lines[season < 2016], control = rpart.control(cp = 0.004))
+p <- predict(m, newdata = lines[season == 2016], type = 'class')
+table(p, lines[season == 2016, outcome])
+plot(m)
+text(m, use.n = T)
+
+m <- rpart(as.factor(outcome == 'W') ~ party + lag.chg.pos + travel.dist + nhours.lgame, data = lines[season < 2016], control = rpart.control(cp = 0.0025))
+
+require(gbm)
+model <- gbm(I((outcome == 'W') %>% as.numeric) ~ party + lag.chg.pos +
+                 travel.dist + nhours.lgame,
+             data = lines[season < 2016] %>% na.omit %>% data.frame,
+             train.fraction = 0.5, interaction.depth = 2, shrinkage = 0.0001,
+             n.trees = 5000, bag.fraction = 0.5, cv.folds = 5,
+             distribution = 'bernoulli')
+best.iter <- gbm.perf(model, method = 'cv')
+summary(model)
+predictions <- predict(model, newdata = lines[season == 2016], type = 'response',
+                       n.trees = best.iter)
+table(round(predictions), lines[season == 2016, outcome])
+
+require(nnet)
+
+
+
