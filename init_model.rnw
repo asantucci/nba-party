@@ -94,7 +94,7 @@ espn[, date := as.Date(date)]
 espn[1:5, list(player, mins, reb, ast, stl, pm, pts, date, team)]
 @
 
-The data also contain information on the number of free throws, field goals, and
+The minutes data also contain information on the number of free throws, field goals, and
 three pointers made and attempted by each player in each game.
 
 \section{Which cities (don't) have nightlife?}
@@ -102,7 +102,7 @@ three pointers made and attempted by each player in each game.
 We examine which cities have a notable nightlife, as measured by our proxy;
 bottom and top five.
 
-<<>>= 
+<<echo=F>>= 
 musicians[, list(average.nmusicians = mean(nmusicians) %>% round(., digits = 1)),
           by = team][order(average.nmusicians)][c(1:5, 25:29)]
 @ 
@@ -213,6 +213,25 @@ p <- predict(m, newdata = lines[season == 2017 & nhours.lgame <= HOURS &
 table(round(p), lines[season == 2017 & nhours.lgame <= HOURS & 
                       last.game.loc != team, outcome])
 
+@ 
+
+\paragraph{An out of the box machine learning model}
+For fun, we try a simple support vector machine. We posit that whether
+teams party also depends on how much time they have between games; even
+when restricting our data to the twenty-four hour window after teams visit a party city, there is quite a bit of heterogeneity in when yesterday's game finished and when 
+today's starts that a non-linear classifier may be able to take advantage of.
+
+<<echo=2:5>>=
+require(e1071)
+svm.data <- lines[last.game.loc != team, list(hour = hour(date), last.game.time,
+                                              party, season, outcome)] %>% na.omit
+
+m <- svm(x = svm.data[season < 2016, -c('outcome', 'season'), with = F],
+         y = svm.data[season < 2016, outcome == 'W'],
+         scale = T, type = 'C-classification', probability = T, kernel = 'radial')
+
+preds <- predict(m, newdata = svm.data[season == 2016, -c('outcome', 'season'), with = F])
+table(preds, svm.data[season == 2016 , outcome])
 @ 
 
 \section{Player specific model}
