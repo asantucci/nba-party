@@ -47,77 +47,144 @@ musicians <- merge(musicians, pop, by = c('county', 'season'), all.x = T)
 
 @ 
 
-\section*{Data Sources} 
+\section{Data Sources} 
 
-\paragraph{Lines data} We obtained data from \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, which records the outcome of each game alongside the line set by a betting house.
+\subsection{Lines data} We obtained data from \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, which records the outcome of each game alongside the line set by a betting house.
 <<echo=F>>=
-lines[, list(date, team, opponent, line, score)]
+lines[, list(date = as.Date(date), team, opponent, line, score)]
 @ 
 
-\paragraph{BLS data} We also obtained data from
-\href{https://www.bls.gov/data/}{Bureau of Labor Statistics} which records the number of establishments by business type at the county-quarter level. \ul{As a 
+\subsection{BLS data} We also obtained data from
+\href{https://www.bls.gov/data/}{Bureau of Labor Statistics} which records the number of establishments by business type at the county-quarter level. As a 
 proxy for how much night-life there is in a city, we look toward the 
 number of sound recording studios, musical groups, and music publishers there 
-are for a particular county-year}: we simply calculate the average number of establishments across all three music categories listed above.\footnote{We caveat that since the Toronto Raptors are located in Canada, we don't have BLS data for this team.}
+are for a particular county-year: we simply calculate the average number of establishments across all three music categories listed above.\footnote{We caveat that since the Toronto Raptors are located in Canada, we don't have BLS data for this team.}
 
 <<echo=F>>=
 musicians[, county := gsub(' (county)|(division),.*$', '', county, ignore.case = T)]
 musicians[, list(county, team, season, nmusicians = round(nmusicians, 1))]
 @ 
 
-We then merge this in with our lines data, taking care to do so according to the
-last game's location. We also lag our BLS data by one year.
+We then merge this in with our lines data, taking care to do so according to each season-team's last game location; we also lag our BLS data by one year.
 To this data, we've created features such as 
 the number of days since last game, the last game location, the travel distance, and
-average age\footnote{We use $\log \textrm{\# days old}$, at the time the game is played.}.
+average age\footnote{We use $\log \textrm{\# days old}$, at the time the game is played.}. Our data range from 2010-2011 season through present, which includes part of the 2016-2017 season.
 
 
-<<echo=2>>=
+<<echo=F>>=
 ### Merge lines data with BLS data.
 lines <- merge(lines, musicians,
                by.x = c('season', 'last.game.loc'),
                by.y = c('season', 'team'), all.x = T)
 
 setkey(lines, season, team, date)
-lines[, list(date, team, opponent, location, 
-             line, score, outcome, nhours.lgame, 
-             travel.dist, avg.age, nmusicians)]
+
+## lines[, list(date, team, opponent, location, 
+##              line, score, outcome, nhours.lgame, 
+##              travel.dist, avg.age, nmusicians)]
 
 @ 
 
-Our data range from 2010-2011 season through present, which includes part of the 2016-2017 season.
+\subsection{Minutes data}
+We also gathered minutes data from \href{http://www.espn.com/nba/scoreboard/_/date/}{ESPN}.
 
-\subsection*{What cities have nightlife?}
+<<echo=F>>=
+espn <- fread('tmp_data/espn_player_data.csv')
+espn[, date := as.Date(date)]
+espn[1:5, list(player, mins, reb, ast, stl, pm, pts, date, team)]
+@
 
-We examine which cities have a notable nightlife, as measured by our proxy.
+The data also contain information on the number of free throws, field goals, and
+three pointers made and attempted by each player in each game.
+
+\section{Which cities (don't) have nightlife?}
+
+We examine which cities have a notable nightlife, as measured by our proxy;
+bottom and top five.
 
 <<>>= 
 musicians[, list(average.nmusicians = mean(nmusicians) %>% round(., digits = 1)),
-          by = team][order(average.nmusicians)]
+          by = team][order(average.nmusicians)][c(1:5, 25:29)]
 @ 
 
 Los Angeles stands out, as does New York. Some runner ups include Chicago and Miami. 
 
-\subsection*{A significant model} We keep things simple, and try to explain the likelihood
+\subsection{Defining a party variable}
+
+We have a free parameter: the time-window which we believe the hangover effect
+to last. Suppose we only look toward games which have been played in a party
+city at most 24 hours ago. We take care to ignore
+teams playing in their own cities.
+
+<<>>=
+HOURS <- 24
+lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team, nmusicians, 0)]
+@
+
+\section{Possible confounders}
+What if we pick up effects of a busy play schedule?
+Aside from accounting for how much rest time a team is allowed in between games,
+and travel distance between games, we're also interested to get a measure of
+fatigue incurred on the court.
+We account for this by bringing in minutes data, and counting the number of 
+times the players run back and forth on the court. This is crudely measured
+by the number of changes in posession. We back out this quantity.
+
+<<echo=6>>=
+
+lines[, simple.date := as.character(date) %>% substr(., 1, 10) %>% as.Date]
+data <- merge(lines, espn,
+              by.x = c('team', 'season', 'simple.date'),
+              by.y = c('team', 'season', 'date'), all.x = T)
+
+### Estimate player fatigue, by looking at number of changes in posession.
+data[, chg.pos := three.made + fg.made + free.attempted/2 + 
+           to + (fg.attempted-fg.made + three.attempted - three.made - oreb)]
+setkey(data, season, player, date)
+data[, lag.chg.pos := shift(chg.pos), by = list(season, player)]
+
+# Since we sum by location-date we double count.
+changes <- data[, list(ttl.chg.pos = sum(chg.pos) / 2), 
+            keyby = list(season, location, date)]
+lines <- merge(lines, changes, by = c('season', 'location', 'date'))
+
+setkey(lines, season, team, date)
+lines[, lag.chg.pos := c(NA, lag(ttl.chg.pos)[1:.N-1]), by = list(season, team)]
+
+@ 
+
+To end up with something like
+
+<<echo=F>>=
+lines[, list(date = simple.date, location = substr(location, 1, 7), 
+             team = substr(team, 1, 7), opponent = substr(opponent, 1, 7), 
+             line, score, outcome, 
+             avg.age, last.game.loc, nhours.lgame, travel.dist, party, lag.chg.pos)]
+@ 
+
+\section{A significant model} We keep things simple, and try to explain the likelihood
 of meeting the spread as a function of whether a team visited a city with an active night-life
 the day before.
 
 <<echo=-4>>= 
 
-HOURS <- 24
-lines[, party := ifelse(nhours.lgame <= HOURS, nmusicians, 0)]
-
-m <- glm(outcome == 'W' ~ party + nhours.lgame + travel.dist + avg.age, 
-         data = lines[season < 2017 & last.game.loc != team])
+m <- glm(outcome == 'W' ~ party + lag.chg.pos + travel.dist + 
+             nhours.lgame + I(hour(date)),
+         data = lines[season < 2017], family = 'binomial',
+         na.action = 'na.exclude')
 
 summary(m)
 
 @ 
 
 The sign of our ``\texttt{party}'' variable is intuitively correct, and 
-statistically significant. 
+statistically significant. The magnitude is also practically significant
+once we account for the units of \texttt{party} variable, i.e.
+visiting a party city such as New York or LA increases number of musicians
+by one or two hundred.
 
-\subsection*{A model worth betting on}
+\section{A model worth betting on}
+\paragraph{High precision model}
 If we re-train an even simpler model, we obtain fantastic betting performance.
 
 <<>>=
@@ -125,98 +192,62 @@ HOURS <- 36
 m <- glm(outcome == 'W' ~ I(nmusicians*(nhours.lgame <= HOURS)), 
          data = lines[season < 2017 & last.game.loc != team])
 
-summary(m)$coef %>% round(., 5)
-
 ### We're only interested in making predictions when teams party.
-p <- predict(m, newdata = lines[season == 2017 & nhours.lgame <= HOURS & last.game.loc != team], 
-             type = 'response')
-table(round(p), lines[season == 2017 & nhours.lgame <= HOURS & last.game.loc != team, outcome])
+p <- predict(m, newdata = lines[season == 2017 & nhours.lgame <= HOURS & 
+                                last.game.loc != team], type = 'response')
+table(round(p), lines[season == 2017 & nhours.lgame <= HOURS & 
+                      last.game.loc != team, outcome])
+
+@
+
+\paragraph{A model which realizes more games to bet on}
+We can try different variants, for example, supposing the treatment effect of visiting
+a city filled with musicians depends on the teams average age.
+
+<<echo=1>>=
+m <- glm(outcome == 'W' ~ I(nmusicians*(nhours.lgame <= HOURS)/avg.age), 
+         data = lines[season < 2017 & last.game.loc != team])
+
+p <- predict(m, newdata = lines[season == 2017 & nhours.lgame <= HOURS & 
+                                last.game.loc != team], type = 'response')
+table(round(p), lines[season == 2017 & nhours.lgame <= HOURS & 
+                      last.game.loc != team, outcome])
 
 @ 
 
-<<>>=
+\section{Player specific model}
 
-require(lubridate)
+Can we measure fatigue on a player specific model? Consider something like
+rebounds, which by player anecdote require a lot of energy.
+Does party have an effect on this outcome? We might be curious to disentangle
+what other factors effect player fatigue, as these could be possible confounders
+for our above analysis.
 
-##################################################
-### Total Points Allowed
-##################################################
+In particular, for each player, we calculate the number of rebounds per minute
+earned in a game, less the players average number of rebounds per minute for that
+season. We explore how this response variable can be explained as a function of
+\texttt{party}, the lagged number of changes in posessions, travel distance,
+and rest time since last game.
 
-lines[, tpa := team.pts.admitted - mean(team.pts.admitted), by = list(team, season)]
-lines[, tps := team.pts.scored   - mean(team.pts.scored), by = list(team, season)]
+<<echo=F>>=
+require(mboost)
+lines[, game.time := hour(date)]
 
-lm(tpa ~ last.game.time:party + I(hour(date))  + nhours.lgame, data = lines[nhours.lgame <= HOURS & last.game.loc != team]) %>% summary
-#lm(tps ~ party, data = lines) %>% summary
-
-## lines[nhours.lgame <= 36, mean(tpa), by = last.game.loc][order(V1)]
-## lines[nhours.lgame <= 36, mean(tps), by = last.game.loc][order(V1)]
-## lines[nhours.lgame <= 36, mean(tps) - mean(tpa), by = last.game.loc][order(V1)]
-
-##################################################
-### musicians per log population
-##################################################
-
-HOURS <- 24
-lines[, party := ifelse(nhours.lgame <= HOURS, nmusicians / log(population), 0)]
-m <- glm(outcome == 'W' ~ party + nhours.lgame + travel.dist + avg.age, 
-         data = lines[season < 2017 & last.game.loc != team])
-
-summary(m)
-
-##################################################
-### ESPN
-##################################################
-
-espn <- fread('tmp_data/espn_player_data.csv')
-espn[, date := as.Date(date)]
-lines[, simple.date := as.character(date) %>% substr(., 1, 10) %>% as.Date]
-data <- merge(lines, espn, by.x = c('team', 'simple.date'), by.y = c('team', 'date'), all.x = T) ### Careful which obs we keep!
-
-data[, dmeaned.free  := free.made/min - mean(free.made/min), by = list(starters, season)]
-data[, dmeaned.three := three.made/min - mean(three.made/min), by = list(starters, season)]
-data[, dmeaned.reb   := reb / min - mean(reb / min), by = list(starters, season)]
-data[, dmeaned.oreb   := oreb / min - mean(oreb / min), by = list(starters, season)]
-data[, dmeaned.dreb   := dreb / min - mean(dreb / min), by = list(starters, season)]
-data[, dmeaned.pts   := pts / min - mean(pts / min,na.rm=T), by = list(starters, season)]
-
-data[, chg.pos := three.made + fg.made + free.attempted/2 + 
-           to + (fg.attempted-fg.made + three.attempted - three.made - oreb)]
-
-changes <- data[, list(ttl.chg.pos = sum(chg.pos)), 
-            keyby = list(season, team, date, opponent)]
-lines <- merge(lines, changes, by = c('season', 'team', 'date', 'opponent'))
-
-setkey(lines, season, team, date)
-lines[, lag.chg.pos := c(NA, lag(ttl.chg.pos)[1:.N-1]), by = list(season, team)]
-
-glm(outcome == 'W' ~ party + nhours.lgame + I(log(travel.dist+1)) + lag.chg.pos,
-    data = lines[season < 2017 & last.game.loc != team], family = 'binomial') %>% summary
-
-
-setnames(data, '+/-', 'pm')
-
-lm(dmeaned.three ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
-lm(dmeaned.reb ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
-lm(dmeaned.dreb ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
-
-data[, pm := as.numeric(pm)]
-data[, pf := as.numeric(pf)]
-### WOW! Earn 1-2 points less per minute on average. (Further condition on player position?)
-### Next goal: we should be able to recover our grand mean estimate above. That is, test model efficacy 
-### by predicting the number of points a team will score using ex-ante minutes of play-time.
-lm(I(pm / min) ~ party, data = data[season < 2017 & last.game.loc != team]) %>% summary
-
-lm(dmeaned.pts ~ party, data = data[season < 2017 & last.game.loc != team]%>%na.omit) %>% summary
-
-## data[grep("(los angeles)|(new york)|(brooklyn)", last.game.loc), 
-##      list(average.dmeaned.dreb = mean(dmeaned.dreb)), by = starters][order(average.dmeaned.dreb)] %>%
-##     write.csv(., file = 'dmeaned.dreb.csv')
-
-## data[grep("(los angeles)|(new york)|(brooklyn)", last.game.loc), 
-##      list(average.dmeaned.pts = mean(dmeaned.pts)), by = starters][order(average.dmeaned.pts)] %>%
-##     write.csv(., file = 'dmeaned.pts.csv')
-
-
+lm(demeaned.reb.per.min ~ party + lag.chg.pos +
+       I(log(travel.dist+1)/nhours.lgame) + nhours.lgame,
+   data = data[season < 2017 & last.game.loc != team]) %>%
+   summary
 @ 
 
 \end{document}
+
+
+
+
+
+
+
+
+
+
+
