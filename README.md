@@ -21,3 +21,5 @@ We note that some of these predictors might have non-linear effects, e.g. distan
 "The Benefits of College Athletic Success: An Application of the Propensity Score Design", by Michael L. Anderson. March, 2017. [Paper](http://www.mitpressjournals.org/doi/pdfplus/10.1162/REST_a_00589)
 
 "Injury in the National Basketball Association", by Drakos et. al. July, 2010. [Paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3445097/)
+
+"How to read a baseball betting line", June 2007 [Paper](http://bleacherreport.com/articles/1113-how-to-read-a-baseball-betting-line)
