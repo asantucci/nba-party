@@ -55,6 +55,7 @@ fulls <- c('Atlanta Hawks',          'Brooklyn Nets',          'Boston Celtics',
            'Portland Trail Blazers', 'San Antonio Spurs', 'Sacramento Kings',         'Toronto Raptors',
            'Utah Jazz',              'Washington Wizards')
 
+write.csv(teams, file = 'tmp_data/team_abbreviations.csv', row.names = F)
 teams <- data.frame(team = fulls %>% tolower, abbr = abbrs %>% tolower, stringsAsFactors = F)
 lines <- merge(lines, teams, by.x = 'home', by.y = 'abbr', all.x = T)
 setnames(lines, 'team', 'home.team')
@@ -83,9 +84,10 @@ lines[, `:=`(home.pts = as.numeric(home.pts),
              away.pts = as.numeric(away.pts))]
 lines[, outcome := ifelse(home.pts + line >= away.pts, 'W', 'L')]  # Ties?
 lines[, score := paste(home.pts, away.pts, sep = '-')]
+lines[, nominal.outcome := home.pts > away.pts %>% as.integer]
 lines[, `:=`(home.pts = NULL, away.pts = NULL)]
 lines[, location := team]
-lines <- lines[, list(season, date, team, opponent, location, line, score, outcome)]
+#lines <- lines[, list(season, date, team, opponent, location, line, score, outcome)]
 
 ##################################################
 ### Creating a panel-data set.
@@ -161,9 +163,14 @@ getAvgAge <- function(t, s, game.date, roster) {
 lines[, avg.age := getAvgAge(team, season, date, roster), by = list(team, season, date)]
 lines[, avg.age := as.numeric(avg.age) %>% log]
 
-##############################
+##################################################
+### Win loss record
+##################################################
+lines[, loss.season := cumsum(!nominal.outcome), by = list(season, team)]
+
+##################################################
 ### Save Data
-##############################
+##################################################
 
 lines[, c('team.pts.scored', 'team.pts.admitted') := tstrsplit(score, split = '-', fixed = T)]
 lines[, `:=`(team.pts.scored = as.numeric(team.pts.scored),
