@@ -59,11 +59,11 @@ scrapeBoxScore <- function(link) {
         game.info <- xpathSApply(pg, path = '//div[@class="scorebox_meta"]', xmlValue)
         game.info <- strsplit(game.info, '[\r\n\t]+') %>%
             unlist %>%
-            Filter(function(x) x != '', .)        
+            Filter(function(x) x != '', .)
         return(data.frame(matchup = teams,
-                          date = game.info[1], start.time = game.info[2],
-                          attendance = game.info[3], location = game.info[4],
-                          duration = game.info[5]))
+                          date       = game.info[1], start.time = game.info[2],
+                          attendance = game.info[3], location   = game.info[4],
+                          duration   = game.info[5]))
     }, error=function(e) return(NULL))
 }
 
