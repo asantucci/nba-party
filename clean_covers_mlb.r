@@ -20,7 +20,7 @@ require(magrittr)
 
 ### Load in data files.
 files <- list.files('tmp_data/covers_mlb/', full.names = T)
-data <- lapply(files, fread) %>% rbindlist
+data <- lapply(files, fread) %>% rbindlist(., fill = T)
 data[, c('team', 'opponent') := tstrsplit(matchup, split = '-')]
 
 ### Expand team abbreviations.
