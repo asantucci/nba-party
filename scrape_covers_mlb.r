@@ -1,3 +1,24 @@
+################################################################################
+################################################################################
+################################################################################
+###
+### Title: SCrape Covers (MLB)
+###
+### Andreas Santucci
+###
+### Date: April 2017
+###
+### Inputs: 
+###
+### Dependencies: 
+###
+################################################################################
+################################################################################
+
+##############################
+### Set up workspace
+##############################
+
 require(data.table)
 require(magrittr)
 require(parallel)
@@ -6,6 +27,10 @@ load(file = 'tmp_data/game_days_mlb.RData')
 
 game.days <- Filter(function(x) x < Sys.Date() & x > as.Date('2010-11-25'),
                     x = game.days)
+
+##############################
+### Define functions
+##############################
 
 ### Scrapes lines data for a particular day.
 ### At the moment, just returns one betting observation.
@@ -46,6 +71,10 @@ clusterCall(cl, function(x) {
     require(XML)
 })
 clusterExport(cl, 'scrapeLines')
+
+##############################
+### Scrape!
+##############################
 
 RESCRAPE <- FALSE
 if (!RESCRAPE) {
