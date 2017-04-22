@@ -64,6 +64,11 @@ scrapeListingOfGames <- function(date) {
     }, error = function(e) return(NULL))
 }
 
+##############################
+### Scrape!
+##############################
+
+### Set up our cluster.
 cl <- makeCluster(detectCores())
 clusterCall(cl, function(x) {
     require(data.table)
@@ -72,10 +77,7 @@ clusterCall(cl, function(x) {
 })
 clusterExport(cl, 'scrapeLines')
 
-##############################
-### Scrape!
-##############################
-
+### Avoid re-scraping files, if desired.
 RESCRAPE <- FALSE
 if (!RESCRAPE) {
     scraped <- list.files('tmp_data/covers_mlb') %>%
@@ -84,7 +86,8 @@ if (!RESCRAPE) {
     game.days <- setdiff(game.days, scraped)
 }
 
-parLapplyLB(cl, game.days, scrapeListingOfGames)    
+### Scrape.
+parLapplyLB(cl, game.days, scrapeListingOfGames)
 
 
 
