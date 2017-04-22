@@ -26,7 +26,7 @@ require(XML)
 load(file = 'tmp_data/game_days_mlb.RData')
 
 game.days <- Filter(function(x) x < Sys.Date() & x > as.Date('2010-11-25'),
-                    x = game.days)
+                    x = game.days) %>% as.character
 
 ##############################
 ### Define functions
@@ -41,7 +41,7 @@ scrapeLines <- function(link) {
             return(data.frame("no", "lines", "data"))
         else
             head(lines, 1)
-    }, error = function(e) return(data.frame(rep("no lines data", 3))))
+    }, error = function(e) return(data.frame("no", "lines", "data")))
 }
 
 ### For a particular date,this function fetches a listing of games
@@ -78,10 +78,13 @@ clusterExport(cl, 'scrapeLines')
 
 RESCRAPE <- FALSE
 if (!RESCRAPE) {
-    scraped <- list.files('tmp_data/covers_mlb') %>% gsub('\\.csv', '')
+    scraped <- list.files('tmp_data/covers_mlb') %>%
+        gsub('\\.csv', '', .) %>%
+        as.character
     game.days <- setdiff(game.days, scraped)
 }
 
 parLapplyLB(cl, game.days, scrapeListingOfGames)    
+
 
 
