@@ -25,3 +25,5 @@ We note that some of these predictors might have non-linear effects, e.g. distan
 "How to read a baseball betting line", June 2007. [Paper](http://bleacherreport.com/articles/1113-how-to-read-a-baseball-betting-line)
 
 "MLB to Baseball Teams: Stop Celebrating in Public", Oct 2015.[Paper](http://www.esquire.com/sports/news/a39092/mlb-players-spraying-champagne-partying-rules/)
+
+"Why can't baseball players act more like hockey players", Oct 2015. [Paper](http://www.thehockeynews.com/news/article/why-cant-baseball-players-act-more-like-hockey-players)
