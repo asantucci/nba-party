@@ -52,6 +52,13 @@ scrapeListingOfGames <- function(date) {
         lines.links <- htmlParse(pg) %>%
             xpathSApply(., '//a/@href') %>%
             grep('linehistory', ., value = T, ignore.case = T)
+        ### Here, we are careful with games that got postponed (i.e. scheduled to play but no outcome).
+        game.ids.with.scores <- htmlParse(pg) %>%
+            xpathSApply(., '//a/@href') %>%
+            grep('boxscore', ., value = T, ignore.case = T) %>%
+            gsub('^.*boxscore([0-9]+)\\.html$', '\\1', .)
+        game.ids.with.scores <- paste0('(', game.ids.with.scores, ')', collapse = '|')
+        lines.links <- Filter(function(x) grepl(game.ids.with.scores, x), lines.links)
         games.stats <- readHTMLTable(pg)
         teams <- sapply(games.stats, function(x)
             x[, 1] %>% as.character  %>% paste(., collapse = '-'))
@@ -61,6 +68,7 @@ scrapeListingOfGames <- function(date) {
         data <- data.frame(date = date, matchup = teams, lines, score = scores)
         write.csv(data, file = paste0('tmp_data/covers_mlb/', date, '.csv'),
                   row.names = F)
+        cat(paste0("Wrote to disk data for date: ", date, "\n"))
     }, error = function(e) return(NULL))
 }
 
@@ -89,5 +97,6 @@ if (!RESCRAPE) {
 ### Scrape.
 parLapplyLB(cl, game.days, scrapeListingOfGames)
 
+## lapply(game.days, scrapeListingOfGames)
 
 
