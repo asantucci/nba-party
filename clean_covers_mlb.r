@@ -8,25 +8,18 @@
 ###
 ### Date: April 2017
 ###
-### Inputs: 
+### Inputs:
 ###
 ### Dependencies: 
 ###
 ################################################################################
 ################################################################################
 
+
 require(data.table)
 require(magrittr)
 
-### Load in data files.
-files <- list.files('tmp_data/covers_mlb/', full.names = T)
-data <- lapply(files, fread) %>% rbindlist(., fill = T)
-data[, c('team', 'opponent') := tstrsplit(matchup, split = '-')]
-
-data <- data[, list(date, matchup, team, opponent, Line, score)]
-
-### Expand team abbreviations.
-abbrs <- data[, unique(c(unique(team), unique(opponent))) %>% sort]
+### A character vector of full team names.
 fulls <- c('arizona diamondbacks', 'atlanta braves', 'baltimore orioles', 'boston redsox',
            'chicago cubs', 'chicago whitesox', 'cincinati reds', 'cleveland indians',
            'colorado rockets', 'detroit tigers', 'houston astros', 'kansas city royals',
@@ -35,27 +28,91 @@ fulls <- c('arizona diamondbacks', 'atlanta braves', 'baltimore orioles', 'bosto
            'philadelphia phillies', 'pittsburgh pirates', 'san diego padres', 'seattle mariners',
            'san francisco giants', 'st louis cardinals', 'tampa bay rays', 'texas rangers',
            'toronto blue jays', 'washington nationals')
+
+
+##################################################
+### Load raw money-lines from covers.com.
+##################################################
+files <- list.files('tmp_data/covers_mlb/', full.names = T)
+data <- lapply(files, fread) %>% rbindlist(., fill = T)
+data[, c('team', 'opponent') := tstrsplit(matchup, split = '-')]
+data <- data[, list(date, matchup, team, opponent, Line, score)]
+
+##################################################
+### Covers.com uses team abbreviations. Expand them.
+##################################################
+
+abbrs <- data[, unique(c(unique(team), unique(opponent))) %>% sort]
 abbrs <- data.table(abbr = abbrs, team.full = fulls)
+
+### Expand team-names.
 data <- merge(data, abbrs, by.x = 'team', by.y = 'abbr', all = T)
 setnames(abbrs, 'team.full', 'opponent.full')
+
+### Expand opponent-names.
 data <- merge(data, abbrs, by.x = 'opponent', by.y = 'abbr', all = T)
 data[, c('matchup', 'team', 'opponent') := NULL]
+
+### Rename variables.
 setnames(data, gsub('\\.full', '', tolower(names(data))))
 setcolorder(data, c('date', 'team', 'opponent', 'line', 'score'))
 
+##################################################
+### Merge in Game-Information
+##################################################
+
+load(file = 'tmp_data/game_info_mlb.RData')
+game.info <- game.info[!grep("Vs\\..*Vs\\.", matchup)]
+
+### Get nick-names for lines data, so we can merge with game info.
+setnames(abbrs, c('abbr', 'team'))
+abbrs[, nick := gsub('.* ([^ ]+)$', '\\1', team)]
+abbrs[nick == 'rays', nick := 'bay rays']
+abbrs[nick == 'jays', nick := 'blue jays']
+setnames(abbrs, paste('team', names(abbrs), sep = '.'))
+data <- merge(data, abbrs, by.x = 'team', by.y = 'team.team', all.x = T)
+setnames(abbrs, gsub('team', 'opponent', names(abbrs)))
+data <- merge(data, abbrs, by.x = 'opponent', by.y = 'opponent.opponent', all = T)
+
+### Save an abbreviations file in case we need it later.
+write.csv(abbrs, file = 'mlb_abbrs.csv', row.names = F)
+
+### There's a difference in spacing for [color]-sox. We rectify this here.
+game.info[, c('team.nick', 'opponent.nick') := tstrsplit(matchup, split = ' Vs\\. ')]
+game.info[, team.nick := gsub('(.*) sox', '\\1sox', team.nick, ignore.case = T) %>% tolower]
+game.info[, opponent.nick := gsub('(.*) sox', '\\1sox', opponent.nick, ignore.case = T) %>% tolower]
+
+### Set up column names and types for the merge.
+setnames(game.info, 'location', 'stadium')
+game.info[, date := as.Date(date, format = '%A, %B %d, %Y')]
+data[, date := as.Date(date)]
+data <- merge(data, game.info, by = c('team.nick', 'opponent.nick', 'date'), all = T)
+
+
+##################################################
+### Variable creation and column classes.
+##################################################
+
+### Create a numeric money-line variable.
 data[, line := gsub(' \\(Open\\)$', '', line) %>% as.numeric]
-data[, location := opponent] ### See http://www.covers.com/sports/MLB/matchups?selectedDate=2011-4-01.
 data <- data[!is.na(line)]
 
+### Set the location of the game.
+##  Ex: http://www.covers.com/sports/MLB/matchups?selectedDate=2011-4-01
+data[, location := opponent] ### .
+
+### Determine the odds of winning, backed out from the money-line.
 data[, odds := ifelse(line < 0, 100 / (-line + 100), line / (line + 100))]
 
 ### The line is applied to 'team', and the sign indicates whether they are favored.
-## data[, mean(team.score > opponent.score), by = sign(line)]
-## lm(I(team.score > opponent.score) ~ odds, data) %>% summary
+##  data[, mean(team.score > opponent.score), by = sign(line)]
+##  lm(I(team.score > opponent.score) ~ odds, data) %>% summary
 
 data[, weekday := weekdays(as.Date(date))]
 
+##################################################
 ### Creating panel data-set.
+##################################################
 lines.dup <- copy(data)
 lines.dup[, `:=`(team = opponent, opponent = team,
                  score = strsplit(score, split = '-') %>%
@@ -66,28 +123,10 @@ lines.dup[, `:=`(team = opponent, opponent = team,
 
 lines <- rbind(data, lines.dup)
 
-load(file = 'tmp_data/game_info_mlb.RData')
-game.info <- game.info[!grep("Vs\\..*Vs\\.", matchup)]
-game.info[, c('team.nick', 'opponent.nick') := tstrsplit(matchup, split = ' Vs\\. ')]
 
-### Get nick-names for lines data, so we can merge with game info.
-setnames(abbrs, c('abbr', 'team'))
-abbrs[, nick := gsub('.* ([^ ]+)$', '\\1', team)]
-abbrs[nick == 'rays', nick := 'bay rays']
-abbrs[nick == 'jays', nick := 'blue jays']
-setnames(abbrs, paste('team', names(abbrs), sep = '.'))
-lines <- merge(lines, abbrs, by.x = 'team', by.y = 'team.team', all.x = T)
-setnames(abbrs, gsub('team', 'opponent', names(abbrs)))
-lines <- merge(lines, abbrs, by.x = 'opponent', by.y = 'opponent.opponent', all = T)
 
-write.csv(abbrs, file = 'mlb_abbrs.csv', row.names = F)
 
-game.info[, team.nick := gsub('(.*) sox', '\\1sox', team.nick, ignore.case = T) %>% tolower]
-game.info[, opponent.nick := gsub('(.*) sox', '\\1sox', opponent.nick, ignore.case = T) %>% tolower]
-setnames(game.info, 'location', 'stadium')
-game.info[, date := as.Date(date, format = '%A, %B %d, %Y')]
-lines[, date := as.Date(date)]
-lines <- merge(lines, game.info, by = c('team.nick', 'opponent.nick', 'date'), all = T)
+
 
 lines[, season := year(date)]
 setkey(lines, team, season, date)
@@ -109,9 +148,10 @@ lines[, party := ifelse(last.game.loc != team, nmusicians, 0)]
 m <- glm(I(team.score > opponent.score) ~ party + I(team == location) + odds,
          data = lines, family = 'binomial')
 
+### Try bootstrapping coefficients for last.game.loc effect.
 lines <- lines[season < 2017]
 require(sampling)
-set.seed(04212017)
+set.seed(290010)
 s <- strata(lines, c('season', 'last.game.loc'),
        size = rep(50, 30*length(unique(lines$season))), method = 'srswor')
 bstrap.sample <- lines[s$ID_unit]
@@ -123,16 +163,5 @@ train.sample <- train.sample[cf, on = 'last.game.loc']
 
 glm(I(team.score > opponent.score) ~ cf + odds + I(team == location), data = train.sample) %>% summary
 
-### Distance traveled. nhours last game.
-
+### Distance traveled. nhours last game...
 lines[, mean(team.score > opponent.score), by = last.game.loc][order(V1)]
-
-
-
-
-
-
-
-
-
-
