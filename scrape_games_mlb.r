@@ -77,4 +77,5 @@ clusterCall(cl, function() {
 
 ### Scrape game information.
 game.info <- parLapplyLB(cl, links, scrapeBoxScore)
-game.info <- rbindlist(gameinfo)
+game.info <- rbindlist(game.info)
+save(game.info, file = 'tmp_data/game_info_mlb.RData')
