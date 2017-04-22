@@ -22,4 +22,6 @@ We note that some of these predictors might have non-linear effects, e.g. distan
 
 "Injury in the National Basketball Association", by Drakos et. al. July, 2010. [Paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3445097/)
 
-"How to read a baseball betting line", June 2007 [Paper](http://bleacherreport.com/articles/1113-how-to-read-a-baseball-betting-line)
+"How to read a baseball betting line", June 2007. [Paper](http://bleacherreport.com/articles/1113-how-to-read-a-baseball-betting-line)
+
+"MLB to Baseball Teams: Stop Celebrating in Public", Oct 2015.[Paper](http://www.esquire.com/sports/news/a39092/mlb-players-spraying-champagne-partying-rules/)
