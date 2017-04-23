@@ -15,7 +15,6 @@
 ################################################################################
 ################################################################################
 
-
 require(data.table)
 require(magrittr)
 require(sampling)
@@ -29,7 +28,6 @@ fulls <- c('arizona diamondbacks', 'atlanta braves', 'baltimore orioles', 'bosto
            'philadelphia phillies', 'pittsburgh pirates', 'san diego padres', 'seattle mariners',
            'san francisco giants', 'st louis cardinals', 'tampa bay rays', 'texas rangers',
            'toronto blue jays', 'washington nationals')
-
 
 ##################################################
 ### Load raw money-lines from covers.com.
@@ -131,8 +129,8 @@ lines.dup[, `:=`(team = opponent, opponent = team,
 lines <- rbind(data, lines.dup)
 
 lines[, season := year(date)]
-setkey(lines, team, season, date)
 
+setkey(lines, team, season, date)
 lines[, nhours.lgame  := c(NA, diff(date)),            by = list(team, season)]
 lines[, last.game.loc := c(NA, lag(location)[1:.N-1]), by = list(team, season)]
 
@@ -175,13 +173,54 @@ m <- glm(I(team.score > opponent.score) ~ party + I(team == location) +
              odds + nhours.lgame + weekend + travel.dist,
          data = lines, family = 'binomial')
 
+Predict <- function(prediction, vegas, threshold) {
+    if (is.na(prediction)) return(NA)
+    dif <- prediction - vegas
+    if (abs(dif) > threshold) {
+        if (dif < 0)
+            return(0)
+        else
+            return(1)
+    }
+    return(NA)
+}
+
+Bet <- function(our.prediction, actual.outcome, odds) {
+    actual.outcome = as.integer(actual.outcome)
+    if (is.na(our.prediction)) return(NA_integer_)
+    if (our.prediction == actual.outcome) {
+        if (our.prediction > 0)
+            return(100 / odds - 100 - 5)
+        else if (our.prediction == 0)
+            return(100 / (1-odds) - 100 - 5)
+    } else if (our.prediction != actual.outcome)
+        return(-100)
+}
 
 ### Prediction model. Train only on obs up until 2016, and use 2016 as holdout.
-m <- glm(I(team.score > opponent.score) ~ party + I(team == location) +
-             odds + nhours.lgame + weekend + travel.dist,
+m <- glm(I(team.score > opponent.score) ~ party + odds,
          data = lines[year(date) < 2016], family = 'binomial')
 p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
+
+idx <- which( p > 0.65)
+lines[year(date) == 2016][idx, mean(team.score > opponent.score)]
 table(round(p), lines[year(date) == 2016, team.score > opponent.score]) # 53.7% success rate.
+
+m <- glm(I(team.score > opponent.score) ~ odds + party,
+         data = lines[year(date) < 2016], family = 'binomial')
+p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
+
+p1 <- mapply(Predict, prediction = p, vegas = lines[year(date) == 2016, odds],
+             MoreArgs=list(threshold = 0.01))
+b <- mapply(Bet, our.prediction = p1,
+            actual.outcome = lines[year(date) == 2016, team.score > opponent.score],
+            odds = lines[year(date) == 2016, odds], SIMPLIFY = T)
+
+idx <- which(p > 0.65)
+lines[year(date) == 2016][idx, mean(team.score > opponent.score, na.rm = T)] 
+
+table(round(p), lines[year(date) == 2016, team.score > opponent.score]) # 53.9% success rate. :-(
+
 
 ### Try bootstrapping coefficients for last.game.loc effect.
 lines <- lines[!is.na(last.game.loc)]
