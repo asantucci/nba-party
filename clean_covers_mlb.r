@@ -198,28 +198,44 @@ Bet <- function(our.prediction, actual.outcome, odds) {
 }
 
 ### Prediction model. Train only on obs up until 2016, and use 2016 as holdout.
-m <- glm(I(team.score > opponent.score) ~ party + odds,
+m <- glm(I(team.score > opponent.score) ~ odds,
          data = lines[year(date) < 2016], family = 'binomial')
 p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
 
-idx <- which( p > 0.65)
+plot(lines[year(date) == 2016, odds], p)
+abline(a = 0, b = 1)
+abline(h=1)
+
+points(x = lines[year(date) == 2016, odds], y = predict(m, newdata = data.frame(odds=p)))
+
+idx <- which(p < .45)
+## idx <- which( p > 0.65)
 lines[year(date) == 2016][idx, mean(team.score > opponent.score)]
 table(round(p), lines[year(date) == 2016, team.score > opponent.score]) # 53.7% success rate.
 
-m <- glm(I(team.score > opponent.score) ~ odds + party,
+m <- glm(I(team.score > opponent.score) ~ party,
          data = lines[year(date) < 2016], family = 'binomial')
 p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
 
-p1 <- mapply(Predict, prediction = p, vegas = lines[year(date) == 2016, odds],
+idx <- which(p < .45)
+p1 <- mapply(Predict, prediction = p[idx], vegas = lines[year(date) == 2016, odds][idx],
              MoreArgs=list(threshold = 0.01))
 b <- mapply(Bet, our.prediction = p1,
-            actual.outcome = lines[year(date) == 2016, team.score > opponent.score],
-            odds = lines[year(date) == 2016, odds], SIMPLIFY = T)
+            actual.outcome = lines[year(date) == 2016, team.score > opponent.score][idx],
+            odds = lines[year(date) == 2016, odds][idx], SIMPLIFY = T)
 
 idx <- which(p > 0.65)
 lines[year(date) == 2016][idx, mean(team.score > opponent.score, na.rm = T)] 
 
 table(round(p), lines[year(date) == 2016, team.score > opponent.score]) # 53.9% success rate. :-(
+
+
+######
+dat <- data.frame(x = rnorm(100), y = rnorm(100))
+m <- lm(y ~ x, dat)
+p <- predict(m, newdata = dat)
+
+#####
 
 
 ### Try bootstrapping coefficients for last.game.loc effect.
