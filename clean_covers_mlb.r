@@ -18,6 +18,7 @@
 
 require(data.table)
 require(magrittr)
+require(sampling)
 
 ### A character vector of full team names.
 fulls <- c('arizona diamondbacks', 'atlanta braves', 'baltimore orioles', 'boston redsox',
@@ -36,7 +37,7 @@ fulls <- c('arizona diamondbacks', 'atlanta braves', 'baltimore orioles', 'bosto
 files <- list.files('tmp_data/covers_mlb/', full.names = T)
 data <- lapply(files, fread) %>% rbindlist(., fill = T)
 data[, c('team', 'opponent') := tstrsplit(matchup, split = '-')]
-data <- data[, list(date, matchup, team, opponent, Line, score)]
+data <- data[!is.na(Line), list(date, matchup, team, opponent, Line, score)]
 
 ##################################################
 ### Covers.com uses team abbreviations. Expand them.
@@ -67,7 +68,6 @@ game.info <- game.info[!grep("Vs\\..*Vs\\.", matchup)]
 ### Get nick-names for lines data, so we can merge with game info.
 setnames(abbrs, c('abbr', 'team'))
 abbrs[, nick := gsub('.* ([^ ]+)$', '\\1', team)]
-abbrs[nick == 'rays', nick := 'bay rays']
 abbrs[nick == 'jays', nick := 'blue jays']
 setnames(abbrs, paste('team', names(abbrs), sep = '.'))
 data <- merge(data, abbrs, by.x = 'team', by.y = 'team.team', all.x = T)
@@ -87,7 +87,7 @@ setnames(game.info, 'location', 'stadium')
 game.info[, date := as.Date(date, format = '%A, %B %d, %Y')]
 data[, date := as.Date(date)]
 data <- merge(data, game.info, by = c('team.nick', 'opponent.nick', 'date'), all = T)
-
+data <- data[year(date) > 2010]
 
 ##################################################
 ### Variable creation and column classes.
@@ -95,7 +95,7 @@ data <- merge(data, game.info, by = c('team.nick', 'opponent.nick', 'date'), all
 
 ### Create a numeric money-line variable.
 data[, line := gsub(' \\(Open\\)$', '', line) %>% as.numeric]
-data <- data[!is.na(line)]
+data <- data[!is.na(line) & !is.na(matchup)]
 
 ### Set the location of the game.
 ##  Ex: http://www.covers.com/sports/MLB/matchups?selectedDate=2011-4-01
@@ -109,6 +109,13 @@ data[, odds := ifelse(line < 0, 100 / (-line + 100), line / (line + 100))]
 ##  lm(I(team.score > opponent.score) ~ odds, data) %>% summary
 
 data[, weekday := weekdays(as.Date(date))]
+data[, duration := gsub('Game Duration: ', '', duration)]
+data[, stadium  := gsub('Venue: ', '', stadium)]
+data[, attendance := gsub('Attendance: ', '', attendance) %>% gsub(',', '', . ) %>% as.numeric]
+data[, start.time := gsub('Start Time: ', '', start.time)]
+data[, start.time := gsub(' +(ET)|(Local)$', '', start.time)]
+data[, date := as.POSIXct(paste(date, start.time))]
+data[, start.time := NULL]
 
 ##################################################
 ### Creating panel data-set.
@@ -123,45 +130,82 @@ lines.dup[, `:=`(team = opponent, opponent = team,
 
 lines <- rbind(data, lines.dup)
 
-
-
-
-
-
 lines[, season := year(date)]
 setkey(lines, team, season, date)
 
-lines[, ndays.lgame   := c(NA, diff(date)),              by = list(team, season)]
-lines[, last.game.loc  := c(NA, lag(location)[1:.N-1]),   by = list(team, season)]
+lines[, nhours.lgame  := c(NA, diff(date)),            by = list(team, season)]
+lines[, last.game.loc := c(NA, lag(location)[1:.N-1]), by = list(team, season)]
+
+### Here, we geocode team locations to get lat-lon, and also addresses.
+## require(ggmap)
+## require(sp)
+## teams <- lines[, unique(team)]
+## locs <- sapply(teams, geocode, simplify = F)
+## locs <- do.call(rbind, locs)
+## locs[['team']] <- rownames(locs)
+## setDT(locs)
+
+## dmat <- spDists(locs[, list(lon, lat)] %>% as.matrix, longlat = T) # Returns distance in kilometers.
+## dmat <- dmat / 1.60934  # Convert to Miles.
+## rownames(dmat) <- locs$team
+## colnames(dmat) <- locs$team
+## save(dmat, file = 'tmp_data/distance_matrix_mlb.RData')
+load(file = 'tmp_data/distance_matrix_mlb.RData')
+
+getDist <- function(current, last, distances)
+    if (!is.na(current) && !is.na(last))
+        distances[current, last]
+
+lines[, travel.dist := getDist(location, last.game.loc, dmat), by = list(location, last.game.loc)]
+
 
 lines[, c('team.score', 'opponent.score') := tstrsplit(score, split = '-')]
-
-party.cities <- '(los angeles)|(new york)'
 lines[, weekend := weekday %in% c('Saturday', 'Sunday')]
 
 load(file = 'tmp_data/nmusician_estabs_mlb.RData')
 lines <- merge(lines, musicians,
                by.x = c('season', 'last.game.loc'),
                by.y = c('season', 'team'), all.x = T)
-lines[, party := ifelse(last.game.loc != team, nmusicians, 0)]
-#lines[, party := ifelse(grepl(party.cities, last.game.loc) & team != last.game.loc, 1, 0)]
-m <- glm(I(team.score > opponent.score) ~ party + I(team == location) + odds,
+
+### What does it mean to party?
+lines[, party := ifelse(last.game.loc != team & weekend == 1, nmusicians, 0)]
+
+### Causal Model, includes all observations up through 2016.
+m <- glm(I(team.score > opponent.score) ~ party + I(team == location) +
+             odds + nhours.lgame + weekend + travel.dist,
          data = lines, family = 'binomial')
 
-### Try bootstrapping coefficients for last.game.loc effect.
-lines <- lines[season < 2017]
-require(sampling)
-set.seed(290010)
-s <- strata(lines, c('season', 'last.game.loc'),
-       size = rep(50, 30*length(unique(lines$season))), method = 'srswor')
-bstrap.sample <- lines[s$ID_unit]
-train.sample <- lines[-s$ID_unit]
-cf <- glm(I(team.score > opponent.score) ~ 0 + last.game.loc, data = bstrap.sample) %>%
-    coef
-cf <- data.table(last.game.loc = names(cf) %>% gsub('last.game.loc', '', .), cf)
-train.sample <- train.sample[cf, on = 'last.game.loc']
 
-glm(I(team.score > opponent.score) ~ cf + odds + I(team == location), data = train.sample) %>% summary
+### Prediction model. Train only on obs up until 2016, and use 2016 as holdout.
+m <- glm(I(team.score > opponent.score) ~ party + I(team == location) +
+             odds + nhours.lgame + weekend + travel.dist,
+         data = lines[year(date) < 2016], family = 'binomial')
+p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
+table(round(p), lines[year(date) == 2016, team.score > opponent.score]) # 53.7% success rate.
+
+### Try bootstrapping coefficients for last.game.loc effect.
+lines <- lines[!is.na(last.game.loc)]
+set.seed(10)
+
+bstrap.last.loc.coef <- function(dat, idx) {
+    bstrap.dat <- dat[idx]
+    s <- strata(bstrap.dat, c('season', 'last.game.loc'),
+                size = rep(25, 30*length(unique(bstrap.dat$season))), method = 'srswor')
+    bstrap.sample <- bstrap.dat[s$ID_unit]
+    train.sample <- bstrap.dat[-s$ID_unit]
+    cf <- glm(I(team.score > opponent.score) ~ 0 + last.game.loc, data = bstrap.sample) %>% coef
+    cf <- data.table(last.game.loc = names(cf) %>% gsub('.ast\\.game\\.loc', '', .), cf)
+    train.sample <- train.sample[cf, on = 'last.game.loc']
+    glm(I(team.score > opponent.score) ~ cf + odds + I(team == location),
+        data = train.sample) %>% coef %>% `[`('cf')
+}
+
+require(parallel)
+cl <- makeCluster(detectCores())
+
+b <- boot(data = lines, statistic = bstrap.last.loc.coef, R = 100,
+          parallel = 'multicore', ncpus = detectCores(), cl = cl)
+plot(b)
 
 ### Distance traveled. nhours last game...
 lines[, mean(team.score > opponent.score), by = last.game.loc][order(V1)]
