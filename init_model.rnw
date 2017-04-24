@@ -31,7 +31,7 @@
 \date{April 2017}
 \maketitle
 
-<<echo=F,results='hide'>>=
+<<echo=F,results='hide',messages=F>>=
 
 require(data.table)
 require(ggplot2)
@@ -42,12 +42,13 @@ set.seed(4052017)
 load(file = 'tmp_data/covers_lines.RData')
 load(file = 'tmp_data/nmusician_estabs.RData')
 load(file = 'tmp_data/population_by_county_year.RData')
-
 musicians <- merge(musicians, pop, by = c('county', 'season'), all.x = T)
 
 @ 
 
-\section{Data Sources} 
+For results, skip to section \ref{seq: significant model}.
+
+\section{Data Sources}
 
 \subsection{Lines data} We obtained data from \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, which records the outcome of each game alongside the line set by a betting house.
 <<echo=F>>=
@@ -60,9 +61,8 @@ proxy for how much night-life there is in a city, we look toward the
 number of sound recording studios, musical groups, and music publishers there 
 are for a particular county-year: we simply calculate the average number of establishments across all three music categories listed above.\footnote{We caveat that since the Toronto Raptors are located in Canada, we don't have BLS data for this team.}
 
-<<echo=F>>=
+<<echo=F,results='hide'>>=
 musicians[, county := gsub(' (county)|(division),.*$', '', county, ignore.case = T)]
-musicians[, list(county, team, season, nmusicians = round(nmusicians, 1))]
 @ 
 
 We then merge this in with our lines data, taking care to do so according to each season-team's last game location; we also lag our BLS data by one year.
@@ -153,7 +153,7 @@ lines[, lag.chg.pos := c(NA, lag(ttl.chg.pos)[1:.N-1]), by = list(season, team)]
 
 @ 
 
-To end up with something like
+To end up with a quantity that reflects the total number of changes in possession across both teams within each game.
 
 <<echo=F>>=
 lines[, list(date = simple.date, location = substr(location, 1, 7), 
@@ -162,7 +162,9 @@ lines[, list(date = simple.date, location = substr(location, 1, 7),
              avg.age, last.game.loc, nhours.lgame, travel.dist, party, lag.chg.pos)]
 @ 
 
-\section{A significant model} We keep things simple, and try to explain the likelihood
+\section{A significant model} 
+\label{seq: significant model}
+We keep things simple, and try to explain the likelihood
 of meeting the spread as a function of whether a team visited a city with an active night-life
 the day before.
 
@@ -223,13 +225,16 @@ today's starts that a non-linear classifier may be able to take advantage of.
 
 <<echo=2:5>>=
 require(e1071)
-svm.data <- lines[last.game.loc != team, list(hour = hour(date), last.game.time,
-                                              party, season, outcome)] %>% na.omit
+svm.data <- lines[last.game.loc != team, 
+                  list(hour = hour(date), last.game.time, party, 
+                       loss.season, season, outcome)] %>%
+    na.omit
 
+### tune.svm(..., gamma = 2^(-5:5))
 m <- svm(x = svm.data[season < 2016, -c('outcome', 'season'), with = F],
-         y = svm.data[season < 2016, outcome == 'W'],
-         scale = T, type = 'C-classification', probability = T, kernel = 'radial')
-
+              y = svm.data[season < 2016, outcome == 'W'],
+              scale = T, type = 'C-classification', probability = T, 
+              kernel = 'radial')
 preds <- predict(m, newdata = svm.data[season == 2016, -c('outcome', 'season'), with = F])
 table(preds, svm.data[season == 2016 , outcome])
 @ 
@@ -254,11 +259,112 @@ lines[, game.time := hour(date)]
 
 lm(demeaned.reb.per.min ~ party + lag.chg.pos +
        I(log(travel.dist+1)/nhours.lgame) + nhours.lgame,
-   data = data[season < 2017 & last.game.loc != team]) %>%
+   data = data[season < 2017 & last.game.loc != team] %>% na.omit) %>%
    summary
 @ 
 
+\section{Robustness Check: Replicating the analysis for MLB}
+We go ahead and repeat this process for major league baseball.
+The only difference here is that when we define our party variable,
+we implicitly interact it with \texttt{weekend}.
+
+<<echo=-1>>=
+load(file = 'tmp_data/covers_lines_mlb.RData')
+lines[, party := ifelse(last.game.loc != team & weekend == 1, nmusicians, 0)]
+
+m <- glm(I(team.score > opponent.score) ~ party + I(team == location) + 
+             odds + nhours.lgame + weekend + travel.dist,
+         data = lines, family = 'binomial')
+summary(m)
+@ 
+
+We note that although we don't quite achieve conventional statistical significance,
+we're not that far off the mark.
+
+\paragraph{Betting on MLB}
+We can also earn a profit making predictions, even after accounting for the cut
+taken by the betting house.
+
+<<echo=F>>= 
+source('functions.r')
+
+m <- glm(I(team.score > opponent.score) ~ party,
+         data = lines[year(date) < 2016], family = 'binomial')
+p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
+
+idx <- which(p < .45)
+p1 <- mapply(Predict, prediction = p[idx], vegas = lines[year(date) == 2016, odds][idx],
+             MoreArgs=list(threshold = 0.01))
+b <- mapply(Bet, our.prediction = p1,
+            actual.outcome = lines[year(date) == 2016, team.score > opponent.score][idx],
+            odds = lines[year(date) == 2016, odds][idx], SIMPLIFY = T)
+
+sum(b, na.rm = T)
+
+@ 
+
+If we were to bet one hundred dollars on each game in 2016,
+we would earn a profit of just less than \$400 over the course of 45 games.
+
 \end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
