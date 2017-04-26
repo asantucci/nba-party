@@ -26,4 +26,6 @@ We note that some of these predictors might have non-linear effects, e.g. distan
 
 "MLB to Baseball Teams: Stop Celebrating in Public", Oct 2015.[Paper](http://www.esquire.com/sports/news/a39092/mlb-players-spraying-champagne-partying-rules/)
 
+"The home field advantage in athletics: a meta-analysis", Jul 2010. [Paper](http://onlinelibrary.wiley.com/doi/10.1111/j.1559-1816.2010.00641.x/full)
+
 "Why can't baseball players act more like hockey players", Oct 2015. [Paper](http://www.thehockeynews.com/news/article/why-cant-baseball-players-act-more-like-hockey-players)
