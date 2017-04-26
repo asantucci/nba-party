@@ -19,6 +19,8 @@ require(data.table)
 require(magrittr)
 require(sampling)
 
+source('functions.r')
+
 ### A character vector of full team names.
 fulls <- c('arizona diamondbacks', 'atlanta braves', 'baltimore orioles', 'boston redsox',
            'chicago cubs', 'chicago whitesox', 'cincinati reds', 'cleveland indians',
@@ -131,9 +133,15 @@ lines <- rbind(data, lines.dup)
 lines[, season := year(date)]
 
 setkey(lines, team, season, date)
-lines[, nhours.lgame  := c(NA, diff(date)),            by = list(team, season)]
-lines[, last.game.loc := c(NA, lag(location)[1:.N-1]), by = list(team, season)]
+### Some observations have duplicates. Can't have these.
+lines <- lines[!lines[, .N, by = list(team, season, date)][N > 1]]
+lines[, ndays.lgame  := c(NA, diff(as.Date(date))),   by = list(team, season)]
+lines[, last.game.loc := shift(location), by = list(team, season)]
+lines <- lines[ndays.lgame != 0]
 
+##################################################
+### Team Locations and Distance Traveled.
+##################################################
 ### Here, we geocode team locations to get lat-lon, and also addresses.
 ## require(ggmap)
 ## require(sp)
@@ -160,58 +168,49 @@ lines[, travel.dist := getDist(location, last.game.loc, dmat), by = list(locatio
 lines[, c('team.score', 'opponent.score') := tstrsplit(score, split = '-')]
 lines[, weekend := weekday %in% c('Saturday', 'Sunday')]
 
+##################################################
+### Musicians from BLS
+##################################################
 load(file = 'tmp_data/nmusician_estabs_mlb.RData')
 lines <- merge(lines, musicians,
                by.x = c('season', 'last.game.loc'),
                by.y = c('season', 'team'), all.x = T)
 
 ### What does it mean to party?
-lines[, party := ifelse(last.game.loc != team & weekend == 1, nmusicians, 0)]
+setkey(lines, season, team, date)
+lines[, last.game.loc := shift(location), by = list(team, season)]
+lines[, lag.opponent := shift(opponent),  by = list(team, season)]
+lines[, first.in.series := ifelse(is.na(lag.opponent) | opponent != lag.opponent, 1, 0)]
+lines[, not.first := !first.in.series]
 
+## t <- lines[, mean(team.score > opponent.score), by = list(location, first.in.series)][, diff(V1), by = location][order(V1)]
+lines[, party := ifelse(team != location & weekend == 1, nmusicians, 0)]
+
+glm(I(team.score > opponent.score) ~ party + odds,
+         data = lines, family = 'binomial') %>% summary
+
+save(lines, file = 'tmp_data/covers_lines_mlb.RData')
+
+##################################################
+### Modeling
+##################################################
 ### Causal Model, includes all observations up through 2016.
-m <- glm(I(team.score > opponent.score) ~ party + I(team == location) +
-             odds + nhours.lgame + weekend + travel.dist,
+m <- glm(I(team.score > opponent.score) ~ party + not.first + I(team == location) +
+             odds + ndays.lgame + I(log(travel.dist+1)/ndays.lgame),
          data = lines, family = 'binomial')
 
-Predict <- function(prediction, vegas, threshold) {
-    if (is.na(prediction)) return(NA)
-    dif <- prediction - vegas
-    if (abs(dif) > threshold) {
-        if (dif < 0)
-            return(0)
-        else
-            return(1)
-    }
-    return(NA)
-}
-
-Bet <- function(our.prediction, actual.outcome, odds) {
-    actual.outcome = as.integer(actual.outcome)
-    if (is.na(our.prediction)) return(NA_integer_)
-    if (our.prediction == actual.outcome) {
-        if (our.prediction > 0)
-            return(100 / odds - 100 - 5)
-        else if (our.prediction == 0)
-            return(100 / (1-odds) - 100 - 5)
-    } else if (our.prediction != actual.outcome)
-        return(-100)
-}
-
-### Prediction model. Train only on obs up until 2016, and use 2016 as holdout.
+### Prediction model. Train only on odds, on obs up until 2016, use 2016 as holdout.
 m <- glm(I(team.score > opponent.score) ~ odds,
          data = lines[year(date) < 2016], family = 'binomial')
 p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
 
 plot(lines[year(date) == 2016, odds], p)
 abline(a = 0, b = 1)
-abline(h=1)
 
-points(x = lines[year(date) == 2016, odds], y = predict(m, newdata = data.frame(odds=p)))
-
-idx <- which(p < .45)
-## idx <- which( p > 0.65)
-lines[year(date) == 2016][idx, mean(team.score > opponent.score)]
-table(round(p), lines[year(date) == 2016, team.score > opponent.score]) # 53.7% success rate.
+## idx <- which(p < .45)
+## ## idx <- which( p > 0.65)
+## lines[year(date) == 2016][idx, mean(team.score > opponent.score)]
+## table(round(p), lines[year(date) == 2016, team.score > opponent.score]) # 53.7% success rate.
 
 m <- glm(I(team.score > opponent.score) ~ party,
          data = lines[year(date) < 2016], family = 'binomial')
@@ -224,19 +223,17 @@ b <- mapply(Bet, our.prediction = p1,
             actual.outcome = lines[year(date) == 2016, team.score > opponent.score][idx],
             odds = lines[year(date) == 2016, odds][idx], SIMPLIFY = T)
 
-idx <- which(p > 0.65)
-lines[year(date) == 2016][idx, mean(team.score > opponent.score, na.rm = T)] 
+sum(b, na.rm = T)
 
-table(round(p), lines[year(date) == 2016, team.score > opponent.score]) # 53.9% success rate. :-(
+## idx <- which(p > 0.65)
+## lines[year(date) == 2016][idx, mean(team.score > opponent.score, na.rm = T)] 
+
+## table(round(p), lines[year(date) == 2016, team.score > opponent.score])
 
 
-######
-dat <- data.frame(x = rnorm(100), y = rnorm(100))
-m <- lm(y ~ x, dat)
-p <- predict(m, newdata = dat)
-
-#####
-
+##################################################
+### Bootstrapping coefficients
+##################################################
 
 ### Try bootstrapping coefficients for last.game.loc effect.
 lines <- lines[!is.na(last.game.loc)]
