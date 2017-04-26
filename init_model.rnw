@@ -217,28 +217,6 @@ table(round(p), lines[season == 2017 & nhours.lgame <= HOURS &
 
 @ 
 
-\paragraph{An out of the box machine learning model}
-For fun, we try a simple support vector machine. We posit that whether
-teams party also depends on how much time they have between games; even
-when restricting our data to the twenty-four hour window after teams visit a party city, there is quite a bit of heterogeneity in when yesterday's game finished and when 
-today's starts that a non-linear classifier may be able to take advantage of.
-
-<<echo=2:5>>=
-require(e1071)
-svm.data <- lines[last.game.loc != team, 
-                  list(hour = hour(date), last.game.time, party, 
-                       loss.season, season, outcome)] %>%
-    na.omit
-
-### tune.svm(..., gamma = 2^(-5:5))
-m <- svm(x = svm.data[season < 2016, -c('outcome', 'season'), with = F],
-              y = svm.data[season < 2016, outcome == 'W'],
-              scale = T, type = 'C-classification', probability = T, 
-              kernel = 'radial')
-preds <- predict(m, newdata = svm.data[season == 2016, -c('outcome', 'season'), with = F])
-table(preds, svm.data[season == 2016 , outcome])
-@ 
-
 \section{Player specific model}
 
 Can we measure fatigue on a player specific model? Consider something like
@@ -270,25 +248,29 @@ we implicitly interact it with \texttt{weekend}.
 
 <<echo=-1>>=
 load(file = 'tmp_data/covers_lines_mlb.RData')
-lines[, party := ifelse(last.game.loc != team & weekend == 1, nmusicians, 0)]
+lines[, party := ifelse(team != location & weekend == 1, nmusicians, 0)]
 
-m <- glm(I(team.score > opponent.score) ~ party + I(team == location) + 
-             odds + nhours.lgame + weekend + travel.dist,
+m <- glm(I(team.score > opponent.score) ~ party + odds + I(team == location) + 
+             ndays.lgame + travel.dist + weekend,
          data = lines, family = 'binomial')
 summary(m)
 @ 
 
 We note that although we don't quite achieve conventional statistical significance,
-we're not that far off the mark.
+we're not that far off the mark. The difference in significance between 
+sports could possibly be explained by the heterogeneity in athleticism 
+required to play basketball versus baseball, wherein the former requires far more 
+non-stop sprinting. We also remark that the p-value on \texttt{party}
+similar in magnitude to the p-value on our \texttt{home-team advantage} indicator,
+which is an important feature as deemed by the literature.\cite{hometeamadv}
 
 \paragraph{Betting on MLB}
 We can also earn a profit making predictions, even after accounting for the cut
 taken by the betting house.
 
-<<echo=F>>= 
+<<echo=2:4>>= 
 source('functions.r')
-
-m <- glm(I(team.score > opponent.score) ~ party,
+m <- glm(I(team.score > opponent.score) ~ party + odds,
          data = lines[year(date) < 2016], family = 'binomial')
 p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
 
@@ -300,13 +282,22 @@ b <- mapply(Bet, our.prediction = p1,
             odds = lines[year(date) == 2016, odds][idx], SIMPLIFY = T)
 
 sum(b, na.rm = T)
-
 @ 
 
 If we were to bet one hundred dollars on each game in 2016,
-we would earn a profit of just less than \$400 over the course of 45 games.
+we would earn a profit of about \Sexpr{format(round(sum(b, na.rm=T), -1), big.mark = ',')} dollars
+over the course of \Sexpr{sum(!is.na(b))} games.
+
+\begin{thebibliography}{9}
+  \bibitem{hometeamadv}
+    Jeremy P. Jamieson.
+    \textit{The Home Field Advantage in Athletics: A Meta-Analysis}
+    \href{http://onlinelibrary.wiley.com/doi/10.1111/j.1559-1816.2010.00641.x/full}{paper}
+     \end{thebibliography}
 
 \end{document}
+
+
 
 
 
