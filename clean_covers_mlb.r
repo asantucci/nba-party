@@ -192,72 +192,33 @@ glm(I(team.score > opponent.score) ~ party + odds,
 save(lines, file = 'tmp_data/covers_lines_mlb.RData')
 
 ##################################################
-### Modeling
+### Causal Modeling
 ##################################################
 ### Causal Model, includes all observations up through 2016.
-m <- glm(I(team.score > opponent.score) ~ party + not.first + I(team == location) +
-             odds + ndays.lgame + I(log(travel.dist+1)/ndays.lgame),
+m <- glm(I(team.score > opponent.score) ~ party + odds + I(team == location) +
+             ndays.lgame + travel.dist + weekend,
          data = lines, family = 'binomial')
+summary(m)
 
-### Prediction model. Train only on odds, on obs up until 2016, use 2016 as holdout.
-m <- glm(I(team.score > opponent.score) ~ odds,
+##################################################
+### Predictive Bets
+##################################################
+
+### We only include party as our source of identifying variation.
+m <- glm(I(team.score > opponent.score) ~ party + odds,
          data = lines[year(date) < 2016], family = 'binomial')
+
+### We predict on holdout data.
 p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
 
-plot(lines[year(date) == 2016, odds], p)
-abline(a = 0, b = 1)
-
-## idx <- which(p < .45)
-## ## idx <- which( p > 0.65)
-## lines[year(date) == 2016][idx, mean(team.score > opponent.score)]
-## table(round(p), lines[year(date) == 2016, team.score > opponent.score]) # 53.7% success rate.
-
-m <- glm(I(team.score > opponent.score) ~ party,
-         data = lines[year(date) < 2016], family = 'binomial')
-p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
-
+### We chose 0.45 base on hist(p), heuristically.
 idx <- which(p < .45)
-p1 <- mapply(Predict, prediction = p[idx], vegas = lines[year(date) == 2016, odds][idx],
+p1 <- mapply(Predict, prediction = p[idx],
+             vegas = lines[year(date) == 2016, odds][idx],
              MoreArgs=list(threshold = 0.01))
 b <- mapply(Bet, our.prediction = p1,
-            actual.outcome = lines[year(date) == 2016, team.score > opponent.score][idx],
+            actual.outcome =
+                lines[year(date) == 2016, team.score > opponent.score][idx],
             odds = lines[year(date) == 2016, odds][idx], SIMPLIFY = T)
 
 sum(b, na.rm = T)
-
-## idx <- which(p > 0.65)
-## lines[year(date) == 2016][idx, mean(team.score > opponent.score, na.rm = T)] 
-
-## table(round(p), lines[year(date) == 2016, team.score > opponent.score])
-
-
-##################################################
-### Bootstrapping coefficients
-##################################################
-
-### Try bootstrapping coefficients for last.game.loc effect.
-lines <- lines[!is.na(last.game.loc)]
-set.seed(10)
-
-bstrap.last.loc.coef <- function(dat, idx) {
-    bstrap.dat <- dat[idx]
-    s <- strata(bstrap.dat, c('season', 'last.game.loc'),
-                size = rep(25, 30*length(unique(bstrap.dat$season))), method = 'srswor')
-    bstrap.sample <- bstrap.dat[s$ID_unit]
-    train.sample <- bstrap.dat[-s$ID_unit]
-    cf <- glm(I(team.score > opponent.score) ~ 0 + last.game.loc, data = bstrap.sample) %>% coef
-    cf <- data.table(last.game.loc = names(cf) %>% gsub('.ast\\.game\\.loc', '', .), cf)
-    train.sample <- train.sample[cf, on = 'last.game.loc']
-    glm(I(team.score > opponent.score) ~ cf + odds + I(team == location),
-        data = train.sample) %>% coef %>% `[`('cf')
-}
-
-require(parallel)
-cl <- makeCluster(detectCores())
-
-b <- boot(data = lines, statistic = bstrap.last.loc.coef, R = 100,
-          parallel = 'multicore', ncpus = detectCores(), cl = cl)
-plot(b)
-
-### Distance traveled. nhours last game...
-lines[, mean(team.score > opponent.score), by = last.game.loc][order(V1)]
