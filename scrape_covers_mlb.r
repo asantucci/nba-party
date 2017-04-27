@@ -25,7 +25,7 @@ require(parallel)
 require(XML)
 load(file = 'tmp_data/game_days_mlb.RData')
 
-game.days <- Filter(function(x) x < Sys.Date() & x > as.Date('2010-11-25'),
+game.days <- Filter(function(x) x < Sys.Date() & x > as.Date('2011-01-01'),
                     x = game.days) %>% as.character
 
 ##############################
@@ -95,8 +95,7 @@ if (!RESCRAPE) {
 }
 
 ### Scrape.
-parLapplyLB(cl, game.days, scrapeListingOfGames)
-
-## lapply(game.days, scrapeListingOfGames)
+#parLapplyLB(cl, game.days, scrapeListingOfGames)
+lapply(game.days, scrapeListingOfGames)  # May have to run this a few times to scrape all files.
 
 
