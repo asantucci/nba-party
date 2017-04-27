@@ -22,6 +22,7 @@
 ### Set up Workspace
 ##################################################
 
+source('functions.r') # for subsetBLS
 require(data.table)
 require(ggmap)
 require(magrittr)
@@ -39,40 +40,17 @@ clusterCall(cl, function() {
 ### Subset BLS Data into manageable chunks.
 ##############################
 
+# 'Audio and video media reproduction', 'Arts, entertainment, and recreation'
 party <- c('sound recording', 'music publisher', 'musical group')
-
-SubsetBLS <- function(year, party.regex,
-                      raw.path = 'raw_data/bls/', save.path = 'tmp_data/bls/') {
-    ### Create a listing of files for all relevant counties, load data.
-    foldr <- list.files(path = raw.path, pattern = paste0(year, '.q1'), full.names = T)
-    files <- list.files(path = foldr,
-                        pattern = '(county,)|(district of columbia)|(parish)',
-                        full.names = T, ignore.case = T)
-    bls <- lapply(files, fread, colClasses = 'character',
-                  select = c('area_fips', 'year', 'qtr', 'industry_code', 'area_title',
-                             'industry_title', 'agglvl_title', 'size_title',
-                             'qtrly_estabs_count')) %>% rbindlist
-    setnames(bls, gsub('_', '.', names(bls)))
-    ### We will take our own total later, so for now we take granular data.
-    bls <- bls[grep("County, NAICS 6-digit", agglvl.title)]
-    ### Create regex to subset to drinking establshimensts.
-    party.regex <- paste0('(', party.regex, ')', collapse = '|')
-    bls <- bls[grep(party.regex, industry.title, ignore.case = T)]    
-    write.csv(x = bls, file = paste0(save.path, year, '.csv'), row.names = F)
-    rm(bls)
-    gc()
-    return(NULL)
-}
-
 years <- 2010:2016
-parLapplyLB(cl, years, SubsetBLS, party.regex = party)
+parLapplyLB(cl, years, SubsetBLS, party.regex = party, sport = 'nba'))
 
 ##################################################
 ### Merge in BLS data with corresponding NBA teams.
 ##################################################
 
 ### Load BLS data.
-files <- list.files(path = 'tmp_data/bls', pattern = 'csv$', full.names = T)
+files <- list.files(path = 'tmp_data/bls', pattern = 'nba\\.csv$', full.names = T)
 bls <- lapply(files, fread) %>% rbindlist
 
 ### Load Covers data (simply to get a listing of team-names, it's a bit over-kill)
