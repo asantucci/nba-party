@@ -118,7 +118,7 @@ teams playing in their own cities.
 
 <<>>=
 HOURS <- 24
-lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team, nmusicians, 0)]
+lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team, log(nmusicians), 0)]
 @
 
 \section{Possible confounders}
@@ -248,7 +248,7 @@ we implicitly interact it with \texttt{weekend}.
 
 <<echo=-1>>=
 load(file = 'tmp_data/covers_lines_mlb.RData')
-lines[, party := ifelse(team != location & weekend == 1, nmusicians, 0)]
+lines[, party := ifelse(team != location & weekend == 1, log(nmusicians), 0)]
 
 m <- glm(I(team.score > opponent.score) ~ party + odds + I(team == location) + 
              ndays.lgame + travel.dist + weekend,
