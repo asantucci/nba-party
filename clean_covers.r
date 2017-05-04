@@ -55,8 +55,8 @@ fulls <- c('Atlanta Hawks',          'Brooklyn Nets',          'Boston Celtics',
            'Portland Trail Blazers', 'San Antonio Spurs', 'Sacramento Kings',         'Toronto Raptors',
            'Utah Jazz',              'Washington Wizards')
 
-write.csv(teams, file = 'tmp_data/team_abbreviations.csv', row.names = F)
 teams <- data.frame(team = fulls %>% tolower, abbr = abbrs %>% tolower, stringsAsFactors = F)
+write.csv(teams, file = 'tmp_data/team_abbreviations.csv', row.names = F)
 lines <- merge(lines, teams, by.x = 'home', by.y = 'abbr', all.x = T)
 setnames(lines, 'team', 'home.team')
 lines <- merge(lines, teams, by.x = 'away', by.y = 'abbr', all.x = T)
@@ -137,7 +137,39 @@ getDist <- function(current, last, distances)
     if (!is.na(current) && !is.na(last))
         distances[current, last]
 
-lines[, travel.dist := getDist(location, last.game.loc, dmat), by = list(location, last.game.loc)]
+lines[, travel.dist := getDist(location, last.game.loc, dmat),
+      by = list(location, last.game.loc)]
+
+##################################################
+### Direction Traveled.
+##################################################
+
+### Get directions.
+dirs <- matrix(nrow = nrow(dmat), ncol = ncol(dmat), dimnames = dimnames(dmat))
+for (i in 1:(nrow(dirs)))
+    for (j in 1:ncol(dirs))
+        dirs[i, j] = finalBearing(p1 = locs[i, list(lon, lat)],
+                                  p2 = locs[j, list(lon, lat)])
+diag(dirs) <- NA
+
+getDirection <- function(last.loc, cur.loc, dirs)
+    if(!is.na(last.loc) && !is.na(cur.loc))
+        dirs[last.loc, cur.loc]
+
+lines[, travel.dir := getDirection(last.game.loc, location, dirs),
+      by = list(last.game.loc, location)]
+
+
+# https://stackoverflow.com/questions/7490660/converting-wind-direction-in-angles-to-text-words
+degToCompass <- function(x) {
+    val <- ((x/22.5)+.5)
+    arr <- c("N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+             "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW")
+    arr[(val %% 16)]
+}
+
+lines[, dir.traveled := degToCompass(travel.dir), by = travel.dir]
+
 
 ##################################################
 ### Standings from last season
