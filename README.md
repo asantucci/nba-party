@@ -28,4 +28,42 @@ We note that some of these predictors might have non-linear effects, e.g. distan
 
 "The home field advantage in athletics: a meta-analysis", Jul 2010. [Paper](http://onlinelibrary.wiley.com/doi/10.1111/j.1559-1816.2010.00641.x/full)
 
+"An analysis of the home-field advantage in major league baseball using logit models: evidence from the 2004 and 2005 seasons", January 2007. [Paper](https://www.degruyter.com/view/j/jqas.2007.3.1/jqas.2007.3.1.1045/jqas.2007.3.1.1045.xml?format=INT)
+
+"A starting point for analyzing basketball statistics", July 2007. [Paper](https://www.degruyter.com/view/j/jqas.2007.3.3/jqas.2007.3.3.1070/jqas.2007.3.3.1070.xml?format=INT)
+
+"Home advantage in the NBA as a game-long process", October 2007. [Paper](https://www.degruyter.com/view/j/jqas.2007.3.4/jqas.2007.3.4.1081/jqas.2007.3.4.1081.xml?format=INT)
+
+"A note on the team-specific home advantage in the NBA", July 2008. [Paper](https://www.degruyter.com/view/j/jqas.2008.4.3/jqas.2008.4.3.1128/jqas.2008.4.3.1128.xml?format=INT)
+
+"Estimated age effects in baseball", January 2008. [Paper](https://www.degruyter.com/view/j/jqas.2008.4.1/jqas.2008.4.1.1074/jqas.2008.4.1.1074.xml?format=INT)
+
+"Racial bias in the NBA: implications in betting markets", April 2008. [Paper](https://www.degruyter.com/view/j/jqas.2008.4.2/jqas.2008.4.2.1112/jqas.2008.4.2.1112.xml?format=INT)
+
+"Predicting NBA games using neural networks", January 2009. [Paper](https://www.degruyter.com/view/j/jqas.2009.5.1/jqas.2009.5.1.1156/jqas.2009.5.1.1156.xml?format=INT)
+
+"Scoring and shooting abilities of NBA players", January 2010. [Paper](https://www.degruyter.com/view/j/jqas.2010.6.1/jqas.2010.6.1.1194/jqas.2010.6.1.1194.xml?format=INT)
+
+"Do fans matter? The effect of attendance on the outcomes of major league baseball games", January 2010. [Paper](https://www.degruyter.com/view/j/jqas.2010.6.1/jqas.2010.6.1.1192/jqas.2010.6.1.1192.xml?format=INT)
+
+"Relative Importance of Performance Factors in Winning NBA Games in Regular Season versus Playoffs", July 2010. [Paper](https://www.degruyter.com/view/j/jqas.2010.6.3/jqas.2010.6.3.1260/jqas.2010.6.3.1260.xml?format=INT)
+
+"Adjusting Winning-Percentage Standard Deviations and a Measure of Competitive Balance for Home Advantage", January 2011. [Paper](https://www.degruyter.com/view/j/jqas.2011.7.1/jqas.2011.7.1.1297/jqas.2011.7.1.1297.xml?format=INT)
+
+"Stratified Odds Ratios for Evaluating NBA Players Based on their Plus/Minus Statistics", May 2011. [Paper](https://www.degruyter.com/view/j/jqas.2011.7.2/jqas.2011.7.2.1320/jqas.2011.7.2.1320.xml?format=INT)
+
+"Dependence Relationships between On Field Performance, Wins, and Payroll in Major League Baseball", May 2011. [Paper](https://www.degruyter.com/view/j/jqas.2011.7.2/jqas.2011.7.2.1321/jqas.2011.7.2.1321.xml?format=INT)
+
+"On Estimating the Ability of NBA Players", July 2011. [Paper](https://www.degruyter.com/view/j/jqas.2011.7.3/jqas.2011.7.3.1298/jqas.2011.7.3.1298.xml?format=INT)
+
+"Prediction Accuracy of Linear Models for Paired Comparisons in Sports", July 2011.[Paper](https://www.degruyter.com/view/j/jqas.2011.7.3/jqas.2011.7.3.1303/jqas.2011.7.3.1303.xml?format=INT)
+
+"Random Walk Picture of Basketball Scoring", March 2012. [Paper](https://www.degruyter.com/view/j/jqas.2012.8.issue-1/1559-0410.1416/1559-0410.1416.xml?format=INT)
+
+"Modeling and forecasting the outcomes of NBA basketball games", January 2016. [Paper](https://www.degruyter.com/view/j/jqas.2016.12.issue-1/jqas-2015-0088/jqas-2015-0088.xml?format=INT)
+
+"Estimating an NBA player’s impact on his team’s chances of winning", March 2016. [Paper](https://www.degruyter.com/view/j/jqas.2016.12.issue-2/jqas-2015-0027/jqas-2015-0027.xml?format=INT)
+
+"Meta-analytics: tools for understanding the statistical properties of sports metrics", March 2017. [Paper](https://www.degruyter.com/view/j/jqas.2016.12.issue-4/jqas-2016-0098/jqas-2016-0098.xml?format=INT)
+
 "Why can't baseball players act more like hockey players", Oct 2015. [Paper](http://www.thehockeynews.com/news/article/why-cant-baseball-players-act-more-like-hockey-players)
