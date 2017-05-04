@@ -1,4 +1,54 @@
 
+SubsetBLS <- function(year, party.regex, sport,
+                      raw.path = 'raw_data/bls/', save.path = 'tmp_data/bls/') {
+    ### Create a listing of files for all relevant counties, load data.
+    foldr <- list.files(path = raw.path, pattern = paste0(year, '.q1'), full.names = T)
+    files <- list.files(path = foldr,
+                        pattern = '(county,)|(district of columbia)|(parish)',
+                        full.names = T, ignore.case = T)
+    bls <- lapply(files, fread, colClasses = 'character',
+                  select = c('area_fips', 'year', 'qtr', 'industry_code', 'area_title',
+                             'industry_title', 'agglvl_title', 'size_title',
+                             'qtrly_estabs_count')) %>% rbindlist
+    setnames(bls, gsub('_', '.', names(bls)))
+    ### We will take our own total later, so for now we take granular data.
+    bls <- bls[grep("County, NAICS 6-digit", agglvl.title)]
+    ### Create regex to subset to drinking establshimensts.
+    party.regex <- paste0('(', party.regex, ')', collapse = '|')
+    bls <- bls[grep(party.regex, industry.title, ignore.case = T)]
+    write.csv(x = bls, file = paste0(save.path, year, '_', sport, '.csv'), row.names = F)
+    rm(bls)
+    gc()
+    return(NULL)
+}
+
+
+Predict <- function(prediction, vegas, threshold) {
+    if (is.na(prediction)) return(NA)
+    dif <- prediction - vegas
+    if (abs(dif) > threshold) {
+        if (dif < 0)
+            return(0)
+        else
+            return(1)
+    }
+    return(NA)
+}
+
+Bet <- function(our.prediction, actual.outcome, odds) {
+    actual.outcome = as.integer(actual.outcome)
+    if (is.na(our.prediction)) return(NA_integer_)
+    if (our.prediction == actual.outcome) {
+        if (our.prediction > 0)
+            return(100 / odds - 100 - 5)
+        else if (our.prediction == 0)
+            return(100 / (1-odds) - 100 - 5)
+    } else if (our.prediction != actual.outcome)
+        return(-100)
+}
+
+
+
 Fetch <- function(team, beg, end, data, year) {
     datum <- data[beg:end]
     ### We have to be careful for data entry errors. Ex: missing delimiter.
