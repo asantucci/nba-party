@@ -170,7 +170,10 @@ the day before.
 
 <<echo=-4>>= 
 
-m <- glm(outcome == 'W' ~ party + lag.chg.pos + travel.dist + 
+lines[, ew := sin(travel.dir %% 360 / 360 * 2 * pi)]
+#plot(lines$travel.dir, lines$ew)
+
+m <- glm(outcome == 'W' ~ party + lag.chg.pos + travel.dist*ew + 
              nhours.lgame + I(hour(date)),
          data = lines[season < 2017], family = 'binomial',
          na.action = 'na.exclude')
@@ -235,9 +238,8 @@ and rest time since last game.
 require(mboost)
 lines[, game.time := hour(date)]
 
-lm(demeaned.reb.per.min ~ party + lag.chg.pos +
-       I(log(travel.dist+1)/nhours.lgame) + nhours.lgame,
-   data = data[season < 2017 & last.game.loc != team] %>% na.omit) %>%
+lm(demeaned.reb.per.min ~ party + lag.chg.pos + travel.dist + nhours.lgame,
+   data = data[last.game.loc != team] %>% na.omit) %>%
    summary
 @ 
 
@@ -282,6 +284,17 @@ b <- mapply(Bet, our.prediction = p1,
             odds = lines[year(date) == 2016, odds][idx], SIMPLIFY = T)
 
 sum(b, na.rm = T)
+
+### 
+betting.days <- lines[year(date) == 2016][idx, date]
+running.prof <- cumsum(ifelse(is.na(b), 0, b))
+plot(x = 1:length(b), y = running.prof, 
+     main = 'Profits over the 2016 season', 
+     xlab = 'Game Number', ylab = 'Profit', type = 'l')
+abline(a = 0, b = 0, lty = 3)
+points(x = which.min(running.prof), y = min(running.prof), type = 'p')
+text(x = which.min(running.prof), y = min(running.prof), labels = min(running.prof), pos = 2)
+
 @ 
 
 If we were to bet one hundred dollars on each game in 2016,
