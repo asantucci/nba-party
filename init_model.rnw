@@ -200,6 +200,7 @@ m <- glm(outcome == 'W' ~ I(nmusicians*(nhours.lgame <= HOURS)),
 ### We're only interested in making predictions when teams party.
 p <- predict(m, newdata = lines[season == 2017 & nhours.lgame <= HOURS & 
                                 last.game.loc != team], type = 'response')
+
 table(round(p), lines[season == 2017 & nhours.lgame <= HOURS & 
                       last.game.loc != team, outcome])
 
@@ -210,12 +211,14 @@ We can try different variants, for example, supposing the treatment effect of vi
 a city filled with musicians depends on the teams average age.
 
 <<echo=1>>=
-m <- glm(outcome == 'W' ~ I(nmusicians*(nhours.lgame <= HOURS)/avg.age), 
-         data = lines[season < 2017 & last.game.loc != team])
+source('functions.r')
+m <- glm(outcome == 'W' ~ party,
+         data = lines[season < 2016 & last.game.loc != team])
 
-p <- predict(m, newdata = lines[season == 2017 & nhours.lgame <= HOURS & 
+p <- predict(m, newdata = lines[season == 2016 & nhours.lgame <= HOURS & 
                                 last.game.loc != team], type = 'response')
-table(round(p), lines[season == 2017 & nhours.lgame <= HOURS & 
+
+table(round(p), lines[season == 2016 & nhours.lgame <= HOURS & 
                       last.game.loc != team, outcome])
 
 @ 
@@ -271,13 +274,13 @@ We can also earn a profit making predictions, even after accounting for the cut
 taken by the betting house.
 
 <<echo=2:4>>= 
-source('functions.r')
 m <- glm(I(team.score > opponent.score) ~ party + odds,
          data = lines[year(date) < 2016], family = 'binomial')
 p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
 
 idx <- which(p < .45)
-p1 <- mapply(Predict, prediction = p[idx], vegas = lines[year(date) == 2016, odds][idx],
+p1 <- mapply(Predict, prediction = p[idx], 
+             vegas = lines[year(date) == 2016, odds][idx],
              MoreArgs=list(threshold = 0.01))
 b <- mapply(Bet, our.prediction = p1,
             actual.outcome = lines[year(date) == 2016, team.score > opponent.score][idx],
@@ -309,74 +312,3 @@ over the course of \Sexpr{sum(!is.na(b))} games.
      \end{thebibliography}
 
 \end{document}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
