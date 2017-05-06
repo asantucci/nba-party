@@ -1,20 +1,60 @@
 \documentclass[24pt, a0paper, portrait]{tikzposter} 
  \usepackage{algorithm2e} \usepackage{amsmath} \usepackage{amsthm} \usepackage{amsfonts} \usepackage{bbm} \usepackage{color,soul} \usepackage{framed} \usepackage{hyperref} \usepackage{mathtools} \usepackage[utf8]{inputenc} 
+\usepackage{subcaption}
  \newtheorem{theorem}{Theorem}[section] \newtheorem{lemma}[theorem]{Lemma} \newtheorem{proposition}[theorem]{Proposition} \newtheorem{corollary}[theorem]{Corollary}  \DeclareMathOperator*{\argmin}{arg\,min} \DeclareMathOperator*{\argmax}{arg\,max} \newcommand{\D}{\mathrm{d}} \SetKwInput{KwInput}{Input} \SetKwInput{KwOutput}{Output}   \title{The effects of night-light on subsequent day sports performance} \author{Eric Lax, Andreas Santucci} \date{May 19th, 2017} \institute{Institute for Computational and Mathematical Engineering}   \usetheme{Board}   \begin{document}   \maketitle
 
-\block{~} {     It's not unreasonable to think that game performance can be affected (in part) by what takes place off the court. We are interested to see if teams exhibit a decline in performance the day following a game in a party city. We exploit data on bookmaker spreads, the expected score differential between two teams after conditioning on observable performance. We expect a team to meet the spread half the time, since this is how bookmakers minimize risk on their end. We construct a model which attempts to estimate the causal effect of  visiting a "party-city" the day before a game on the probability of meeting the spread. }
+\block{Idea} {     It's not unreasonable to think that game performance can be affected (in part) by what takes place off the court. We are interested to see if teams exhibit a decline in performance the day following a game in a party city. We exploit data on bookmaker spreads, the expected score differential between two teams after conditioning on observable performance. We expect a team to meet the spread half the time, since this is how bookmakers minimize risk on their end. We construct a model which attempts to estimate the causal effect of  visiting a "party-city" the day before a game on the probability of meeting the spread. }
+
+\block{Mathematical Model}{
+  \[
+    \texttt{meet spread} \sim \texttt{party} + \substack{\texttt{days since} \\ \texttt{last game}} + \substack{\texttt{time}\\ \texttt{difference}} + \substack{\texttt{distance} \\ \texttt{traveled}}
+  \]
+}
+
 
 \begin{columns}     \column{0.4}     \block{Data Sources}{
-      Text and more text
-      Text and more text
-      Text and more text
-      Text and more text
-      Text and more text
-      Text and more text
-      Text and more text
-      Text and more text
-      Text and more text
-    }       \column{0.6}     \block{NBA model}{Here, \vspace{4cm}} \end{columns}
+    \paragraph{Betting house data and game outcomes}
+    We obtained data from 
+    \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, 
+    which records the outcome of each game alongside the line set by a betting house.
+
+    \paragraph{Data which determines the night-life index of a city}
+    We also obtained data from
+    \href{https://www.bls.gov/data/}{Bureau of Labor Statistics} 
+    which records the number of establishments by business type at the county-quarter level. As a 
+    proxy for how much night-life there is in a city, we look toward the 
+    number of sound recording studios, musical groups, and music publishers there 
+    are for a particular county-year: we simply calculate the average number of establishments 
+    across all three music categories listed above.
+
+We then merge this in with our lines data, taking care to do so according to each season-team's last game location; we also lag our BLS data by one year.
+To this data, we've created features such as 
+the number of days since last game, the last game location, the travel distance, and
+average age. Our data range from 2010-2011 season through present, which includes part of the 2016-2017 season.
+
+\paragraph{Minutes data on player specific performance}
+We also gathered minutes data from \href{http://www.espn.com/nba/scoreboard/_/date/}{ESPN}.
+The minutes data also contain information on the number of free throws, field goals, and
+three pointers made and attempted by each player in each game.
+
+    }
+    \column{0.6}     
+    \block{NBA model}{
+      Here,
+      % Table created by stargazer v.5.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu % Date and time: Sat, May 06, 2017 - 09:58:05 AM
+      
+
+} 
+\end{columns}
+
+\begin{columns}   \column{0.4}
+  \block{Player Specific Model}{
+    Here
+  }
+  \column{0.6}
+  \block{MLB Model}{
+    Here
+  } \end{columns}
 
 
 \begin{columns}     \column{0.5}     \block{Profits on MLB Betting in 2016}     {         \begin{tikzfigure}             \includegraphics[width=0.4\textwidth]{figures/mlb_bets}         \end{tikzfigure}     }     \column{0.5}     \block{Description of the figure}{
@@ -28,8 +68,20 @@
       targetoffsetx=-8cm,          
       targetoffsety=-6.5cm,          
       width=0.5\linewidth         
-    ]{e-mail: \texttt{santucci@stanford.edu}}   \end{columns}   \end{document}
+    ]{e-mail: \texttt{santucci@stanford.edu}}   \end{columns}   
 
+
+\block{Meta Analysis}{
+  Over 6k lines of code written, with ~120 commits.
+
+  \begin{tikzfigure}
+    \includegraphics[width=0.3\textwidth]{figures/gh_commits}
+  \end{tikzfigure}
+  \begin{tikzfigure}     \includegraphics[width=0.7\textwidth]{figures/punch_card}    \end{tikzfigure}
+}
+
+
+\end{document}
 
 
 
