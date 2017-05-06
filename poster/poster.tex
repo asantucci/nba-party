@@ -1,0 +1,40 @@
+\documentclass[24pt, a0paper, portrait]{tikzposter} 
+ \usepackage{algorithm2e} \usepackage{amsmath} \usepackage{amsthm} \usepackage{amsfonts} \usepackage{bbm} \usepackage{color,soul} \usepackage{framed} \usepackage{hyperref} \usepackage{mathtools} \usepackage[utf8]{inputenc} 
+ \newtheorem{theorem}{Theorem}[section] \newtheorem{lemma}[theorem]{Lemma} \newtheorem{proposition}[theorem]{Proposition} \newtheorem{corollary}[theorem]{Corollary}  \DeclareMathOperator*{\argmin}{arg\,min} \DeclareMathOperator*{\argmax}{arg\,max} \newcommand{\D}{\mathrm{d}} \SetKwInput{KwInput}{Input} \SetKwInput{KwOutput}{Output}   \title{The effects of night-light on subsequent day sports performance} \author{Eric Lax, Andreas Santucci} \date{May 19th, 2017} \institute{Institute for Computational and Mathematical Engineering}   \usetheme{Board}   \begin{document}   \maketitle
+
+\block{~} {     It's not unreasonable to think that game performance can be affected (in part) by what takes place off the court. We are interested to see if teams exhibit a decline in performance the day following a game in a party city. We exploit data on bookmaker spreads, the expected score differential between two teams after conditioning on observable performance. We expect a team to meet the spread half the time, since this is how bookmakers minimize risk on their end. We construct a model which attempts to estimate the causal effect of  visiting a "party-city" the day before a game on the probability of meeting the spread. }
+
+\begin{columns}     \column{0.4}     \block{Data Sources}{
+      Text and more text
+      Text and more text
+      Text and more text
+      Text and more text
+      Text and more text
+      Text and more text
+      Text and more text
+      Text and more text
+      Text and more text
+    }       \column{0.6}     \block{NBA model}{Here, \vspace{4cm}} \end{columns}
+
+
+\begin{columns}     \column{0.5}     \block{Profits on MLB Betting in 2016}     {         \begin{tikzfigure}             \includegraphics[width=0.4\textwidth]{figures/mlb_bets}         \end{tikzfigure}     }     \column{0.5}     \block{Description of the figure}{
+      On the left, we plot profits as a function of time over the 2016 season. For each relevant
+      game, we place a bet if our model instructs us of odds sufficiently different from what
+      the betting house suggests. We account for the bookmaker's cut. In the early season,
+      at its worst we are out of pocket \$750 dollars. By season end, we have recouped all of
+      our initial investment plus an additional \$13.5k.
+    }
+    \note[         
+      targetoffsetx=-8cm,          
+      targetoffsety=-6.5cm,          
+      width=0.5\linewidth         
+    ]{e-mail: \texttt{santucci@stanford.edu}}   \end{columns}   \end{document}
+
+
+
+
+
+
+
+
+
