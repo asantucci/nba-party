@@ -5,14 +5,18 @@
 
 \block{Idea} {     It's not unreasonable to think that game performance can be affected (in part) by what takes place off the court. We are interested to see if teams exhibit a decline in performance the day following a game in a party city. We exploit data on bookmaker spreads, the expected score differential between two teams after conditioning on observable performance. We expect a team to meet the spread half the time, since this is how bookmakers minimize risk on their end. We construct a model which attempts to estimate the causal effect of  visiting a "party-city" the day before a game on the probability of meeting the spread. }
 
-\block{Mathematical Model}{
+\block{Model}{
   \[
     \texttt{meet spread} \sim \texttt{party} + \substack{\texttt{days since} \\ \texttt{last game}} + \substack{\texttt{time}\\ \texttt{difference}} + \substack{\texttt{distance} \\ \texttt{traveled}}
   \]
+  Our setup relies on a quasi-experiment: we look for instances where a team plays in a city
+  with active nightlife, then plays a game in a different location the next day. Since next-day
+  opponent is uncorrelated with exposure to treatment, we have identification in our variable of 
+  interest.
 }
 
 
-\begin{columns}     \column{0.4}     \block{Data Sources}{
+\begin{columns}     \column{0.6}     \block{Data Sources}{
     \paragraph{Betting house data and game outcomes}
     We obtained data from 
     \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, 
@@ -38,22 +42,26 @@ The minutes data also contain information on the number of free throws, field go
 three pointers made and attempted by each player in each game.
 
     }
-    \column{0.6}     
+    \column{0.4}     
     \block{NBA model}{
-      Here,
       % Table created by stargazer v.5.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu % Date and time: Sat, May 06, 2017 - 09:58:05 AM
-      
+\begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]  \\[-1.8ex] & outcome == "W" \\  \hline \\[-1.8ex]   party & $-$0.052$^{**}$ (0.022) \\    lag.chg.pos & 0.0001 (0.002) \\    travel.dist & $-$0.00002 (0.00004) \\    ew & $-$0.035 (0.047) \\    nhours.lgame & 0.001 (0.001) \\    I(hour(date)) & 0.006 (0.012) \\    travel.dist:ew & 0.00004 (0.00005) \\    Constant & $-$0.144 (0.348) \\   \textit{N} & 9,979 \\  Log Likelihood & $-$6,912.426 \\  Akaike Inf. Crit. & 13,840.850 \\  \hline  \hline \\[-1.8ex]  \textit{Notes:} & \multicolumn{1}{r}{$^{***}$Significant at the 1 percent level.} \\   & \multicolumn{1}{r}{$^{**}$Significant at the 5 percent level.} \\   & \multicolumn{1}{r}{$^{*}$Significant at the 10 percent level.} \\  \end{tabular} 
 
 } 
 \end{columns}
 
 \begin{columns}   \column{0.4}
   \block{Player Specific Model}{
-    Here
+
+    \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]  \\[-1.8ex] & demeaned.reb.per.min \\  \hline \\[-1.8ex]   party & $-$0.001$^{*}$ (0.0005) \\    lag.chg.pos & 0.00003 (0.0001) \\    travel.dist & 0.00000$^{**}$ (0.00000) \\    nhours.lgame & 0.00002 (0.00002) \\    Constant & $-$0.003$^{**}$ (0.002) \\   \textit{N} & 44,190 \\  R$^{2}$ & 0.0003 \\  Adjusted R$^{2}$ & 0.0003 \\  Residual Std. Error & 0.105 (df = 44185) \\  F Statistic & 3.857$^{***}$ (df = 4; 44185) \\  \hline  \hline \\[-1.8ex]  \textit{Notes:} & \multicolumn{1}{r}{$^{***}$Significant at the 1 percent level.} \\   & \multicolumn{1}{r}{$^{**}$Significant at the 5 percent level.} \\   & \multicolumn{1}{r}{$^{*}$Significant at the 10 percent level.} \\  \end{tabular}  
+
   }
   \column{0.6}
   \block{MLB Model}{
-    Here
+
+
+    \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]  \\[-1.8ex] & I(team.score \textgreater  opponent.score) \\  \hline \\[-1.8ex]   party & $-$0.034$^{*}$ (0.019) \\    odds & 2.602$^{***}$ (0.162) \\    I(team == location) & 0.028 (0.033) \\    ndays.lgame & 0.012 (0.019) \\    travel.dist & 0.00000 (0.00003) \\    weekend & 0.042 (0.036) \\    Constant & $-$1.333$^{***}$ (0.080) \\   \textit{N} & 25,215 \\  Log Likelihood & $-$17,274.460 \\  Akaike Inf. Crit. & 34,562.920 \\  \hline  \hline \\[-1.8ex]  \textit{Notes:} & \multicolumn{1}{r}{$^{***}$Significant at the 1 percent level.} \\   & \multicolumn{1}{r}{$^{**}$Significant at the 5 percent level.} \\   & \multicolumn{1}{r}{$^{*}$Significant at the 10 percent level.} \\  \end{tabular}  
+
   } \end{columns}
 
 
@@ -64,21 +72,24 @@ three pointers made and attempted by each player in each game.
       at its worst we are out of pocket \$750 dollars. By season end, we have recouped all of
       our initial investment plus an additional \$13.5k.
     }
-    \note[         
-      targetoffsetx=-8cm,          
-      targetoffsety=-6.5cm,          
-      width=0.5\linewidth         
-    ]{e-mail: \texttt{santucci@stanford.edu}}   \end{columns}   
-
 
 \block{Meta Analysis}{
   Over 6k lines of code written, with ~120 commits.
 
   \begin{tikzfigure}
-    \includegraphics[width=0.3\textwidth]{figures/gh_commits}
+    \includegraphics[width=0.6\linewidth]{figures/gh_commits}
   \end{tikzfigure}
-  \begin{tikzfigure}     \includegraphics[width=0.7\textwidth]{figures/punch_card}    \end{tikzfigure}
 }
+\note[         
+  targetoffsetx=-8cm,          
+  targetoffsety=-8.5cm,          
+  width=0.5\linewidth         
+]{\texttt{elax13@stanford.edu}, \, \hspace{3pt} \texttt{santucci@stanford.edu}}   
+
+
+\end{columns}   
+
+
 
 
 \end{document}
