@@ -40,9 +40,9 @@ Bet <- function(our.prediction, actual.outcome, odds) {
     if (is.na(our.prediction)) return(NA_integer_)
     if (our.prediction == actual.outcome) {
         if (our.prediction > 0)
-            return(100 / odds - 100 - 5)
+            return(100 / odds - 100 - 10)
         else if (our.prediction == 0)
-            return(100 / (1-odds) - 100 - 5)
+            return(100 / (1-odds) - 100 - 10)
     } else if (our.prediction != actual.outcome)
         return(-100)
 }
