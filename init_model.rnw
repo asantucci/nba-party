@@ -117,8 +117,10 @@ city at most 24 hours ago. We take care to ignore
 teams playing in their own cities.
 
 <<>>=
+
 HOURS <- 24
 lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team, log(nmusicians), 0)]
+
 @
 
 \section{Possible confounders}
@@ -180,6 +182,7 @@ m <- glm(outcome == 'W' ~ party + lag.chg.pos + travel.dist*ew +
 
 summary(m)
 
+# stargazer(m, style = 'qje', single.row = T)
 @ 
 
 The sign of our ``\texttt{party}'' variable is intuitively correct, and 
@@ -193,15 +196,21 @@ by one or two hundred.
 If we re-train an even simpler model, we obtain fantastic betting performance.
 
 <<>>=
+
 HOURS <- 36
-m <- glm(outcome == 'W' ~ I(nmusicians*(nhours.lgame <= HOURS)), 
-         data = lines[season < 2017 & last.game.loc != team])
+m <- glm(outcome == 'W' ~ party, 
+         data = lines[season < 2016 & last.game.loc != team])
 
 ### We're only interested in making predictions when teams party.
-p <- predict(m, newdata = lines[season == 2017 & nhours.lgame <= HOURS & 
+p <- predict(m, newdata = lines[season == 2016 & nhours.lgame <= HOURS & 
                                 last.game.loc != team], type = 'response')
 
-table(round(p), lines[season == 2017 & nhours.lgame <= HOURS & 
+idx <- which(p < 0.476)
+out <- table(lines[season == 2016 & nhours.lgame <= HOURS & last.game.loc != team][idx, outcome])
+
+(out['L'] * 100 - 110*out['W']) %>% as.numeric
+
+table(round(p), lines[season == 2016 & nhours.lgame <= HOURS & 
                       last.game.loc != team, outcome])
 
 @
@@ -238,12 +247,12 @@ season. We explore how this response variable can be explained as a function of
 and rest time since last game.
 
 <<echo=F>>=
-require(mboost)
 lines[, game.time := hour(date)]
 
-lm(demeaned.reb.per.min ~ party + lag.chg.pos + travel.dist + nhours.lgame,
-   data = data[last.game.loc != team] %>% na.omit) %>%
-   summary
+m <- lm(demeaned.reb.per.min ~ party + lag.chg.pos + travel.dist + nhours.lgame,
+   data = data[last.game.loc != team] %>% na.omit)
+
+#stargazer(m, style = 'qje', single.row = T)
 @ 
 
 \section{Robustness Check: Replicating the analysis for MLB}
@@ -259,6 +268,7 @@ m <- glm(I(team.score > opponent.score) ~ party + odds + I(team == location) +
              ndays.lgame + travel.dist + weekend,
          data = lines, family = 'binomial')
 summary(m)
+# stargazer(m, style = 'qje', single.row = T)
 @ 
 
 We note that although we don't quite achieve conventional statistical significance,
@@ -296,7 +306,30 @@ plot(x = 1:length(b), y = running.prof,
      xlab = 'Game Number', ylab = 'Profit', type = 'l')
 abline(a = 0, b = 0, lty = 3)
 points(x = which.min(running.prof), y = min(running.prof), type = 'p')
-text(x = which.min(running.prof), y = min(running.prof), labels = min(running.prof), pos = 2)
+text(x = which.min(running.prof), y = min(running.prof), labels = min(running.prof), pos = 4)
+
+### the following plot shows sufficient deviation from house odds to motivate
+### an optimized betting strategy.
+hist(p- lines[year(date) == 2016, odds])
+
+tholds <- seq(.01, .1, by = .005)
+tmp <- sapply(tholds, function(t) {
+    p1 <- mapply(Predict, prediction = p[idx], 
+                 vegas = lines[year(date) == 2016, odds][idx],
+                 MoreArgs=list(threshold = t))
+    b <- mapply(Bet, our.prediction = p1,
+                actual.outcome = lines[year(date) == 2016, team.score > opponent.score][idx],
+                odds = lines[year(date) == 2016, odds][idx], SIMPLIFY = T)
+    return(c(sum(b, na.rm = T) / sum(!is.na(b)), sum(!is.na(b)))) # Avg profit per game.
+})
+
+
+plot(x = tholds, y = tmp[1, ], main = 'Return per game\nas a function of threshold', xlab = 'threshold', ylab = 'average profit')
+text(x = tholds, y = tmp[1, ], labels = tmp[2, ], pos = 1)
+
+    
+
+### plot return per game as a function of difference in odds between us and vegas.
 
 @ 
 
@@ -312,3 +345,5 @@ over the course of \Sexpr{sum(!is.na(b))} games.
      \end{thebibliography}
 
 \end{document}
+
+
