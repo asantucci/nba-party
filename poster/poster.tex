@@ -1,7 +1,7 @@
 \documentclass[24pt, a0paper, portrait]{tikzposter} 
  \usepackage{algorithm2e} \usepackage{amsmath} \usepackage{amsthm} \usepackage{amsfonts} \usepackage{bbm} \usepackage{color,soul} \usepackage{framed} \usepackage{hyperref} \usepackage{mathtools} \usepackage[utf8]{inputenc} 
 \usepackage{subcaption}
- \newtheorem{theorem}{Theorem}[section] \newtheorem{lemma}[theorem]{Lemma} \newtheorem{proposition}[theorem]{Proposition} \newtheorem{corollary}[theorem]{Corollary}  \DeclareMathOperator*{\argmin}{arg\,min} \DeclareMathOperator*{\argmax}{arg\,max} \newcommand{\D}{\mathrm{d}} \SetKwInput{KwInput}{Input} \SetKwInput{KwOutput}{Output}   \title{The effects of night-light on subsequent day sports performance} \author{Eric Lax, Andreas Santucci} \date{May 19th, 2017} \institute{Institute for Computational and Mathematical Engineering}   \usetheme{Board}   \begin{document}   \maketitle
+ \newtheorem{theorem}{Theorem}[section] \newtheorem{lemma}[theorem]{Lemma} \newtheorem{proposition}[theorem]{Proposition} \newtheorem{corollary}[theorem]{Corollary}  \DeclareMathOperator*{\argmin}{arg\,min} \DeclareMathOperator*{\argmax}{arg\,max} \newcommand{\D}{\mathrm{d}} \SetKwInput{KwInput}{Input} \SetKwInput{KwOutput}{Output}   \title{The effects of night-life on subsequent day sporting performance} \author{Eric Lax, Andreas Santucci} \date{May 19th, 2017} \institute{Institute for Computational and Mathematical Engineering}   \usetheme{Board}   \begin{document}   \maketitle
 
 \block{Idea} {     It's not unreasonable to think that game performance can be affected (in part) by what takes place off the court. We are interested to see if teams exhibit a decline in performance the day following a game in a party city. We exploit data on bookmaker spreads, the expected score differential between two teams after conditioning on observable performance. We expect a team to meet the spread half the time, since this is how bookmakers minimize risk on their end. We construct a model which attempts to estimate the causal effect of  visiting a "party-city" the day before a game on the probability of meeting the spread. }
 
@@ -45,23 +45,27 @@ three pointers made and attempted by each player in each game.
     \column{0.4}     
     \block{NBA model}{
       % Table created by stargazer v.5.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu % Date and time: Sat, May 06, 2017 - 09:58:05 AM
+\begin{center}
 \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]  \\[-1.8ex] & outcome == "W" \\  \hline \\[-1.8ex]   party & $-$0.052$^{**}$ (0.022) \\    lag.chg.pos & 0.0001 (0.002) \\    travel.dist & $-$0.00002 (0.00004) \\    ew & $-$0.035 (0.047) \\    nhours.lgame & 0.001 (0.001) \\    I(hour(date)) & 0.006 (0.012) \\    travel.dist:ew & 0.00004 (0.00005) \\    Constant & $-$0.144 (0.348) \\   \textit{N} & 9,979 \\  Log Likelihood & $-$6,912.426 \\  Akaike Inf. Crit. & 13,840.850 \\  \hline  \hline \\[-1.8ex]  \textit{Notes:} & \multicolumn{1}{r}{$^{***}$Significant at the 1 percent level.} \\   & \multicolumn{1}{r}{$^{**}$Significant at the 5 percent level.} \\   & \multicolumn{1}{r}{$^{*}$Significant at the 10 percent level.} \\  \end{tabular} 
+\end{center}
 
 } 
 \end{columns}
 
-\begin{columns}   \column{0.4}
+\begin{columns}   \column{0.5}
   \block{Player Specific Model}{
 
+\begin{center}
     \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]  \\[-1.8ex] & demeaned.reb.per.min \\  \hline \\[-1.8ex]   party & $-$0.001$^{*}$ (0.0005) \\    lag.chg.pos & 0.00003 (0.0001) \\    travel.dist & 0.00000$^{**}$ (0.00000) \\    nhours.lgame & 0.00002 (0.00002) \\    Constant & $-$0.003$^{**}$ (0.002) \\   \textit{N} & 44,190 \\  R$^{2}$ & 0.0003 \\  Adjusted R$^{2}$ & 0.0003 \\  Residual Std. Error & 0.105 (df = 44185) \\  F Statistic & 3.857$^{***}$ (df = 4; 44185) \\  \hline  \hline \\[-1.8ex]  \textit{Notes:} & \multicolumn{1}{r}{$^{***}$Significant at the 1 percent level.} \\   & \multicolumn{1}{r}{$^{**}$Significant at the 5 percent level.} \\   & \multicolumn{1}{r}{$^{*}$Significant at the 10 percent level.} \\  \end{tabular}  
+\end{center}
 
   }
-  \column{0.6}
+  \column{0.5}
   \block{MLB Model}{
 
-
+\begin{center}
     \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]  \\[-1.8ex] & I(team.score \textgreater  opponent.score) \\  \hline \\[-1.8ex]   party & $-$0.034$^{*}$ (0.019) \\    odds & 2.602$^{***}$ (0.162) \\    I(team == location) & 0.028 (0.033) \\    ndays.lgame & 0.012 (0.019) \\    travel.dist & 0.00000 (0.00003) \\    weekend & 0.042 (0.036) \\    Constant & $-$1.333$^{***}$ (0.080) \\   \textit{N} & 25,215 \\  Log Likelihood & $-$17,274.460 \\  Akaike Inf. Crit. & 34,562.920 \\  \hline  \hline \\[-1.8ex]  \textit{Notes:} & \multicolumn{1}{r}{$^{***}$Significant at the 1 percent level.} \\   & \multicolumn{1}{r}{$^{**}$Significant at the 5 percent level.} \\   & \multicolumn{1}{r}{$^{*}$Significant at the 10 percent level.} \\  \end{tabular}  
-
+\end{center}
   } \end{columns}
 
 
@@ -82,7 +86,7 @@ three pointers made and attempted by each player in each game.
 }
 \note[         
   targetoffsetx=-8cm,          
-  targetoffsety=-8.5cm,          
+  targetoffsety=-7.8cm,          
   width=0.5\linewidth         
 ]{\texttt{elax13@stanford.edu}, \, \hspace{3pt} \texttt{santucci@stanford.edu}}   
 
