@@ -3,16 +3,16 @@
 \usepackage{subcaption}
  \newtheorem{theorem}{Theorem}[section] \newtheorem{lemma}[theorem]{Lemma} \newtheorem{proposition}[theorem]{Proposition} \newtheorem{corollary}[theorem]{Corollary}  \DeclareMathOperator*{\argmin}{arg\,min} \DeclareMathOperator*{\argmax}{arg\,max} \newcommand{\D}{\mathrm{d}} \SetKwInput{KwInput}{Input} \SetKwInput{KwOutput}{Output}   \title{The effects of night-life on subsequent day sporting performance} \author{Eric Lax, Andreas Santucci} \date{May 19th, 2017} \institute{Institute for Computational and Mathematical Engineering}   \usetheme{Board}   \begin{document}   \maketitle
 
-\block{Idea} {     It's not unreasonable to think that game performance can be affected (in part) by what takes place off the court. We are interested to see if teams exhibit a decline in performance the day following a game in a party city. We exploit data on bookmaker spreads, the expected score differential between two teams after conditioning on observable performance. We expect a team to meet the spread half the time, since this is how bookmakers minimize risk on their end. We construct a model which attempts to estimate the causal effect of  visiting a "party-city" the day before a game on the probability of meeting the spread. }
+\block{~} {     It's not unreasonable to think that game performance can be affected (in part) by what takes place off the court. We are interested to see if teams exhibit a decline in performance the day following a game in a city with active nightlife. 
+We exploit data on bookmaker spreads, the expected score differential between two teams after conditioning on observable performance. We expect a team to meet the spread half the time, since this is how bookmakers minimize risk on their end. We construct a model which attempts to estimate the causal effect of  visiting a "party-city" on subsequent day performance as measured by the spread. Since next-day
+  opponent is uncorrelated with exposure to treatment, we have identification in our variable of 
+  interest.
+}
 
 \block{Model}{
   \[
     \texttt{meet spread} \sim \texttt{party} + \substack{\texttt{days since} \\ \texttt{last game}} + \substack{\texttt{time}\\ \texttt{difference}} + \substack{\texttt{distance} \\ \texttt{traveled}}
   \]
-  Our setup relies on a quasi-experiment: we look for instances where a team plays in a city
-  with active nightlife, then plays a game in a different location the next day. Since next-day
-  opponent is uncorrelated with exposure to treatment, we have identification in our variable of 
-  interest.
 }
 
 
@@ -74,7 +74,7 @@ three pointers made and attempted by each player in each game.
       game, we place a bet if our model instructs us of odds sufficiently different from what
       the betting house suggests. We account for the bookmaker's cut. In the early season,
       at its worst we are out of pocket \$750 dollars. By season end, we have recouped all of
-      our initial investment plus an additional \$13.5k.
+      our initial investment plus an additional \$11.5k.
     }
 
 \block{Meta Analysis}{
