@@ -299,6 +299,7 @@ b <- mapply(Bet, our.prediction = p1,
 sum(b, na.rm = T)
 
 ### 
+pdf('mlb_bets.pdf')
 betting.days <- lines[year(date) == 2016][idx, date]
 running.prof <- cumsum(ifelse(is.na(b), 0, b))
 plot(x = 1:length(b), y = running.prof, 
@@ -307,6 +308,7 @@ plot(x = 1:length(b), y = running.prof,
 abline(a = 0, b = 0, lty = 3)
 points(x = which.min(running.prof), y = min(running.prof), type = 'p')
 text(x = which.min(running.prof), y = min(running.prof), labels = min(running.prof), pos = 4)
+dev.off()
 
 ### the following plot shows sufficient deviation from house odds to motivate
 ### an optimized betting strategy.
