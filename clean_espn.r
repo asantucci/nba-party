@@ -18,6 +18,7 @@
 
 require(data.table)
 require(magrittr)
+require(zoo)
 
 require(parallel)
 cl <- makeCluster(detectCores())
@@ -60,10 +61,11 @@ data[, c('fg', 'three.pt', 'ft') := NULL]
 cols <- CJ(c('fg', 'three', 'free'), c('made', 'attempted'))
 cols <- paste(cols[[1]], cols[[2]], sep = '.')
 cols <- c(cols, 'min', 'reb', 'oreb', 'dreb', 'pts', 'to', 'pm', 'pf')
-data <- data[!grepl("[^0-9+-]", min) & min != '0']
-
-for (col in cols)
-    set(data, j = col, value = as.numeric(data[[col]]))
+data[grep('did not play', min, ignore.case = T), min := '0']
+data <- data[grepl("^[0-9+-]+$", min)]
+## data <- data[!grepl("[^0-9+-]", min)]
+#data <- data[!grepl("[^0-9+-]", min) & min != '0']
+for (col in cols) set(data, j = col, value = as.numeric(data[[col]]))  # To clean up!!
 
 ### Demean by season-player
 cols <- Filter(function(x) !(x %in% c('min', 'to','pf')), cols)
@@ -72,8 +74,19 @@ setnames(data, 'min', 'mins')
 for (c in cols) data[, (paste0(c, '.per.min')) := get(c) / mins]
 cols <- paste0(cols, '.per.min')
 ### (...then, we demean)
-data[, (cols) := lapply(.SD, function(x) x - cumsum(x)/.I),
-     by = list(season, player), .SDcols = cols]
+data[, (paste0('demeaned.', cols)) := lapply(.SD, function(x) x - mean(x)),  ## Can't use this for betting!
+     by = list(player, season), .SDcols = cols]
+
+### Remove players who only show up < 5 times per season...
+insufficient.obs <- data[, .N, keyby = list(season, player)][N < 5]
+data <- data[!insufficient.obs, on = c('season', 'player')]
+
+### Create rolling average variables.
+cols <- paste0('demeaned.', cols)
+setkey(data, season, player, date)
+RollMean <- function(x, k) c(rep(NA, k-1), rollmean(x, k))
+data[, (paste('roll', cols, sep = '.')) := lapply(.SD, RollMean, k = 5),
+     .SDcols = cols, by = list(player, season)]
 
 data[, position := gregexpr(pattern = '[A-Z]{1,2}$', player) %>%
                    regmatches(x = player) %>% unlist]
