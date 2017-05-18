@@ -17,8 +17,13 @@ We note that some of these predictors might have non-linear effects, e.g. distan
 
 ### Data Sources
 
+### Anecdotes
+"There's no nightlife in Utah", May 2017. [Article](http://kron4.com/2017/05/01/warriors-forward-matt-barnes-on-playing-jazz-in-second-round-of-nba-playoffs-theres-no-nightlife-in-utah/)
+
 ### References
 "The Benefits of College Athletic Success: An Application of the Propensity Score Design", by Michael L. Anderson. March, 2017. [Paper](http://www.mitpressjournals.org/doi/pdfplus/10.1162/REST_a_00589)
+
+"Jet Lag in Athletes", May 2012. [Paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3435929/)
 
 "Injury in the National Basketball Association", by Drakos et. al. July, 2010. [Paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3445097/)
 
@@ -67,3 +72,7 @@ We note that some of these predictors might have non-linear effects, e.g. distan
 "Meta-analytics: tools for understanding the statistical properties of sports metrics", March 2017. [Paper](https://www.degruyter.com/view/j/jqas.2016.12.issue-4/jqas-2016-0098/jqas-2016-0098.xml?format=INT)
 
 "Why can't baseball players act more like hockey players", Oct 2015. [Paper](http://www.thehockeynews.com/news/article/why-cant-baseball-players-act-more-like-hockey-players)
+
+### R packages
+ Hlavac, Marek (2015). stargazer: Well-Formatted Regression and Summary Statistics Tables.
+ R package version 5.2. [Package](http://CRAN.R-project.org/package=stargazer )
