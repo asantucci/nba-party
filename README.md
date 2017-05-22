@@ -25,6 +25,9 @@ We note that some of these predictors might have non-linear effects, e.g. distan
 
 "Jet Lag in Athletes", May 2012. [Paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3435929/)
 
+"Jet lag puts baseball players off their game", Jan 2017.
+[Article](https://www.sciencemag.org/news/2017/01/jet-lag-puts-baseball-players-their-game)
+
 "Injury in the National Basketball Association", by Drakos et. al. July, 2010. [Paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3445097/)
 
 "How to read a baseball betting line", June 2007. [Paper](http://bleacherreport.com/articles/1113-how-to-read-a-baseball-betting-line)
