@@ -1,0 +1,133 @@
+%% This file is to be used as a template for your submission. 
+%% Rename this file and replace the text with the text of 
+%% your manuscript.
+%%
+%% The standard LaTeX document class "article" is recommended. 
+%% Use options letterpaper and 12pt.
+\documentclass[letterpaper,12pt]{article}
+
+%% This is the recommended preamble for your document.
+
+%% Load De Gruyter specific settings 
+\usepackage{dgjournal}          
+
+%% The mathptmx package is recommended for Times compatible math symbols.
+%% Use mtpro2 or mathtime instead of mathptmx if you have the commercially
+%% available MathTime fonts.
+%% Other options are txfonts (free) or belleek (free) or TM-Math (commercial)
+\usepackage{mathptmx}
+
+%% Use the graphics package to include figures
+\usepackage{graphics}
+
+%% Use natbib with these recommended options
+\usepackage[authoryear,comma,longnamesfirst,sectionbib]{natbib} 
+
+%% Start your document body here
+\begin{document}
+
+%% Do NOT include any fronmatter information; including the title, author names,
+%% institutes, acknowledgments and title footnotes (author information, funding
+%% sources, etc.). Start the document with the first section or paragraph of
+%% the article.
+
+\section{Introduction}
+\section{Previous Research}
+\section{Materials and Methods}
+\subsection{Data}
+\section{Results}
+\section{Conclusions}
+\section{References}
+
+
+
+
+\section{This should be the first section of your document}
+
+Your text goes here. Start with the first section or paragraph of your
+article. Do not set use either headers or footers and do not set any running
+heads or change any page numbers.
+
+The title page along with headers and footers will be inserted by the EdiKit
+system. Use the ``revise manuscript'' link to enter this information in the
+EdiKit system.
+
+Use the standard LaTeX commands to set the text of the article. The dgjournal
+package works with any of the standard LaTeX document classes - article, report
+or book. Other document classes should work but compliance with De Gruyter
+requirements is not assured. For more information on LaTeX, see
+\cite{lamport,mittelbach,oetiker}. \cite{mittelbach} is highly recommended.
+
+Use the standard LaTeX sectioning commands for your headings.
+
+\subsection{A second order heading}
+
+Some text under the subheading. Paragraphs that follow heads are not
+indented.
+
+Math should also be set in Times. Use the mathptmx package if you do not have
+any of the commercially available fonts that are compatible with Times.
+\begin{equation}
+    y^{(n)} = \sum_{i=0}^{n-1} a_i(x) y^{(i)} + r(x) 
+\end{equation}
+
+All environments provided by the standard LaTeX document classes are
+unchanged. Vertical spaces within lists have been altered to comply with De Gruyter
+requirements.
+\begin{enumerate}
+\item This is the first item within the list. Some more text here in order to
+  display the alignment.
+\item Another item in the list.
+\item Yet another item in the list.
+\end{enumerate}
+
+Here is an example of a Figure. It's the same as in standard LaTeX.
+
+\begin{figure}[!h]
+%% Use the graphics package to insert figures
+%% \includegraphics{figure.eps}
+% Use \centering to center the table
+\centering
+%% A small box in place of a figure
+\framebox{%
+  \begin{minipage}{10pc}
+    \begin{center}
+      \vspace{1cm}\par
+      A figure\par
+      \vspace{1cm}
+    \end{center}
+  \end{minipage}}
+\caption{Insert your caption here. If you wish to label your figure for
+  cross-referencing, use a label either within the caption or after it.}
+\label{fig1}
+\end{figure}
+
+An example of a table follows. This is also the same as in standard LaTeX.
+
+\begin{table}[!h]
+% Use \centering to center the table
+\centering
+\caption{Insert your table caption here. If you wish to label the table for
+  cross-referencing, use a label either within the caption or after it.}
+\begin{tabular}{llll}
+\hline
+Symbol        & LaTeX Command      & Symbol      & LaTeX Command \\
+\hline
+$\alpha$      & \verb+\alpha+      & $\zeta$     & \verb+\zeta+ \\
+$\beta$       & \verb+\beta+       & $\eta$      & \verb+\eta+ \\
+$\gamma$      & \verb+\gamma+      & $\theta$    & \verb+\theta+ \\
+$\delta$      & \verb+\delta+      & $\vartheta$ & \verb+\vartheta+ \\
+$\epsilon$    & \verb+\epsilon+    & $\iota$     & \verb+\iota+ \\
+$\varepsilon$ & \verb+\varepsilon+ & $\kappa$    & \verb+\kappa+ \\
+\hline
+\end{tabular}
+\end{table}
+
+Use the \verb+thebibliography+ environment for the references.  BibTeX users may
+use the provided BibTeX style file DeGruyter.bst.
+
+%% BibTeX support
+\bibliographystyle{DeGruyter}
+\bibliography{sample}
+
+\end{document}
