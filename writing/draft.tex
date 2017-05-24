@@ -11,6 +11,8 @@
 %% Load De Gruyter specific settings 
 \usepackage{dgjournal}          
 
+\usepackage{hyperref}
+
 %% The mathptmx package is recommended for Times compatible math symbols.
 %% Use mtpro2 or mathtime instead of mathptmx if you have the commercially
 %% available MathTime fonts.
@@ -32,11 +34,69 @@
 %% the article.
 
 \section{Introduction}
+It's not unreasonable to think that game performance can be affected 
+(in part) by what takes place off the court. We are interested to see if 
+teams exhibit a decline in performance the day following a game in a city 
+with active nightlife. We exploit data on bookmaker spreads, the expected score 
+differential between two teams after conditioning on observable performance. 
+We expect a team to meet the spread half the time, since this is how bookmakers 
+minimize risk on their end. We construct a model which attempts to 
+estimate the causal effect of  visiting a "party-city" on subsequent day 
+performance as measured by the spread. Since next-day
+opponent is uncorrelated with exposure to treatment, we have identification in our variable of 
+interest.
+
 \section{Previous Research}
+
 \section{Materials and Methods}
 \subsection{Data}
+\subsubsection{Lines data} We obtained data from \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, which records the outcome of each game alongside the line set by a betting house.
+
+
+\subsubsection{BLS data} We also obtained data from
+\href{https://www.bls.gov/data/}{Bureau of Labor Statistics} which records the number of establishments by business type at the county-quarter level. As a 
+proxy for how much night-life there is in a city, we look toward the 
+number of sound recording studios, musical groups, and music publishers there 
+are for a particular county-year: we simply calculate the average number of establishments across all three music categories listed above.\footnote{We caveat that since the Toronto Raptors are located in Canada, we don't have BLS data for this team.}
+
+We then merge this in with our lines data, taking care to do so according to each season-team's last game location; we also lag our BLS data by one year.
+To this data, we've created features such as 
+the number of days since last game, the last game location, the travel distance, and
+average age\footnote{We use $\log \textrm{\# days old}$, at the time the game is played.}. Our data range from 2010-2011 season through present, which includes part of the 2016-2017 season.
+
+\subsubsection{Minutes data}
+We also gathered minutes data from \href{http://www.espn.com/nba/scoreboard/_/date/}{ESPN}.
+
+The minutes data also contain information on the number of free throws, field goals, and
+three pointers made and attempted by each player in each game.
+
+\subsubsection{Which cities (don't) have nightlife?}
+
+We examine which cities have a notable nightlife, as measured by our proxy;
+bottom and top five.
+
+Los Angeles stands out, as does New York. Some runner ups include Chicago and Miami. 
+
+\subsection{Method: Defining a continuous measure of night life}
+
+We have a free parameter: the time-window which we believe the hangover effect
+to last. Suppose we only look toward games which have been played in a party
+city at most 24 hours ago. We take care to ignore
+teams playing in their own cities.
+
+\subsection{Possible confounders}
+What if we pick up effects of a busy play schedule?
+Aside from accounting for how much rest time a team is allowed in between games,
+and travel distance between games, we're also interested to get a measure of
+fatigue incurred on the court.
+We account for this by bringing in minutes data, and counting the number of 
+times the players run back and forth on the court. This is crudely measured
+by the number of changes in posession. We back out this quantity.
+
 \section{Results}
+
 \section{Conclusions}
+
 \section{References}
 
 
