@@ -12,6 +12,7 @@
 \usepackage{dgjournal}          
 
 \usepackage{hyperref}
+\usepackage{color,soul}
 
 %% The mathptmx package is recommended for Times compatible math symbols.
 %% Use mtpro2 or mathtime instead of mathptmx if you have the commercially
@@ -74,8 +75,8 @@ cognitive function and motor skill.\cite{shirreffs} In a study on
 the effects of alcohol on recovery of male athletes, it was found that
 consumption is correlated with reduced production of testosterone
 which ultimately leads to inhibited ability to recover and adapt to exercise.\cite{mjbarnes}
-Same goes for sleep deprivation and possibly narcotics. 
-These are all well correlated with active night life.
+Sleep deprivation has also been shown to strongly impair cognitive and motor performance.\cite{pilcher} Both alcohol and sleep deprivation are well correlated with lifestyles associated
+with an active night life.
 
 \section{Materials and Methods}
 One of the hardest parts of this analysis is that partying is a latent variable.
@@ -85,25 +86,23 @@ intense public scrutiny that athletes face, there is a strong reluctance to post
 such mentions on social media. There are notable exceptions, such
 as Oddel Beckham Jr.'s trip to Miami in 2017 season.\cite{bleler}
 The reports are few and far enough between,
-and could be biased based on whether a particular city has nightclubs with VIP rooms,
-that picking up statistical evidence would be fruitless.
+and whether they are even reported at all is strongly biased on whether a particular city 
+has nightclubs with VIP rooms, etc; picking up statistical evidence would be fruitless in this case.
 
 \paragraph{Two approaches: a discrete indicator and a continuous measure of nightlife}
 Because famous athletes often enjoy a celebrity lifestyle, using conventional statistics
 such as number of drinking establishments in each city does not work; athletes instead
-tend to visit high end nightclubs. We again turned to player interviews for insight,
-and found two major insights. We obtained a listing of cities which were anecdotally
+tend to visit high end nightclubs. We again turned to player interviews for ideas,
+and found two major insights. From our conversations, 
+we obtained a listing of cities which were anecdotally
 mentioned as having active night-life. Between players, the rank ordering of these
 was consistent to the extent that LA and NY were top
 offenders. This motivates using a binary indicator for party in these two cities. 
 We also found that athletes tend to party with other A-list celebrities,
 particularly musicians. This motivated a continuous measure of nightlife, based on a
-simple count of the number of musicians. We pursue both approaches.
+simple count of the number of musicians in the county in which the stadium resides. 
+We pursue both approaches.
 
-
-Insights: major party cities are LA and NY, and athletes party is well correlated with musicians. This led to two separate definitions of party. Our most basic analysis was to consider performance 
-the day after visiting LA or NY.
-We also considered the number of musical establishments per city. 
 
 \paragraph{Logic for using spread data}
 In order to assert a causal relation between cities with active nightlife 
@@ -118,12 +117,13 @@ For example, if book-keepers
 are already aware of the effects of night-life on performance, it could
 already be factored into the spread; if this were the case, then our variable
 of interest would not appear to have significant explanatory power
-on the margin, when also conditioning on spread, in spite of there being
+after conditioning on spread, in spite of there being
 a true effect. Alternatively,
 if the house book-keeper systematically over-valued
 teams which you are more likely to play after a party city,
 we could see a spurious effect.
-That said, the amount of money that is at stake and the effort put into creating these spreads 
+
+\hl{Careful} That said, the amount of money that is at stake and the effort put into creating these spreads 
 suggests that they are reliable. So, if we do find an effect in our variable of interest,
 we can be confident in our conclusion that there is a causal effect and not some
 other systematic bias.
