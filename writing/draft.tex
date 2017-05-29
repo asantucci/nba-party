@@ -38,7 +38,7 @@ It's not unreasonable to think that game performance can be affected
 (in part) by what takes place off the court. 
 Anecdotally, it has been reported that professional sports teams party on 
 the road, sometimes to the detriment of the game.\cite{hoch}
-J.R. Smith is infamous for citing his improvement in performance due to a
+Within the NBA, J.R. Smith is infamous for citing his improvement in performance due to a
 lack of nightlife when moving to Cleveland from New York.\cite{price,ley}
 A few interviews with former professional athletes revealed that location
 matters more than day of the week, i.e. parties can happen any day of the week,
@@ -50,38 +50,43 @@ with active nightlife. We exploit data on bookmaker spreads, the expected score
 differential between two teams after conditioning on observable performance. 
 We expect a team to meet the spread half the time, since this is how bookmakers 
 minimize risk on their end. We construct a model which attempts to 
-estimate the causal effect of  visiting a "party-city" on subsequent day 
+estimate the causal effect of  visiting a ``party-city'' on subsequent day 
 performance as measured by the spread. Since next-day
 opponent is uncorrelated with exposure to treatment, we have identification in our variable of 
 interest.
 
-
 \section{Previous Research}
-In 2014, Ezekowitz tried to answer the question we're interested in.\cite{ezekowitz} 
+There has been an attempt to answer this question before.\cite{ezekowitz} 
 However, the study only
-looks at performance in party cities, as opposed to subsequent day performance (i.e.
-a hangover effect). Moreover, their sample size was much smaller. Finally, there was no
-methodology used behind the selection of party cities. Between these factors, no
-conclusion was reached with statistical significance. The data do weakly suggest
-that teams are less likely to win on the road in party cities.
+looks at performance in party cities, as opposed to subsequent day performance (i.e. the study does not consider a delayed hangover effect). Moreover, their sample size was much smaller. 
+Finally, there was no methodology used behind the selection of party cities. The author does conclude
+that teams systematically play worse on Sunday afternoons when on the road,
+regardless of cities.
 
-In 2015, Chase also looked at a statistical ranking of the biggest partiers in
-the NBA.\cite{chase}
+Studies have also been carried out on statistical ranking of the players
+most notorious for pursuing active nightlife in the NBA.\cite{chase} The study
+does conclude that players perform worse on Sundays when compared with other days
+as measured by the ratio of shots scored to shots taken.
 
-Studies on effects of alcohol on sports performance in a controlled setting.
+Studies on effects of alcohol on sports performance in a controlled setting
+show that alcohol impairs the nervous system, resulting in decrements in both
+cognitive function and motor skill.\cite{shirreffs} In a study on 
+the effects of alcohol on recovery of male athletes, it was found that
+consumption is correlated with reduced production of testosterone
+which ultimately leads to inhibited ability to recover and adapt to exercise.\cite{mjbarnes}
 Same goes for sleep deprivation and possibly narcotics. 
-Both of those well correlated with active night life.
+These are all well correlated with active night life.
 
 \section{Materials and Methods}
 One of the hardest parts of this analysis is that partying is a latent variable.
-In order to Determine when players partied, one might consider to look at Twitter data
+In order to determine when players partied, one might consider to look at social media data
 for direct mentions of partying, either by athletes or witnesses. However, due to
 intense public scrutiny that athletes face, there is a strong reluctance to post
 such mentions on social media. There are notable exceptions, such
 as Oddel Beckham Jr.'s trip to Miami in 2017 season.\cite{bleler}
 The reports are few and far enough between,
 and could be biased based on whether a particular city has nightclubs with VIP rooms,
-that picking up statistical evidence would be a fruitless.
+that picking up statistical evidence would be fruitless.
 
 \paragraph{Two approaches: a discrete indicator and a continuous measure of nightlife}
 Because famous athletes often enjoy a celebrity lifestyle, using conventional statistics
