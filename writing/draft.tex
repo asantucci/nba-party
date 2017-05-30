@@ -13,6 +13,7 @@
 
 \usepackage{hyperref}
 \usepackage{color,soul}
+\usepackage{amsmath}
 
 %% The mathptmx package is recommended for Times compatible math symbols.
 %% Use mtpro2 or mathtime instead of mathptmx if you have the commercially
@@ -109,9 +110,9 @@ In order to assert a causal relation between cities with active nightlife
 and subsequent day sports performance, we need to control for salient
 features such as the ability of players on either team in the match-up,
 whether any players are injured, the momentum of success each team is carrying
-in the season, etc. To that end, we utilize spread data. The benefit of
+in the season, etc.\cite{anderson} To that end, we utilize spread data. The benefit of
 using spread data is that it controls for a lot, but the downside is that
-we don't know exactly what it controls for. 
+we don't know exactly what it controls for.
 
 For example, if book-keepers
 are already aware of the effects of night-life on performance, it could
@@ -121,9 +122,8 @@ after conditioning on spread, in spite of there being
 a true effect. Alternatively,
 if the house book-keeper systematically over-valued
 teams which you are more likely to play after a party city,
-we could see a spurious effect.
-
-\hl{Careful} That said, the amount of money that is at stake and the effort put into creating these spreads 
+we could see a spurious effect. 
+That said, the amount of money that is at stake and the effort put into creating these spreads 
 suggests that they are reliable. So, if we do find an effect in our variable of interest,
 we can be confident in our conclusion that there is a causal effect and not some
 other systematic bias.
@@ -152,59 +152,84 @@ to have a negative effect on sports performance.\cite{leeandgalvez}
 Previous studies have shown that jet lag is a strong enough effect
 to erase home field advantage in MLB.\cite{songetal}
 
-\paragraph{The problem of an unknown travel schedule} In NBA, we have the difficulty of
-not observing when teams travel. 
-In MLB, each match-up is actually a series of games.
+\paragraph{The problem of an unknown travel schedule} In NBA, we have the difficulty of not observing when teams travel. E.g. if a particular team  plays
+in Los Angeles on Friday and another game in New York the following day, we don't
+know whether the team traveled on Friday evening or Saturday morning. Heuristics for
+travel schedules can be made, but it is hard to obtain reliable team-travel data.
+In MLB, on the other hand, each match-up is actually a series of games. E.g.
+if the Dodgers play the Giants in San Francisco, they will play several games spread
+across several days, each in the same city; in these cases, we can infer that the team
+is in fact spending the night in said city.
 
 
 \subsection{Data}
-\subsubsection{Lines data} We obtained data from \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, which records the outcome of each game alongside the line set by a betting house.
+\paragraph{Lines data} We first look toward 
+\href{http://www.basketball-reference.com/leagues/}{basketball-reference.com}
+for a listing of game-days by season. With this listing, we queried \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{covers.com},
+for all games occurring on a particular game, and for each we observe
+outcome of each game alongside the line set by a betting house. We obtain
+data for seasons 2010-11 through 2016-17.
 
 
-\subsubsection{BLS data} We also obtained data from
+\paragraph{BLS data} We also obtained data from
 \href{https://www.bls.gov/data/}{Bureau of Labor Statistics} which records the number of establishments by business type at the county-quarter level. As a 
 proxy for how much night-life there is in a city, we look toward the 
 number of sound recording studios, musical groups, and music publishers there 
-are for a particular county-year: we simply calculate the average number of establishments across all three music categories listed above.\footnote{We caveat that since the Toronto Raptors are located in Canada, we don't have BLS data for this team.}
+are for a particular county-year: we simply calculate the average number of establishments across all three music categories listed above. We caveat that since the Toronto Raptors are located in Canada, we don't have BLS data for this team.
 
-We then merge this in with our lines data, taking care to do so according to each season-team's last game location; we also lag our BLS data by one year.
+We then merge this in with our lines data, taking care to do so according to each season-team's last game location such that the feature captures the proper
+party effect. In addition, we lag our BLS data by one year for two reasons:
+realistically, player expectations of which cities have the most active night-life may not
+update in real-time and also doing so allows us to create a betting model, i.e.
+we don't rely on any features we can't obtain before making a game-time prediction. 
 To this data, we've created features such as 
-the number of days since last game, the last game location, the travel distance, and
-average age\footnote{We use $\log \textrm{\# days old}$, at the time the game is played.}. Our data range from 2010-2011 season through present, which includes part of the 2016-2017 season.
+the number of days since last game, the last game location, and the travel distance. 
+Our data range from 2010-2011 season through present, which includes part of the 2016-2017 season.
 
-\subsubsection{Minutes data}
+\paragraph{Minutes data}
 We also gathered minutes data from \href{http://www.espn.com/nba/scoreboard/_/date/}{ESPN}.
+The minutes data also contain information on the number of free throws, field goals, and three pointers made and attempted by each player in each game.
 
-The minutes data also contain information on the number of free throws, field goals, and
-three pointers made and attempted by each player in each game.
+\paragraph{Location and Travel Distance Data} We are also interested
+to account for the effects of jet-lag. For each team, we queried
+a maps search engine to obtain a longitude and latitude listing.\cite{ggmap}
+For each pairwise set of coordinates, we calculated distance between the two
+points.\cite{sp} To account for jet-lag, we first computed the final direction 
+(bearing) when arriving at the 
+second point after starting from the first and following the shortest path on a sphere 
+(following a great circle).\cite{lallensack}
 
-\subsubsection{Loctaion and Travel Distance Data} is obtained
-by API.
-
-\subsection{Method: Defining a continuous measure of night life}
-
+\subsection{Method: Defining what it means for a city to have nightlife}
 We have a free parameter: the time-window which we believe the hangover effect
 to last. Suppose we only look toward games which have been played in a party
 city at most 24 hours ago. We take care to ignore
-teams playing in their own cities.
+teams playing in their own cities, i.e. if a team's last game was played in at home 
+we say that they were not exposed to any nightlife.
 
 \paragraph{Discrete indicator}
-If a team plays in Los Angeles or New York within 24 hours of their current game,
-we indicate one, else zero.
+Our first sanity check was to define an indicator variable for when a team plays in 
+Los Angeles or New York within 24 hours of their current game, we indicate one, else zero. Anecdotally, these are mentioned as hot-spots for
+nightlife.
 
 \paragraph{Continuous measure}
-If the last game was played at most 36 hours ago, use log average number
-of musicians in last game location, else zero.
+We also defined a continuous measure of nightlife:
+if the last game was played at most 24 hours ago, use the log of the average number
+of musicians in last game location, else emit zero. Intuitively, this captures
+how much nightlife there is in a city since musical performances are correlated
+with parties, if not an essential feature.
 
 \subsection{Model} We use a logistic regression to estimate the likelihood of meeting
 the spread as a function of whether the team partied as well as controlling for other confounders
-listed above.
+listed above. Our basic model is as follows.
+
+\[
+\texttt{meet spread} \,  \sim \, \substack{\texttt{days since} \\ \texttt{last game}} \, + \, \texttt{jetlag} \, + \, \substack{\texttt{home team} \\ \texttt{effect}} \, + \, \texttt{party}
+\]
 
 \section{Results}
 \subsection{Using spread data}
-\begin{center}
-\begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]  \\[-1.8ex] & outcome == "W" \\  \hline \\[-1.8ex]   party & $-$0.052$^{**}$ (0.022) \\    lag.chg.pos & 0.0001 (0.002) \\    travel.dist & $-$0.00002 (0.00004) \\    ew & $-$0.035 (0.047) \\    nhours.lgame & 0.001 (0.001) \\    I(hour(date)) & 0.006 (0.012) \\    travel.dist:ew & 0.00004 (0.00005) \\    Constant & $-$0.144 (0.348) \\   \textit{N} & 9,979 \\  Log Likelihood & $-$6,912.426 \\  Akaike Inf. Crit. & 13,840.850 \\  \hline  \hline \\[-1.8ex]  \textit{Notes:} & \multicolumn{1}{r}{$^{***}$Significant at the 1 percent level.} \\   & \multicolumn{1}{r}{$^{**}$Significant at the 5 percent level.} \\   & \multicolumn{1}{r}{$^{*}$Significant at the 10 percent level.} \\  \end{tabular} 
-\end{center}
+We find that after accounting for player fatigue incurred during the last game, jetlag and travel fatigue, and recovery time, and home-team effect, that both our discrete indicator and continuous measure of party
+have a statistically significant effect on likelihood of meeting the spread.
 
 
 \subsection{Using performance statistics}
@@ -212,31 +237,33 @@ We additionally looked at actual performance instead of relying on spread data.
 This allows us to avoid using the black-box of spread data, and also pin-point
 more exactly what elements of the game are in fact effected by partying.
 This motivates looking at number of points allowed, number of points scored.
-
 We also considered rebounds, fouls, and even injuries. 
-\begin{center}
-    \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]  \\[-1.8ex] & demeaned.reb.per.min \\  \hline \\[-1.8ex]   party & $-$0.001$^{*}$ (0.0005) \\    lag.chg.pos & 0.00003 (0.0001) \\    travel.dist & 0.00000$^{**}$ (0.00000) \\    nhours.lgame & 0.00002 (0.00002) \\    Constant & $-$0.003$^{**}$ (0.002) \\   \textit{N} & 44,190 \\  R$^{2}$ & 0.0003 \\  Adjusted R$^{2}$ & 0.0003 \\  Residual Std. Error & 0.105 (df = 44185) \\  F Statistic & 3.857$^{***}$ (df = 4; 44185) \\  \hline  \hline \\[-1.8ex]  \textit{Notes:} & \multicolumn{1}{r}{$^{***}$Significant at the 1 percent level.} \\   & \multicolumn{1}{r}{$^{**}$Significant at the 5 percent level.} \\   & \multicolumn{1}{r}{$^{*}$Significant at the 10 percent level.} \\  \end{tabular}  
-\end{center}
 
+In particular, we see that the average number of rebounds obtained per minute
+of game-play does decrease as a function of being exposed to a city with active night-life.
+The method was to first calculate for each player and each game the number of rebounds obtained
+per minute of game-play. Then, for each player and each season we subtract from each observation
+the player's average number of rebounds obtained per minute of game-play using the entire season of data. This is an ad-hoc approach that cannot be used for betting. 
 
 
 \subsection{Robustness check}
-We verify that this phenomena persists in the MLB. In MLB, money-lines
+We verify that this phenomena persists in Major League Baseball. In the MLB, money-lines
 are used instead of point-spreads. So as opposed to predicting
 the likelihood of meeting the spread, we predict the probability
 a team would win against their opponent as both a function of the book-makers'
-odds of winning and party. Additionally, we interacted weekend.
+odds of winning and our party variable. Additionally, we interacted our party variable with weekend.
 One of the major differences between NBA and MLB games is that MLB games
 are played in series, so the same match-up repeated multiple times. This remedies
 the problem of an unknown travel schedule we faced with NBA because we are sure 
 teams stay overnight in the same location within a series.
 
-\begin{center}
-    \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]  \\[-1.8ex] & I(team.score \textgreater  opponent.score) \\  \hline \\[-1.8ex]   party & $-$0.034$^{*}$ (0.019) \\    odds & 2.602$^{***}$ (0.162) \\    I(team == location) & 0.028 (0.033) \\    ndays.lgame & 0.012 (0.019) \\    travel.dist & 0.00000 (0.00003) \\    weekend & 0.042 (0.036) \\    Constant & $-$1.333$^{***}$ (0.080) \\   \textit{N} & 25,215 \\  Log Likelihood & $-$17,274.460 \\  Akaike Inf. Crit. & 34,562.920 \\  \hline  \hline \\[-1.8ex]  \textit{Notes:} & \multicolumn{1}{r}{$^{***}$Significant at the 1 percent level.} \\   & \multicolumn{1}{r}{$^{**}$Significant at the 5 percent level.} \\   & \multicolumn{1}{r}{$^{*}$Significant at the 10 percent level.} \\ \end{tabular}  
-\end{center}
-
+% Table created by stargazer v.5.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu % Date and time: Mon, May 29, 2017 - 11:56:17 PM
+\hspace{-105pt}
+\begin{tabular}{@{\extracolsep{5pt}}lcccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{4}{c}{\textit{Dependent variable:}} \\  \cline{2-5}  \\[-1.8ex] & \multicolumn{2}{c}{NBA: Meet Spread} & demeaned reb/min & MLB: Win Game \\  \\[-1.8ex] & \multicolumn{2}{c}{\textit{logistic}} & \textit{OLS} & \textit{logistic} \\  \\[-1.8ex] & (1) & (2) & (3) & (4)\\  \hline \\[-1.8ex]  party.discrete & $-$0.406$^{***}$ (0.133) &  &  &  \\    party &  & $-$0.053$^{**}$ (0.022) & $-$0.001$^{*}$ (0.0005) & $-$0.035$^{*}$ (0.020) \\    lag.chg.pos & 0.0001 (0.002) & 0.0001 (0.002) & 0.00003 (0.0001) &  \\    odds &  &  &  & 2.602$^{***}$ (0.162) \\    log(travel.dist + 1) & $-$0.017 (0.025) & $-$0.015 (0.025) & 0.001 (0.001) & $-$0.001 (0.005) \\    ew & $-$0.114 (0.230) & $-$0.101 (0.230) &  &  \\    nhours.lgame & 0.001 (0.001) & 0.001 (0.001) & 0.00003 (0.00002) &  \\    I(hour(date)) & 0.007 (0.012) & 0.005 (0.012) &  &  \\    weekend &  &  &  & 0.040 (0.036) \\    I(team == location) & $-$0.011 (0.043) & $-$0.001 (0.043) &  & 0.025 (0.034) \\    log(travel.dist + 1):ew & 0.018 (0.035) & 0.016 (0.035) &  &  \\    ndays.lgame &  &  &  & 0.014 (0.019) \\    Constant & $-$0.077 (0.374) & $-$0.041 (0.374) & $-$0.007$^{*}$ (0.004) & $-$1.331$^{***}$ (0.080) \\   \hline \\[-1.8ex]  Observations & 10,000 & 9,979 & 44,190 & 25,215 \\  R$^{2}$ &  &  & 0.0003 &  \\  Adjusted R$^{2}$ &  &  & 0.0002 &  \\  Log Likelihood & $-$6,925.180 & $-$6,912.606 &  & $-$17,274.450 \\  Akaike Inf. Crit. & 13,868.360 & 13,843.210 &  & 34,562.900 \\  Residual Std. Error &  &  & 0.105 (df = 44185) &  \\  F Statistic &  &  & 3.064$^{**}$ (df = 4; 44185) &  \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{4}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
 
 \subsubsection{Betting performance}
+We also validate our model by seeing how well we can perform against the
+market.
 \begin{figure}[!h]
   \centering
   \includegraphics{mlb_bets_by_season}
@@ -251,6 +278,7 @@ teams stay overnight in the same location within a series.
   \label{bettingperf}
 \end{figure}
 
+\clearpage
 
 \subsection{Extending the research}
 We can also validate where points are lost in MLB in a similar way.
@@ -266,90 +294,6 @@ of night-life; this could be demographic characteristics such as age or marital 
 
 
 
-
-\section{This should be the first section of your document}
-
-Your text goes here. Start with the first section or paragraph of your
-article. Do not set use either headers or footers and do not set any running
-heads or change any page numbers.
-
-The title page along with headers and footers will be inserted by the EdiKit
-system. Use the ``revise manuscript'' link to enter this information in the
-EdiKit system.
-
-Use the standard LaTeX commands to set the text of the article. The dgjournal
-package works with any of the standard LaTeX document classes - article, report
-or book. Other document classes should work but compliance with De Gruyter
-requirements is not assured. For more information on LaTeX, see
-\cite{lamport,mittelbach,oetiker}. \cite{mittelbach} is highly recommended.
-
-Use the standard LaTeX sectioning commands for your headings.
-
-\subsection{A second order heading}
-
-Some text under the subheading. Paragraphs that follow heads are not
-indented.
-
-Math should also be set in Times. Use the mathptmx package if you do not have
-any of the commercially available fonts that are compatible with Times.
-\begin{equation}
-    y^{(n)} = \sum_{i=0}^{n-1} a_i(x) y^{(i)} + r(x) 
-\end{equation}
-
-All environments provided by the standard LaTeX document classes are
-unchanged. Vertical spaces within lists have been altered to comply with De Gruyter
-requirements.
-\begin{enumerate}
-\item This is the first item within the list. Some more text here in order to
-  display the alignment.
-\item Another item in the list.
-\item Yet another item in the list.
-\end{enumerate}
-
-Here is an example of a Figure. It's the same as in standard LaTeX.
-
-\begin{figure}[!h]
-%% Use the graphics package to insert figures
-%% \includegraphics{figure.eps}
-% Use \centering to center the table
-\centering
-%% A small box in place of a figure
-\framebox{%
-  \begin{minipage}{10pc}
-    \begin{center}
-      \vspace{1cm}\par
-      A figure\par
-      \vspace{1cm}
-    \end{center}
-  \end{minipage}}
-\caption{Insert your caption here. If you wish to label your figure for
-  cross-referencing, use a label either within the caption or after it.}
-\label{fig1}
-\end{figure}
-
-An example of a table follows. This is also the same as in standard LaTeX.
-
-\begin{table}[!h]
-% Use \centering to center the table
-\centering
-\caption{Insert your table caption here. If you wish to label the table for
-  cross-referencing, use a label either within the caption or after it.}
-\begin{tabular}{llll}
-\hline
-Symbol        & LaTeX Command      & Symbol      & LaTeX Command \\
-\hline
-$\alpha$      & \verb+\alpha+      & $\zeta$     & \verb+\zeta+ \\
-$\beta$       & \verb+\beta+       & $\eta$      & \verb+\eta+ \\
-$\gamma$      & \verb+\gamma+      & $\theta$    & \verb+\theta+ \\
-$\delta$      & \verb+\delta+      & $\vartheta$ & \verb+\vartheta+ \\
-$\epsilon$    & \verb+\epsilon+    & $\iota$     & \verb+\iota+ \\
-$\varepsilon$ & \verb+\varepsilon+ & $\kappa$    & \verb+\kappa+ \\
-\hline
-\end{tabular}
-\end{table}
-
-Use the \verb+thebibliography+ environment for the references.  BibTeX users may
-use the provided BibTeX style file DeGruyter.bst.
 
 %% BibTeX support
 \bibliographystyle{DeGruyter}
