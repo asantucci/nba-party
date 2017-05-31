@@ -184,7 +184,6 @@ update in real-time and also doing so allows us to create a betting model, i.e.
 we don't rely on any features we can't obtain before making a game-time prediction. 
 To this data, we've created features such as 
 the number of days since last game, the last game location, and the travel distance. 
-Our data range from 2010-2011 season through present, which includes part of the 2016-2017 season.
 
 \paragraph{Minutes data}
 We also gathered minutes data from \href{http://www.espn.com/nba/scoreboard/_/date/}{ESPN}.
@@ -197,14 +196,16 @@ For each pairwise set of coordinates, we calculated distance between the two
 points.\cite{sp} To account for jet-lag, we first computed the final direction 
 (bearing) when arriving at the 
 second point after starting from the first and following the shortest path on a sphere 
-(following a great circle).\cite{lallensack}
+(following a great circle), which yields a direction in degrees. 
+We then obtain a measure for east-west travel by looking at the trigonometric-$\sin$ of this angle.
+Interacting this with travel-distance gets us a measure of jetlag.\cite{lallensack}
 
 \subsection{Method: Defining what it means for a city to have nightlife}
 We have a free parameter: the time-window which we believe the hangover effect
 to last. Suppose we only look toward games which have been played in a party
 city at most 24 hours ago. We take care to ignore
 teams playing in their own cities, i.e. if a team's last game was played in at home 
-we say that they were not exposed to any nightlife.
+we say that they were not exposed to an exogenous shock in nightlife.
 
 \paragraph{Discrete indicator}
 Our first sanity check was to define an indicator variable for when a team plays in 
@@ -233,33 +234,43 @@ have a statistically significant effect on likelihood of meeting the spread.
 
 
 \subsection{Using performance statistics}
-We additionally looked at actual performance instead of relying on spread data. 
-This allows us to avoid using the black-box of spread data, and also pin-point
-more exactly what elements of the game are in fact effected by partying.
-This motivates looking at number of points allowed, number of points scored.
-We also considered rebounds, fouls, and even injuries. 
+We additionally looked at actual performance metrics instead of relying on spread data. 
+This allows us to avoid using a black-box feature, and also pin-point
+more exactly what elements of the game are in fact effected after visiting a city with active 
+nightlife. This motivates looking at number of points allowed, and number of points scored;
+we also considered how rebounds, fouls, and even injuries might be explained (in part) by
+a hangover effect.
 
 In particular, we see that the average number of rebounds obtained per minute
 of game-play does decrease as a function of being exposed to a city with active night-life.
 The method was to first calculate for each player and each game the number of rebounds obtained
-per minute of game-play. Then, for each player and each season we subtract from each observation
-the player's average number of rebounds obtained per minute of game-play using the entire season of data. This is an ad-hoc approach that cannot be used for betting. 
+per minute of game-play. Then, we subtract from each observation the player's average number of rebounds per minute taken across the entire season.
+This is an ad-hoc approach that cannot be used for betting, since at game-time we are relying on future data for use in our average statistic which we must calculate and sweep out from each observation.
 
 
 \subsection{Robustness check}
-We verify that this phenomena persists in Major League Baseball. In the MLB, money-lines
+As a robustness check, we verify that this phenomena persists in an entirely separate
+sport with entirely different players. To that end, we look toward
+Major League Baseball, which is also well set up for our quasi-experiment since
+there are many games played back-to-back in the season (more in fact, than NBA).
+
+In general, we can replicate our analysis, but there are also some notable differences.
+In the MLB, money-lines
 are used instead of point-spreads. So as opposed to predicting
 the likelihood of meeting the spread, we predict the probability
 a team would win against their opponent as both a function of the book-makers'
-odds of winning and our party variable. Additionally, we interacted our party variable with weekend.
-One of the major differences between NBA and MLB games is that MLB games
+odds of winning and our party variable. 
+Additionally, our methodology changes ever so slightly: when creating our
+continuous measure of nightlife, we interact the variable with weekend. The logic
+is that because there are so many more games played in MLB, the weekend effect is more salient.
+One of the last major differences between NBA and MLB games is that MLB games
 are played in series, so the same match-up repeated multiple times. This remedies
 the problem of an unknown travel schedule we faced with NBA because we are sure 
 teams stay overnight in the same location within a series.
 
 % Table created by stargazer v.5.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu % Date and time: Mon, May 29, 2017 - 11:56:17 PM
 \hspace{-105pt}
-\begin{tabular}{@{\extracolsep{5pt}}lcccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{4}{c}{\textit{Dependent variable:}} \\  \cline{2-5}  \\[-1.8ex] & \multicolumn{2}{c}{NBA: Meet Spread} & demeaned reb/min & MLB: Win Game \\  \\[-1.8ex] & \multicolumn{2}{c}{\textit{logistic}} & \textit{OLS} & \textit{logistic} \\  \\[-1.8ex] & (1) & (2) & (3) & (4)\\  \hline \\[-1.8ex]  party.discrete & $-$0.406$^{***}$ (0.133) &  &  &  \\    party &  & $-$0.053$^{**}$ (0.022) & $-$0.001$^{*}$ (0.0005) & $-$0.035$^{*}$ (0.020) \\    lag.chg.pos & 0.0001 (0.002) & 0.0001 (0.002) & 0.00003 (0.0001) &  \\    odds &  &  &  & 2.602$^{***}$ (0.162) \\    log(travel.dist + 1) & $-$0.017 (0.025) & $-$0.015 (0.025) & 0.001 (0.001) & $-$0.001 (0.005) \\    ew & $-$0.114 (0.230) & $-$0.101 (0.230) &  &  \\    nhours.lgame & 0.001 (0.001) & 0.001 (0.001) & 0.00003 (0.00002) &  \\    I(hour(date)) & 0.007 (0.012) & 0.005 (0.012) &  &  \\    weekend &  &  &  & 0.040 (0.036) \\    I(team == location) & $-$0.011 (0.043) & $-$0.001 (0.043) &  & 0.025 (0.034) \\    log(travel.dist + 1):ew & 0.018 (0.035) & 0.016 (0.035) &  &  \\    ndays.lgame &  &  &  & 0.014 (0.019) \\    Constant & $-$0.077 (0.374) & $-$0.041 (0.374) & $-$0.007$^{*}$ (0.004) & $-$1.331$^{***}$ (0.080) \\   \hline \\[-1.8ex]  Observations & 10,000 & 9,979 & 44,190 & 25,215 \\  R$^{2}$ &  &  & 0.0003 &  \\  Adjusted R$^{2}$ &  &  & 0.0002 &  \\  Log Likelihood & $-$6,925.180 & $-$6,912.606 &  & $-$17,274.450 \\  Akaike Inf. Crit. & 13,868.360 & 13,843.210 &  & 34,562.900 \\  Residual Std. Error &  &  & 0.105 (df = 44185) &  \\  F Statistic &  &  & 3.064$^{**}$ (df = 4; 44185) &  \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{4}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
+\begin{tabular}{@{\extracolsep{5pt}}lcccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{4}{c}{\textit{Dependent variable:}} \\  \cline{2-5}  \\[-1.8ex] & \multicolumn{2}{c}{NBA: Meet Spread} & Demeaned Reb/Min & MLB: Win Game \\  \\[-1.8ex] & \multicolumn{2}{c}{\textit{logistic}} & \textit{OLS} & \textit{logistic} \\  \\[-1.8ex] & (1) & (2) & (3) & (4)\\  \hline \\[-1.8ex]  party.discrete & $-$0.406$^{***}$ (0.133) &  &  &  \\    party &  & $-$0.053$^{**}$ (0.022) & $-$0.001$^{*}$ (0.0005) & $-$0.035$^{*}$ (0.020) \\    lag.chg.pos & 0.0001 (0.002) & 0.0001 (0.002) & 0.00003 (0.0001) &  \\    odds &  &  &  & 2.602$^{***}$ (0.162) \\    log(travel.dist + 1) & $-$0.017 (0.025) & $-$0.015 (0.025) & 0.001 (0.001) & $-$0.001 (0.005) \\    ew & $-$0.114 (0.230) & $-$0.101 (0.230) &  &  \\    nhours.lgame & 0.001 (0.001) & 0.001 (0.001) & 0.00003 (0.00002) &  \\    I(hour(date)) & 0.007 (0.012) & 0.005 (0.012) &  &  \\    weekend &  &  &  & 0.040 (0.036) \\    I(team == location) & $-$0.011 (0.043) & $-$0.001 (0.043) &  & 0.025 (0.034) \\    log(travel.dist + 1):ew & 0.018 (0.035) & 0.016 (0.035) &  &  \\    ndays.lgame &  &  &  & 0.014 (0.019) \\    Constant & $-$0.077 (0.374) & $-$0.041 (0.374) & $-$0.007$^{*}$ (0.004) & $-$1.331$^{***}$ (0.080) \\   \hline \\[-1.8ex]  Observations & 10,000 & 9,979 & 44,190 & 25,215 \\  R$^{2}$ &  &  & 0.0003 &  \\  Adjusted R$^{2}$ &  &  & 0.0002 &  \\  Log Likelihood & $-$6,925.180 & $-$6,912.606 &  & $-$17,274.450 \\  Akaike Inf. Crit. & 13,868.360 & 13,843.210 &  & 34,562.900 \\  Residual Std. Error &  &  & 0.105 (df = 44185) &  \\  F Statistic &  &  & 3.064$^{**}$ (df = 4; 44185) &  \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{4}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}
 
 \subsubsection{Betting performance}
 We also validate our model by seeing how well we can perform against the
@@ -287,13 +298,20 @@ It's possible there are prolonged effects of partying, and applying some sort of
 on the number of hours played since the last game could be interesting. It could also be
 that different (types of) teams or players are more or less susceptible to the effects
 of night-life; this could be demographic characteristics such as age or marital status.
+Future work may consider similar effects in European soccer leagues.
+
 
 \section{Conclusions}
-
-\section{References}
-
-
-
+We do find that visiting a city with active nightlife the day before a game does have 
+a statistically significant negative impact on a team's likelihood of meeting the spread in NBA.
+The decline in likelihood to meet the spread is possibly caused by a lack of control over the ball,
+since we also find that players capture less rebounds per minute of gameplay the day after
+visiting a city with active nightlife. We verify that this phenomena persists across sport, and 
+to that end look toward major league baseball money-lines. Using these, we back out gambling
+house's estimate for the team's probability of winning the game, and after conditioning on this
+we find that visiting a city with active nightlife the day before a game does negatively 
+impact the team's likelihood of winning the game.
+With a causal model established, we realize a profitable betting strategy in each year of testing.
 
 %% BibTeX support
 \bibliographystyle{DeGruyter}
