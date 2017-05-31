@@ -42,7 +42,9 @@ Anecdotally, it has been reported that professional sports teams party on
 the road, sometimes to the detriment of the game.\cite{hoch}
 Within the NBA, J.R. Smith is infamous for citing his improvement in performance due to a
 lack of nightlife when moving to Cleveland from New York.\cite{price,ley}
-A few interviews with former professional athletes revealed that location
+Matt Barnes recently complained that ``there's no nightlife in Utah'' when 
+asked about playing Jazz in the second round of NBA playoffs in 2017.\cite{cestone}
+A few interviews with former professional NBA athletes revealed that location
 matters more than day of the week, i.e. parties can happen any day of the week,
 but they are more likely to occur in select cities.
 
@@ -53,9 +55,8 @@ differential between two teams after conditioning on observable performance.
 We expect a team to meet the spread half the time, since this is how bookmakers 
 minimize risk on their end. We construct a model which attempts to 
 estimate the causal effect of  visiting a ``party-city'' on subsequent day 
-performance as measured by the spread. Since next-day
-opponent is uncorrelated with exposure to treatment, we have identification in our variable of 
-interest.
+performance as measured by the spread. To the extent that next-day
+opponent is uncorrelated with exposure to treatment, we have identification in our variable of interest.
 
 \section{Previous Research}
 There has been an attempt to answer this question before.\cite{ezekowitz} 
@@ -83,10 +84,10 @@ with an active night life.
 One of the hardest parts of this analysis is that partying is a latent variable.
 In order to determine when players partied, one might consider to look at social media data
 for direct mentions of partying, either by athletes or witnesses. However, due to
-intense public scrutiny that athletes face, there is a strong reluctance to post
-such mentions on social media. There are notable exceptions, such
-as Oddel Beckham Jr.'s trip to Miami in 2017 season.\cite{bleler}
-The reports are few and far enough between,
+intense public scrutiny that athletes face, there is a strong reluctance to disclose
+their personal lives on social media. There are notable exceptions, such
+as Oddel Beckham Jr.'s recent trip to Miami.\cite{bleler}
+However, these reports are few and far enough between,
 and whether they are even reported at all is strongly biased on whether a particular city 
 has nightclubs with VIP rooms, etc; picking up statistical evidence would be fruitless in this case.
 
@@ -97,7 +98,7 @@ tend to visit high end nightclubs. We again turned to player interviews for idea
 and found two major insights. From our conversations, 
 we obtained a listing of cities which were anecdotally
 mentioned as having active night-life. Between players, the rank ordering of these
-was consistent to the extent that LA and NY were top
+was consistent to the extent that Los Angeles and New York city were top
 offenders. This motivates using a binary indicator for party in these two cities. 
 We also found that athletes tend to party with other A-list celebrities,
 particularly musicians. This motivated a continuous measure of nightlife, based on a
@@ -120,12 +121,13 @@ already be factored into the spread; if this were the case, then our variable
 of interest would not appear to have significant explanatory power
 after conditioning on spread, in spite of there being
 a true effect. Alternatively,
-if the house book-keeper systematically over-valued
-teams which you are more likely to play after a party city,
+if the house book-keeper systematically over-values
+teams which are more likely to be encountered after playing a city with active nightlife,
 we could see a spurious effect. 
 That said, the amount of money that is at stake and the effort put into creating these spreads 
-suggests that they are reliable. So, if we do find an effect in our variable of interest,
-we can be confident in our conclusion that there is a causal effect and not some
+suggests that they are reasonably reliable. 
+So, if we do find an effect in our variable of interest,
+we can be confident in our conclusion that there is a causal effect and not some 
 other systematic bias.
 
 \subsection{Possible confounders}
@@ -146,11 +148,11 @@ We account for this by bringing in minutes data, and counting the number of
 times the players run back and forth on the court. This is crudely measured
 by the number of changes in posession. We back out this quantity.
 
-\paragraph{Fatigue from Jet lag}
-What about jet-lag? Prolonged air travel has in general been shown
+\paragraph{Fatigue from jetlag}
+What about jetlag? Prolonged air travel has in general been shown
 to have a negative effect on sports performance.\cite{leeandgalvez}
-Previous studies have shown that jet lag is a strong enough effect
-to erase home field advantage in MLB.\cite{songetal}
+Previous studies have shown that jetlag is a strong enough effect
+to erase home field advantage in major league baseball, for example.\cite{songetal}
 
 \paragraph{The problem of an unknown travel schedule} In NBA, we have the difficulty of not observing when teams travel. E.g. if a particular team  plays
 in Los Angeles on Friday and another game in New York the following day, we don't
@@ -166,9 +168,12 @@ is in fact spending the night in said city.
 \paragraph{Lines data} We first look toward 
 \href{http://www.basketball-reference.com/leagues/}{basketball-reference.com}
 for a listing of game-days by season. With this listing, we queried \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{covers.com},
-for all games occurring on a particular game, and for each we observe
-outcome of each game alongside the line set by a betting house. We obtain
-data for seasons 2010-11 through 2016-17.
+for all games occurring on a particular day, and for each we observe the
+outcome of each game alongside the line set by a betting house.\cite{hrisports} We obtain
+data for seasons 2010-11 through 2016-17. We are missing the first couple months of games 
+in the 2010-11 season, and our 2011-12 season has some 229 missing games. In each remaining
+season, we have at most two games missing of the $82 \times 30 / 2 = 1,230$ played.
+We have a total of 7,829 games in our data-set.
 
 
 \paragraph{BLS data} We also obtained data from
@@ -197,7 +202,7 @@ points.\cite{sp} To account for jet-lag, we first computed the final direction
 (bearing) when arriving at the 
 second point after starting from the first and following the shortest path on a sphere 
 (following a great circle), which yields a direction in degrees. 
-We then obtain a measure for east-west travel by looking at the trigonometric-$\sin$ of this angle.
+We then obtain a measure for east-west travel by looking at the trigonometric-$\sin$ of this angle after converting to radians.
 Interacting this with travel-distance gets us a measure of jetlag.\cite{lallensack}
 
 \subsection{Method: Defining what it means for a city to have nightlife}
@@ -253,8 +258,10 @@ As a robustness check, we verify that this phenomena persists in an entirely sep
 sport with entirely different players. To that end, we look toward
 Major League Baseball, which is also well set up for our quasi-experiment since
 there are many games played back-to-back in the season (more in fact, than NBA).
+There are also anecdotes of players celebrating with alcohol in public.\cite{miller,campbell}
 
-In general, we can replicate our analysis, but there are also some notable differences.
+In general, we can replicate our analysis and use the same resources to obtain our data,
+ but there are also some notable differences.
 In the MLB, money-lines
 are used instead of point-spreads. So as opposed to predicting
 the likelihood of meeting the spread, we predict the probability
@@ -270,7 +277,7 @@ teams stay overnight in the same location within a series.
 
 % Table created by stargazer v.5.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu % Date and time: Mon, May 29, 2017 - 11:56:17 PM
 \hspace{-105pt}
-\begin{tabular}{@{\extracolsep{5pt}}lcccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{4}{c}{\textit{Dependent variable:}} \\  \cline{2-5}  \\[-1.8ex] & \multicolumn{2}{c}{NBA: Meet Spread} & Demeaned Reb/Min & MLB: Win Game \\  \\[-1.8ex] & \multicolumn{2}{c}{\textit{logistic}} & \textit{OLS} & \textit{logistic} \\  \\[-1.8ex] & (1) & (2) & (3) & (4)\\  \hline \\[-1.8ex]  party.discrete & $-$0.406$^{***}$ (0.133) &  &  &  \\    party &  & $-$0.053$^{**}$ (0.022) & $-$0.001$^{*}$ (0.0005) & $-$0.035$^{*}$ (0.020) \\    lag.chg.pos & 0.0001 (0.002) & 0.0001 (0.002) & 0.00003 (0.0001) &  \\    odds &  &  &  & 2.602$^{***}$ (0.162) \\    log(travel.dist + 1) & $-$0.017 (0.025) & $-$0.015 (0.025) & 0.001 (0.001) & $-$0.001 (0.005) \\    ew & $-$0.114 (0.230) & $-$0.101 (0.230) &  &  \\    nhours.lgame & 0.001 (0.001) & 0.001 (0.001) & 0.00003 (0.00002) &  \\    I(hour(date)) & 0.007 (0.012) & 0.005 (0.012) &  &  \\    weekend &  &  &  & 0.040 (0.036) \\    I(team == location) & $-$0.011 (0.043) & $-$0.001 (0.043) &  & 0.025 (0.034) \\    log(travel.dist + 1):ew & 0.018 (0.035) & 0.016 (0.035) &  &  \\    ndays.lgame &  &  &  & 0.014 (0.019) \\    Constant & $-$0.077 (0.374) & $-$0.041 (0.374) & $-$0.007$^{*}$ (0.004) & $-$1.331$^{***}$ (0.080) \\   \hline \\[-1.8ex]  Observations & 10,000 & 9,979 & 44,190 & 25,215 \\  R$^{2}$ &  &  & 0.0003 &  \\  Adjusted R$^{2}$ &  &  & 0.0002 &  \\  Log Likelihood & $-$6,925.180 & $-$6,912.606 &  & $-$17,274.450 \\  Akaike Inf. Crit. & 13,868.360 & 13,843.210 &  & 34,562.900 \\  Residual Std. Error &  &  & 0.105 (df = 44185) &  \\  F Statistic &  &  & 3.064$^{**}$ (df = 4; 44185) &  \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{4}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}
+\begin{tabular}{@{\extracolsep{5pt}}lcccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{4}{c}{\textit{Dependent variable:}} \\  \cline{2-5}  \\[-1.8ex] & \multicolumn{2}{c}{NBA: Meet Spread} & Demeaned Reb/Min & MLB: Win Game \\  \\[-1.8ex] & \multicolumn{2}{c}{\textit{logistic}} & \textit{OLS} & \textit{logistic} \\  \\[-1.8ex] & (1) & (2) & (3) & (4)\\  \hline \\[-1.8ex]  party.discrete & $-$0.406$^{***}$ (0.133) &  &  &  \\    party.continuous &  & $-$0.053$^{**}$ (0.022) & $-$0.001$^{*}$ (0.0005) & $-$0.035$^{*}$ (0.020) \\    lag.change.position & 0.0001 (0.002) & 0.0001 (0.002) & 0.00003 (0.0001) &  \\    odds &  &  &  & 2.602$^{***}$ (0.162) \\    log(travel.dist+1) & $-$0.017 (0.025) & $-$0.015 (0.025) & 0.001 (0.001) & $-$0.001 (0.005) \\    east-west.travel.dir& $-$0.114 (0.230) & $-$0.101 (0.230) &  &  \\    nhours.last.game & 0.001 (0.001) & 0.001 (0.001) & 0.00003 (0.00002) &  \\    hour(date) & 0.007 (0.012) & 0.005 (0.012) &  &  \\    weekend &  &  &  & 0.040 (0.036) \\    (team == location) & $-$0.011 (0.043) & $-$0.001 (0.043) &  & 0.025 (0.034) \\    log(travel.dist+1):ew & 0.018 (0.035) & 0.016 (0.035) &  &  \\    ndays.last.game &  &  &  & 0.014 (0.019) \\    Constant & $-$0.077 (0.374) & $-$0.041 (0.374) & $-$0.007$^{*}$ (0.004) & $-$1.331$^{***}$ (0.080) \\   \hline \\[-1.8ex]  Observations & 10,000 & 9,979 & 44,190 & 25,215 \\  R$^{2}$ &  &  & 0.0003 &  \\  Adjusted R$^{2}$ &  &  & 0.0002 &  \\  Log Likelihood & $-$6,925.180 & $-$6,912.606 &  & $-$17,274.450 \\  Akaike Inf. Crit. & 13,868.360 & 13,843.210 &  & 34,562.900 \\  Residual Std. Error &  &  & 0.105 (df = 44185) &  \\  F Statistic &  &  & 3.064$^{**}$ (df = 4; 44185) &  \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{4}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}
 
 \subsubsection{Betting performance}
 We also validate our model by seeing how well we can perform against the
