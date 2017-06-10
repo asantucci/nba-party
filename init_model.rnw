@@ -123,7 +123,10 @@ teams playing in their own cities.
 <<>>=
 
 HOURS <- 24
-nba.lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team, log(nmusicians), 0)]
+nba.lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team, log(nmusicians+1), 0)]
+nba.lines[, party.discrete := grepl("(los angeles)|(new york)|(brooklyn)", last.game.loc) & 
+                nhours.lgame <= HOURS & 
+                last.game.loc != team]
 
 @
 
@@ -179,22 +182,40 @@ the day before.
 nba.lines[, ew := sin(travel.dir %% 360 / 360 * 2 * pi)]
 #plot(nba.lines$travel.dir, nba.lines$ew)
 
-nba.lines[, party.discrete := grepl("(los angeles)|(new york)|(brooklyn)", last.game.loc) & nhours.lgame <= 24]
-
 m0 <- glm(outcome == 'W' ~ party.discrete + lag.chg.pos + log(travel.dist+1)*ew + 
              nhours.lgame + I(hour(date)) + I(team==location),
-         data = nba.lines[season < 2017], family = 'binomial',
+         data = nba.lines[season < 2017 & !is.na(party)], family = 'binomial',
          na.action = 'na.exclude')
 
-m1 <- glm(outcome == 'W' ~ party + lag.chg.pos + log(travel.dist+1)*ew + 
-             nhours.lgame + I(hour(date)) + I(team==location),
-         data = nba.lines[season < 2017], family = 'binomial',
-         na.action = 'na.exclude')
+m1 <- update(m0, . ~ party + . - party.discrete)
 
 summary(m1)
 
 ## nba.lines[,.N/2,by=list(season)]
-## stargazer(m)
+stargazer(m0, m1, covariate.labels = c('party discrete', 'party continuous', 'lag changes in posession', 'logged travel distance', 'east-west travel direction', 'number hours rest time', 'time of game during day', 'home team effect', 'logged travel distance * east-west', 'Constant'),
+          dep.var.labels = 'Meet the Spread') 
+
+tmp <- musicians[, list(party.continuous = mean(log(nmusicians+1))), 
+                 by = team][order(party.continuous)][!is.na(party.continuous)]
+
+##################################################
+### Dot plot of Party-Continuous by Team Location
+##################################################
+pdf('writing/Party_by_Team_Location.pdf', width = 14, height = 8.5)
+ticks = 1:nrow(tmp)
+plot(x = ticks, 
+     y = tmp$party.continuous, 
+     main = 'Continuous measure of party by Team Location',
+     ylab = 'Log Avg of Musicians and Sound Recording Studios',
+     xlab = '',
+     axes = F)
+axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>% 
+                               gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
+## text(x = ticks, y = 1.25, labels = tmp$team, srt = 90)
+axis(side = 2)
+dev.off()
+
+
 
 @ 
 
@@ -266,11 +287,16 @@ m2 <- lm(demeaned.reb.per.min ~ party + lag.chg.pos + log(travel.dist+1) + nhour
    data = data[last.game.loc != team] %>% na.omit)
 summary(m2)
 
-lm(team.pts.admitted ~ party + lag.chg.pos + log(travel.dist+1) + nhours.lgame, data=data[last.game.loc!=team] %>% na.omit) %>% summary
+mpa <- lm(team.pts.admitted ~ party + lag.chg.pos + log(travel.dist+1) + nhours.lgame, 
+   data=nba.lines[last.game.loc!=team] %>% na.omit)
+mpo <- update(mpa, team.pts.scored ~ .)
 
 ### Points  allowed as afunction of last game location (by party)
 nba.lines[, demeaned.pts.admitted := team.pts.admitted - mean(team.pts.admitted), by = list(season, team)]
 nba.lines[, mean(demeaned.pts.admitted), by = list(last.game.loc, party.discrete)][order(V1)]
+mpa1 <- lm(demeaned.pts.admitted ~ party.discrete, data = nba.lines)
+#stargazer(mpa1, mpa, mpo, single.row=T)
+
 tmp <- nba.lines[, list(demeaned.pts.admitted = mean(demeaned.pts.admitted)), 
                  by = list(last.game.loc, party)][order(demeaned.pts.admitted)]
 plot(x=jitter(tmp$party),y=tmp$demeaned.pts.admitted)
@@ -297,6 +323,8 @@ m3 <- glm(I(team.score > opponent.score) ~ party + odds + I(team == location) +
              ndays.lgame + log(travel.dist+1) + weekend,
          data = mlb.lines, family = 'binomial')
 summary(m3)
+
+mlb.lines[, party.discrete := grepl("(los angeles)|(new york)", last.game.loc) & ndays.lgame == 1 & weekend == T]
 #stargazer(m0, m1, m2, m3, single.row = T)
 @ 
 
@@ -381,10 +409,8 @@ tmp <- sapply(tholds, function(t) {
     return(c(sum(b, na.rm = T) / sum(!is.na(b)), sum(!is.na(b)))) # Avg profit per game.
 })
 
-
 plot(x = tholds, y = tmp[1, ], main = 'Return per game\nas a function of threshold', xlab = 'threshold', ylab = 'average profit')
 text(x = tholds, y = tmp[1, ], labels = tmp[2, ], pos = 1)
-
 
 ### plot return per game as a function of difference in odds between us and vegas.
 
