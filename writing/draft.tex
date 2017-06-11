@@ -14,6 +14,7 @@
 \usepackage{hyperref}
 \usepackage{color,soul}
 \usepackage{amsmath}
+\usepackage{rotating}
 
 %% The mathptmx package is recommended for Times compatible math symbols.
 %% Use mtpro2 or mathtime instead of mathptmx if you have the commercially
@@ -25,7 +26,7 @@
 \usepackage{graphics}
 
 %% Use natbib with these recommended options
-\usepackage[authoryear,comma,longnamesfirst,sectionbib]{natbib} 
+\usepackage[authoryear,comma,longnamesfirst,sectionbib]{natbib}
 
 %% Start your document body here
 \begin{document}
@@ -38,86 +39,177 @@
 \section{Introduction}
 It's not unreasonable to think that game performance can be affected 
 (in part) by what takes place off the court. 
-There are numerous reports of professional sports teams partying on 
-the road, sometimes to the detriment of the game.
+We are interested to see if 
+teams exhibit a decline in performance the day following a game in a city 
+with active nightlife; part of the question is determining which cities are notorious
+for nightlife.
+
+\paragraph{Why do we care} 
+Inquiring about this causal relationship is worthwhile for several reasons. The
+NBA Commissioner Adam Silver has reported that there is \$400 billion per year spent 
+on sports betting in the U.S. alone.\citep{asilver,cnnsilver} Apart from arbitrage opportunities,
+knowing how player performance is affected by external factors could inform coaches of a more
+optimal play strategy. E.g. if visitation to a city with active nightlife is correlated with
+next-day injury, perhaps coaches might bench their star players if the game isn't crucial.
+
+\paragraph{What do we do}
+We exploit data on bookmaker spreads, the expected score 
+differential between two teams after conditioning on observable performance. 
+We expect a team to meet the spread half the time, since this is one of the easiest ways for 
+bookmakers to guarantee a profit.\citep{dubnerlevitt} We construct a model which attempts to 
+estimate the causal effect of  visiting a ``party-city'' on subsequent day 
+performance as measured by the spread. In particular, we are only looking at
+cases where games are played back-to-back within 24 hours of each other.
+To the extent that next-day opponent is uncorrelated with exposure to treatment, 
+we have identification in our variable of interest.
+
+\paragraph{What do we find}
+We replicate this analysis for both the National Basketball Association
+(NBA) and Major League Baseball (MLB). In particular, we find that visiting
+a city with active nightlife the day prior to a game does have a statistically
+significant negative effect on a team's likelihood of meeting the point-spread set
+by a betting house, for both NBA and MLB. Within the NBA, we analyze specific performance
+metrics such as number of points allowed and number of rebounds obtained, and find that
+both are negatively effected by previous day visitation to a city with active nightlife.
+Lastly, having established a causal model, we realize a profitable betting scheme for MLB.
+
+\section{Effects of Partying on Athletic Performance}
+
+\subsection{Anecdotal evidence of the effects on sporting performance}
+Players openly admit they are interested in nightlife: Matt Barnes recently complained that 
+``there's no nightlife in Utah'' when asked about playing Jazz in the second round of NBA playoffs 
+in 2017.\citep{cestone}
+There are also numerous reports of teams partying to the detriment of the game.
 Within the NBA, J.R. Smith's performance metrics substantially improved 
  after being traded from New York to Cleveland; when an interviewer
 asked what contributed to this bump in statistics, he infamously replied
-that in New York he would have been out partying, but because there's no nightlife
-in Cleveland, he ends up hitting the gym.\cite{price,ley}
-Matt Barnes recently complained that ``there's no nightlife in Utah'' when 
-asked about playing Jazz in the second round of NBA playoffs in 2017.\cite{cestone}
-A few interviews with former professional NBA athletes revealed that location
-matters more than day of the week, i.e. parties can happen any day of the week,
-but they are more likely to occur in select cities.
+that in New York he would have been out partying, but because there's no nightlife in Cleveland, he ends up hitting the gym.\citep{price,ley} Before being traded,
+he would score 42 percent of shots taken over the course of his career, but only 34 percent
+on Sunday afternoon games in the 2012-13 season, presumably because such games followed a long
+weekend of partying.\citep{princeofthecity}
 
-We are interested to see if 
-teams exhibit a decline in performance the day following a game in a city 
-with active nightlife. We exploit data on bookmaker spreads, the expected score 
-differential between two teams after conditioning on observable performance. 
-We expect a team to meet the spread half the time, since this is how bookmakers 
-minimize risk on their end. We construct a model which attempts to 
-estimate the causal effect of  visiting a ``party-city'' on subsequent day 
-performance as measured by the spread. To the extent that next-day
-opponent is uncorrelated with exposure to treatment, we have identification in our variable of interest.
-
-\section{Previous Research}
-There has been an attempt to answer this question before.\cite{ezekowitz} 
-However, the study only
-looks at performance in party cities, as opposed to subsequent day performance (i.e. the study does not consider a delayed hangover effect). Moreover, their sample size was much smaller. 
-Finally, there was no methodology used behind the selection of party cities. The author does conclude
-that teams systematically play worse on Sunday afternoons when on the road,
-regardless of the city.
-
+\subsection{Individual Players}
 Studies have also been carried out on statistical ranking of the players
-most notorious for pursuing active nightlife in the NBA.\cite{chase} The study
- concludes that players perform worse on Sundays when compared with other days, as measured by the ratio of shots scored to shots taken.
+most notorious for pursuing active nightlife in the NBA.\citep{chase} In particular, 
+the author rejects the null hypothesis that J.R. Smith shoots just as well on Sundays as he does
+every other day of the week at the $p=0.01$ level of significance; however, the author also
+cautions that with so many players in the NBA, it is expected that we find a split as extreme
+as J.R.'s simply due to chance.
+The study goes on to look
+at historical performance for all NBA players who began their career after 1974, and compares
+Sunday afternoon performance to overall career performance. A binomial test is carried out, and the 
+study concludes with strong statistical significance that across the NBA, 
+individual players perform worse on Sundays when compared with other days, 
+as measured by the ratio of shots scored to shots taken.
 
+\subsection{Teams}
+There has been an attempt to answer the question at the team-level before: i.e. do teams perform
+worse after a night on the town, and if so does it depend on which city they 
+visited.\citep{ezekowitz} However, the study only
+looks at performance in party cities, as opposed to subsequent day performance (i.e. the study does not consider a delayed hangover effect). Moreover, their sample size was much smaller, because the author only considered Sunday afternoon games
+from 2006-14. Finally, there was no methodology used behind the selection of party cities;
+the authors first tried to define ad-hoc five cities as ``party cities'', and when that did not yield
+a significant result they tried estimating fixed-effects for each city. The author does conclude
+with weak statistical evidence that teams systematically play worse on Sunday 
+afternoons when on the road, regardless of the city.
+
+\subsection{Laboratory Studies}
 Studies on effects of alcohol on sports performance in a controlled setting
-show that alcohol impairs the nervous system, resulting in decrements in both
-cognitive function and motor skill.\cite{shirreffs} In a study on 
+show that alcohol impairs the nervous system, resulting in a decline in both
+cognitive function and motor skill.\citep{shirreffs} In a study on 
 the effects of alcohol on recovery of male athletes, it was found that
 consumption is correlated with reduced production of testosterone
-which ultimately leads to inhibited ability to recover and adapt to exercise.\cite{mjbarnes}
-Sleep deprivation has also been shown to strongly impair cognitive and motor performance.\cite{pilcher} Both alcohol and sleep deprivation are well correlated with nightlife.
+which ultimately leads to inhibited ability to recover and adapt to exercise.\citep{mjbarnes}
+Sleep deprivation has also been shown to strongly impair cognitive and motor performance.\citep{pilcher} Both alcohol and sleep deprivation are well correlated with nightlife.
 
-\section{Materials and Methods}
+
+\section{Defining a Measure for Partying}
 One of the hardest parts of this analysis is that partying is a latent variable.
-In order to determine when players partied, one may consider looking at social media data
-for direct mentions of partying, either by athletes or witnesses. However, due to the
-intense public scrutiny that athletes face, there is a strong reluctance to disclose
-their personal lives on social media. There are notable exceptions, such
-as Oddel Beckham Jr.'s recent trip to Miami.\cite{bleler}
-However, these reports are few and far enough between that picking up statistical 
-evidence would be fruitless.
+In order to determine when players partied, one may consider looking at social media data for direct mentions of partying, either by athletes or witnesses. However, due to the intense public scrutiny that athletes face, there is a strong reluctance to disclose their personal lives on social media. There are notable exceptions, such
+as Oddel Beckham Jr.'s recent trip to Miami.\citep{bleler}
+However, these reports are few and far enough between that picking up statistical evidence would be fruitless.
+We develop two approaches: a discrete indicator and a continuous measure of nightlife.
 
-\paragraph{Two approaches: a discrete indicator and a continuous measure of nightlife}
+\paragraph{A discrete indicator}
 Because famous athletes often enjoy a celebrity lifestyle, using conventional statistics
 such as number of drinking establishments in each city does not work; athletes instead
 tend to visit high end nightclubs. We again turned to player interviews for ideas,
 and found two major insights. From our conversations, 
 we obtained a listing of cities which were anecdotally
 mentioned as having active night-life. Between players, the rank ordering of these
-was consistent to the extent that Los Angeles and New York city were top
-offenders. This motivates using a binary indicator for party in these two cities. 
+was consistent to the extent that Los Angeles and New York city were top. 
+This motivates using a binary indicator for party when either of these two cities have been visited within 24-hours of another game. 
+
+
+\begin{figure}
+%\includegraphics[scale=0.5]{travel_dist_by_party}
+  \centering
+  \includegraphics[scale=0.55]{travel_dist_density_by_party}
+  \label{fig: density by party}
+  \caption{We examine travel distance to current game location as a function of
+    whether the last game was in a (non) party city. We see that in general,
+  travel distance follows a similar distribution regardless of last game location, i.e. 
+  it's not as though players encounter significantly
+  more travel fatigue after playing in a party city.}
+\end{figure}
+
+\paragraph{A continuous measure}
 We also found that athletes tend to party with other A-list celebrities,
-particularly musicians. This motivated a continuous measure of nightlife, based on a
-simple count of the number of musicians in the county in which the stadium resides. 
+particularly musicians. This motivated a continuous measure of nightlife, based on a simple count of the number of musicians in the county in which the stadium resides: if the last game was played at most 24-hours ago, use the log of the average number
+of musicians in last game location, else emit zero.  
 This captures
 how much nightlife there is in a city since musical performances are correlated
 with parties, if not an essential feature.
-We pursue both approaches.
+
+% A *density* plot with overlay instead of two histograms
+
+\begin{sidewaysfigure}
+  \hspace{-55pt}
+  \includegraphics[scale=0.7]{Party_by_Team_Location}
+\end{sidewaysfigure}
 
 
-\paragraph{Logic for using spread data}
+\section{Data}
+\subsection{Points-spread and money-lines data} We first look toward 
+\href{http://www.basketball-reference.com/leagues/}{basketball-reference.com} and
+\href{http://www.baseball-reference.com/leagues/}{baseball-reference.com}
+for a listing of game-days by season. With these listings, we queried \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{covers.com},
+for all games occurring on a particular day, and for each we observe the
+outcome of each game alongside the either the point-spread (for NBA) or money-line (for MLB) 
+set by a betting house. 
+We interpret the point-spread according to a standard guide.\citep{hrisports} 
+
+\paragraph{NBA}
+We obtain
+data for seasons 2010-11 through 2016-17; in basketball, the season runs from October through April. 
+There are exactly 30 teams in the NBA,
+each plays 82 games per season.
+We are missing the first couple months of games 
+in the 2010-11 season, and our 2011-12 season has 229 missing games. In each remaining
+season, we have at most two games missing of the $82 \times 30 / 2 = 1,230$ played.
+We have a total of 7,829 games in our data-set.
+To this data, we've added features such as 
+the number of days since last game, the last game location, and the travel 
+distance between the last game location and the current game location.
+
+\paragraph{MLB} We also obtain data for seasons 2010 through 2017; each season runs from 
+April through October. There are also exactly 30 teams in the MLB, each plays 162 games per season.
+We don't have all $162 \times 30 / 2 = 2,430$ games played each season, but instead only have
+on average almost 2,100 games per season. We have a total of 12,709 games in our data-set. Again,
+we add features such as the number of days since the last game, the last game location, and travel
+distance between game locations.
+
+
+\subsubsection{Logic for using points-spread and money-line data}
 In order to assert a causal relation between cities with active nightlife 
 and subsequent day sports performance, we need to control for salient
 features such as the ability of players on either team in the match-up,
 whether any players are injured, the momentum of success each team is carrying
-in the season, etc. To that end, we utilize spread data.\cite{anderson} The benefit of
-using spread data is that it controls for a lot, but the downside is that
+in the season, etc. To that end, we utilize spread data.\citep{anderson} The benefit of
+using spread data is that it controls for a lot, but the downside is
 we don't know exactly what it controls for.
 
+\paragraph{How an unknown spread variable may (not) affect our inference}
 For example, if book-keepers
 are already aware of the effects of night-life on performance, it could
 already be factored into the spread; if this were the case, then our variable
@@ -130,15 +222,42 @@ we could see a spurious effect.
 That said, the amount of money that is at stake and the effort put into creating these spreads 
 suggests that they are reasonably reliable. 
 So, if we do find an effect in our variable of interest,
-we can be reasonably confident in our conclusion that there is a causal effect and not some 
-other systematic bias.
+we can be reasonably confident in our conclusion that there is a causal effect and not some other systematic bias.
 
-\subsection{Possible confounders}
+
+\subsection{BLS data} We also obtained data from
+\href{https://www.bls.gov/data/}{Bureau of Labor Statistics} which records the number of establishments by business type at the county-quarter level. We obtain this data for each county corresponding
+to an NBA or MLB team from years 2010-2016. 
+As a proxy for how much night-life there is in a city, we look toward the 
+number of sound recording studios, musical groups, and music publishers there 
+are for a particular county-year: we simply calculate the average number of establishments across all three music categories listed above. We caveat that since the Toronto Raptors are located in Canada, we don't have BLS data for this team.\footnote{We don't expect this to be a party city.}
+
+We then merge this in with our lines data, taking care to do so according to each team's last game location such that the feature captures the proper
+party effect. In addition, we lag our BLS data by one year for two reasons:
+realistically, player expectations of which cities have the most active night-life may not
+update in real-time and also doing so allows us to create a betting model, i.e.
+we don't rely on any features we can't obtain before making a game-time prediction. 
+
+\subsection{Minutes data for NBA}
+We also gathered minutes data from \href{http://www.espn.com/nba/scoreboard/_/date/}{ESPN}.
+The minutes data contains information on the number of free throws, field goals, and three pointers made and attempted by each player in each game.
+For each season and each team, we have nearly complete 
+minutes data for all games played: 85\% of our season-teams' have no more than 3 missing games.
+
+\subsection{Location data} We are also interested
+to account for the effects of jet-lag. For each team, we queried
+a maps search engine to obtain a longitude and latitude describing their
+stadium location.\citep{ggmap}
+
+\section{Analysis of Team Performance}
+
+\subsection{Modeling Approach}
 
 \paragraph{Home team effect}
-Home-team advantage is well-studied.\cite{jones07, jones08}  
-Because teams play a lot of their games on the road,
-most games after playing in a party city will be an away game.
+Home-team advantage is well-studied.\citep{jones07, jones08}  
+Empirically, teams play about half their games on the road, and half of their games at home. However,
+it's possible that when a team plays on the road, their next game is more likely to be
+an away game as well. I.e. most games after playing in a party city will be an away game.
 This should be covered by spread data, but we also include
 a home-team indicator to be sure.
 
@@ -153,9 +272,104 @@ by the number of changes in posession. We back out this quantity.
 
 \paragraph{Fatigue from jetlag}
 What about jetlag? Prolonged air travel has in general been shown
-to have a negative effect on sports performance.\cite{leeandgalvez}
+to have a negative effect on sports performance.\citep{leeandgalvez}
 Previous studies have shown that jetlag is a strong enough effect
-to erase home field advantage in major league baseball.\cite{songetal}
+to erase home field advantage in major league baseball.\citep{songetal}
+To account for this, we calculate the travel distance between stadiums,
+consider a measure for east-west travel (which induces a change in time-zone).
+
+Specifically, for each pairwise set of coordinates, we calculated distance between the two
+points.\citep{sp} To account for jet-lag, we need to not only consider travel distance
+but the \emph{direction} of travel: if it's west to east the players' must adjust their internal
+clock forward and hence they lose sleep, if it's east to west then the players gain rest time.
+Hence we are interested to interact some continuous measure of east-west travel with
+travel-distance in order to come up with a measure for jet-lag.
+To that end, we first computed the final direction 
+(bearing) when arriving at the 
+second point after starting from the first and following the shortest path on a sphere 
+(following a great circle), which yields a direction in degrees. 
+We then obtain a measure for east-west travel by looking at the trigonometric-$\sin$ of this angle after converting to radians.
+Interacting this with travel-distance gets us a measure of jetlag.\citep{lallensack}
+
+
+\paragraph{Model} We use a logistic regression to estimate the likelihood of meeting
+the spread as a function of whether the team partied as well as controlling for other confounders
+listed above. Our basic model is as follows accounts for the rest-time since
+last game, jet-lag, home-team effect, player fatigue incurred during the last game,
+and the party effect.
+
+\subsection{Results}
+\subsubsection{NBA: using points-spread data}
+We find that after accounting for player fatigue incurred during the last game, jetlag and travel fatigue, recovery time, and home-team effect that both our discrete indicator and continuous measure of party
+have a statistically significant effect on likelihood of meeting the spread.
+In laymens terms, teams under perform book-maker's expectations after playing in cities 
+with active nightlife.
+This supports the hypothesis that players enjoy nightlife systematically in certain
+cities and that a ``hangover'' effect is felt on the court the next day.
+
+\begin{center}
+\begin{tabular}{@{\extracolsep{5pt}}lcc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{2}{c}{\textit{Dependent variable:}} \\  \cline{2-3}  \\[-1.8ex] & \multicolumn{2}{c}{Meet the Spread} \\  \\[-1.8ex] & (1) & (2)\\  \hline \\[-1.8ex]   party discrete & $-$0.513$^{***}$ &  \\    & (0.145) &  \\    & & \\   party continuous &  & $-$0.050$^{**}$ \\    &  & (0.022) \\    & & \\   lag changes in posession & 0.0001 & 0.00004 \\    & (0.002) & (0.002) \\    & & \\   logged travel distance & $-$0.017 & $-$0.015 \\    & (0.026) & (0.026) \\    & & \\   east-west travel direction & $-$0.146 & $-$0.115 \\    & (0.231) & (0.231) \\    & & \\   number hours rest time & 0.001 & 0.001 \\    & (0.001) & (0.001) \\    & & \\   time of game during day & 0.005 & 0.005 \\    & (0.013) & (0.013) \\    & & \\   home team effect & 0.001 & 0.004 \\    & (0.043) & (0.043) \\    & & \\   logged travel distance * east-west & 0.022 & 0.018 \\    & (0.036) & (0.036) \\    & & \\   Constant & $-$0.048 & $-$0.036 \\    & (0.378) & (0.378) \\    & & \\  \hline \\[-1.8ex]  Observations & 9,823 & 9,823 \\  Log Likelihood & $-$6,800.675 & $-$6,804.511 \\  Akaike Inf. Crit. & 13,619.350 & 13,627.020 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular} 
+\end{center} 
+The features describing jet-lag and recovery time are not significant, but this is to be
+expected: such salient information has already been taken into account in setting the spread.
+In the next section, we explore which specific areas of gameplay are affected.
+
+
+\subsubsection{MLB: using money-lines data}
+We replicate the same analysis with
+Major League Baseball, which is also well set up for our quasi-experiment since
+there are many games played back-to-back in the season (more in fact, than NBA).
+There are also anecdotes of players celebrating with alcohol in public.\citep{miller,campbell}
+
+\paragraph{Differences between NBA and MLB as it pertains to our analysis}
+In the MLB, money-lines
+are used instead of point-spreads. So as opposed to predicting
+the likelihood of meeting the spread, we predict the probability
+a team would win as both a function of the book-makers'
+odds of winning and our party variable. 
+Additionally, our methodology changes ever so slightly: when creating our
+continuous measure of nightlife, we interact the variable with weekend. Interviews with athletes suggest that MLB players are more likely to
+restrict their partying to weekends.
+One of the last major differences between NBA and MLB games is that MLB games
+are played in series, so the same match-up is repeated multiple times. This remedies
+the problem of an unknown travel schedule we faced with NBA because we are sure 
+teams stay overnight in the same location within a series.
+
+\begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & Probability of Winning \\  \hline \\[-1.8ex]   Continuous measure of Nightlife & $-$0.035$^{*}$ \\    & (0.020) \\    & \\   Bookmaker's odds & 2.602$^{***}$ \\    & (0.162) \\    & \\   Home-team effect & 0.025 \\    & (0.034) \\    & \\   Number of rest days & 0.014 \\    & (0.019) \\    & \\   Logged travel distance & $-$0.001 \\    & (0.005) \\    & \\   Weekend & 0.040 \\    & (0.036) \\    & \\   Constant & $-$1.331$^{***}$ \\    & (0.080) \\    & \\  \hline \\[-1.8ex]  Observations & 25,215 \\  Log Likelihood & $-$17,274.450 \\  Akaike Inf. Crit. & 34,562.900 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular} 
+
+
+As shown above, our continuous measure of nightlife has a statistically significant negative effect for MLB teams likelihood of winning.
+
+\subsubsection{Betting performance}
+We also validate our MLB model by seeing how well we can perform against the
+market.
+\begin{figure}[!h]
+  \centering
+  \includegraphics[scale=0.82]{mlb_bets_by_season}
+  \caption{Betting performance by season. In each season, the 
+    circled point represents the worst out of pocket expense incurred.
+    We first train a model on historical data then use said model to predict on ``current year''
+    data, plotting profits as a function of time over the ``current'' season. For each relevant
+    game, we place a bet of \$100 if the expected value of the bet is positive after accounting for the bookmaker's cut. E.g. in the     early 2016 season,
+    at its worst we are out of pocket \$750 dollars. By season end, we have     recouped all of
+    our initial investment plus an additional \$11.5k. We are profitable in each season, and mention that 2015 is the ``worst'', but we still come out ahead.}
+  \label{bettingperf}
+\end{figure}
+
+\subsubsection{Placebo Tests} As a sanity check, we interact our
+discrete-indicator for party city with an indicator for more than 24 hours of rest
+between games, and call this our placebo effect. 
+The idea is that with sufficient rest time, the hangover effect dissipates.
+
+\begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & Meet the Spread \\  \hline \\[-1.8ex]   party placebo & 0.066 \\    & (0.088) \\    & \\   lag changes in posession & 0.00001 \\    & (0.002) \\    & \\   logged travel distance & $-$0.006 \\    & (0.026) \\    & \\   east-west travel direction & $-$0.102 \\    & (0.232) \\    & \\   number hours rest time & 0.001 \\    & (0.001) \\    & \\   time of game during day & 0.002 \\    & (0.013) \\    & \\   home team effect & $-$0.008 \\    & (0.043) \\    & \\   logged travel distance * east-west & 0.015 \\    & (0.036) \\    & \\   Constant & $-$0.067 \\    & (0.378) \\  \hline \\[-1.8ex]  Observations & 9,823 \\  Log Likelihood & $-$6,806.801 \\  Akaike Inf. Crit. & 13,631.600 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular} 
+
+
+Indeed, we see that if players have enough recovery time after visiting cities such as Los
+Angeles or New York, we cannot reject the null hypothesis that player performance is unaffected
+by visitation to cities with active nightlife.
+
+
+\subsection{Possible Confounders or potential issues}
 
 \paragraph{The problem of an unknown travel schedule} In NBA, we have the difficulty of not observing when teams travel. E.g. if a particular team  plays
 in Los Angeles on Friday and another game in Boston the following day, we don't
@@ -168,88 +382,7 @@ across several days, each in the same city; in these cases, we can infer that th
 is in fact spending the night in said city.
 
 
-\subsection{Data}
-\paragraph{Lines data} We first look toward 
-\href{http://www.basketball-reference.com/leagues/}{basketball-reference.com}
-for a listing of game-days by season. With this listing, we queried \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{covers.com},
-for all games occurring on a particular day, and for each we observe the
-outcome of each game alongside the line set by a betting house. We interpret the lines
-according to a standard guide.\cite{hrisports} We obtain
-data for seasons 2010-11 through 2016-17. There are exactly 30 teams in the NBA,
-each plays 82 games per season.
-We are missing the first couple months of games 
-in the 2010-11 season, and our 2011-12 season has 229 missing games. In each remaining
-season, we have at most two games missing of the $82 \times 30 / 2 = 1,230$ played.
-We have a total of 7,829 games in our data-set.
-
-
-\paragraph{BLS data} We also obtained data from
-\href{https://www.bls.gov/data/}{Bureau of Labor Statistics} which records the number of establishments by business type at the county-quarter level. As a 
-proxy for how much night-life there is in a city, we look toward the 
-number of sound recording studios, musical groups, and music publishers there 
-are for a particular county-year: we simply calculate the average number of establishments across all three music categories listed above. We caveat that since the Toronto Raptors are located in Canada, we don't have BLS data for this team.
-
-We then merge this in with our lines data, taking care to do so according to each team's last game location such that the feature captures the proper
-party effect. In addition, we lag our BLS data by one year for two reasons:
-realistically, player expectations of which cities have the most active night-life may not
-update in real-time and also doing so allows us to create a betting model, i.e.
-we don't rely on any features we can't obtain before making a game-time prediction. 
-To this data, we've added features such as 
-the number of days since last game, the last game location, and the travel distance. 
-
-\paragraph{Minutes data}
-We also gathered minutes data from \href{http://www.espn.com/nba/scoreboard/_/date/}{ESPN}.
-The minutes data contains information on the number of free throws, field goals, and three pointers made and attempted by each player in each game.
-
-\paragraph{Location and Travel Distance Data} We are also interested
-to account for the effects of jet-lag. For each team, we queried
-a maps search engine to obtain a longitude and latitude describing their
-stadium location.\cite{ggmap}
-For each pairwise set of coordinates, we calculated distance between the two
-points.\cite{sp} To account for jet-lag, we first computed the final direction 
-(bearing) when arriving at the 
-second point after starting from the first and following the shortest path on a sphere 
-(following a great circle), which yields a direction in degrees. 
-We then obtain a measure for east-west travel by looking at the trigonometric-$\sin$ of this angle after converting to radians.
-Interacting this with travel-distance gets us a measure of jetlag.\cite{lallensack}
-
-\subsection{Method: Defining what it means for a city to have nightlife}
-We consider games which have been played at most 24 hours ago, and take care to ignore
-teams playing in their own city, i.e. if a team's last game was played at home  we say that they were not exposed to an exogenous shock in nightlife.
-
-\paragraph{Discrete indicator}
-Our first sanity check was to define an indicator variable for when a team plays in 
-Los Angeles or New York within 24 hours of their current game, we indicate one, else zero. 
-
-\paragraph{Continuous measure}
-We also defined a continuous measure of nightlife:
-if the last game was played at most 24 hours ago, use the log of the average number
-of musicians in last game location, else emit zero. 
-
-\subsection{Model} We use a logistic regression to estimate the likelihood of meeting
-the spread as a function of whether the team partied as well as controlling for other confounders
-listed above. Our basic model is as follows.
-
-\[
-\texttt{meet spread} \,  \sim \, \substack{\texttt{days since} \\ \texttt{last game}} \, + \, \texttt{jetlag} \, + \, \substack{\texttt{home team} \\ \texttt{effect}} \, + \, \texttt{party}
-\]
-
-\section{Results}
-\subsection{Using spread data}
-We find that after accounting for player fatigue incurred during the last game, jetlag and travel fatigue, recovery time, and home-team effect that both our discrete indicator and continuous measure of party
-have a statistically significant effect on likelihood of meeting the spread.
-In laymens terms, teams under perform book-maker's expectations after playing in cities 
-with active nightlife.
-This supports the hypothesis that players enjoy nightlife systematically in certain
-cities and that a ``hangover'' effect is felt on the court the next day.
-
-\begin{tabular}{@{\extracolsep{5pt}}lcc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{2}{c}{\textit{Dependent variable:}} \\  \cline{2-3}  \\[-1.8ex] & \multicolumn{2}{c}{Meet the Spread} \\  \\[-1.8ex] & (1) & (2)\\  \hline \\[-1.8ex]    party.discrete & $-$0.433$^{***}$ (0.118) &  \\    party.continuous &  & $-$0.053$^{**}$ (0.023) \\    lag.change.position & $-$0.0001 (0.002) & 0.00005 (0.002) \\    log(travel.dist + 1) & $-$0.019 (0.026) & $-$0.015 (0.026) \\    east-west.travel.dir & $-$0.151 (0.231) & $-$0.116 (0.231) \\    nhours.last.game & 0.001 (0.001) & 0.001 (0.001) \\    hour(date) & 0.006 (0.013) & 0.005 (0.013) \\    (team == location) & $-$0.007 (0.043) & 0.004 (0.043) \\    log(travel.dist + 1):ew & 0.022 (0.036) & 0.018 (0.036) \\    Constant & $-$0.019 (0.378) & $-$0.037 (0.378) \\   \hline \\[-1.8ex]  Observations & 9,844 & 9,823 \\  Log Likelihood & $-$6,814.705 & $-$6,804.350 \\  Akaike Inf. Crit. & 13,647.410 & 13,626.700 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular} 
-
-The features describing jet-lag and recovery time are not significant, but this is to be
-expected: such salient information has already been taken into account in setting the spread.
-In the next section, we explore which specific areas of gameplay are affected.
-
-\subsection{Using performance statistics}
+\section{Analysis of Player Performance}
 We additionally looked at actual performance metrics instead of relying on spread data. 
 This allows us to avoid using a black-box feature, and also pin-point
 more precisely what elements of the game effected by visiting a nightlife city. This motivates looking at number of points allowed, and number of points scored; we also considered how rebounds, fouls, and even injuries might be 
@@ -265,7 +398,11 @@ city with active nightlife.
 
 The method was to first calculate for each player and each game the number of rebounds obtained
 per minute of game-play. Then, we subtract from each observation the player's average number of rebounds per minute taken across the entire season.
-This is an ad-hoc approach that cannot be used for betting, since at game-time we are relying on future data for use in our average statistic which we must calculate and sweep out from each observation.
+This is an ad-hoc approach that cannot be used for betting, since at game-time we are relying on future data for use in our average statistic which we must calculate and sweep out from each observation. We then run a linear regression 
+explaining demeaned rebounds per minute as a function of our nightlife variable of interest
+as well as our usual features accounting for player-fatigue.
+
+\begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & Demeanead Rebounds Per Minute \\  \hline \\[-1.8ex]   Continuous party measure & $-$0.001$^{*}$ \\    & (0.0005) \\    & \\   Lag change in possessions & 0.00003 \\    & (0.0001) \\    & \\   Logged travel distance & 0.001 \\    & (0.001) \\    & \\   Number hours since last game & 0.00003 \\    & (0.00002) \\    & \\   Constant & $-$0.008$^{*}$ \\    & (0.004) \\    & \\  \hline \\[-1.8ex]  Observations & 43,547 \\  R$^{2}$ & 0.0003 \\  Adjusted R$^{2}$ & 0.0002 \\  Residual Std. Error & 0.104 (df = 43542) \\  F Statistic & 2.981$^{**}$ (df = 4; 43542) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
 
 \paragraph{The hangover correlates with allowing more points}
 Similarly, common knowledge also suggests that the overall defense of a team
@@ -281,55 +418,10 @@ score two and a half points more.
 It's even more interesting to note that points spreads are on a similar order of magnitude,  
 i.e. this could often be the difference between meeting the spread or not.
 
-\hspace{-80pt}
-\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & demeaned.pts.admitted & team.pts.admitted & team.pts.scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   party.discrete & 2.603$^{***}$ (0.542) &  &  \\    party.continuous &  & 0.486$^{***}$ (0.141) & $-$0.003 (0.138) \\    lag.change.position &  & 0.267$^{***}$ (0.016) & 0.285$^{***}$ (0.016) \\    log(travel.dist+1) &  & $-$0.429$^{**}$ (0.191) & 0.140 (0.187) \\    nhours.last.game &  & 0.012$^{*}$ (0.007) & 0.016$^{**}$ (0.007) \\    Constant & $-$0.072 (0.090) & 70.598$^{***}$ (2.266) & 64.914$^{***}$ (2.218) \\   \hline \\[-1.8ex]  Observations & 15,658 & 6,426 & 6,426 \\  R$^{2}$ & 0.001 & 0.045 & 0.051 \\  Adjusted R$^{2}$ & 0.001 & 0.045 & 0.051 \\  Residual Std. Error & 11.157 (df = 15656) & 11.937 (df = 6421) & 11.688 (df = 6421) \\  F Statistic & 23.077$^{***}$ (df = 1; 15656) & 75.897$^{***}$ (df = 4; 6421) & 86.787$^{***}$ (df = 4; 6421) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular} 
+\hspace{-100pt}
+\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & Points Admitted by Team & Team Points Admitted & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.828$^{***}$ &  &  \\    & (0.699) &  &  \\    & & & \\   Continuous party measure &  & 0.475$^{***}$ & 0.009 \\    &  & (0.139) & (0.136) \\    & & & \\   Lag change in possessions &  & 0.267$^{***}$ & 0.285$^{***}$ \\    &  & (0.016) & (0.016) \\    & & & \\   Logged travel distance &  & $-$0.430$^{**}$ & 0.142 \\    &  & (0.191) & (0.187) \\    & & & \\   Number hours since last game &  & 0.012$^{*}$ & 0.017$^{**}$ \\    &  & (0.007) & (0.007) \\    & & & \\   Constant & $-$0.047 & 70.581$^{***}$ & 64.886$^{***}$ \\    & (0.090) & (2.267) & (2.220) \\    & & & \\  \hline \\[-1.8ex]  Observations & 15,658 & 6,426 & 6,426 \\  R$^{2}$ & 0.001 & 0.045 & 0.051 \\  Adjusted R$^{2}$ & 0.001 & 0.045 & 0.051 \\  Residual Std. Error & 11.159 (df = 15656) & 11.937 (df = 6421) & 11.688 (df = 6421) \\  F Statistic & 16.357$^{***}$ (df = 1; 15656) & 75.841$^{***}$ (df = 4; 6421) & 86.788$^{***}$ (df = 4; 6421) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
 
-
-
-\subsection{Robustness check}
-As a robustness check, we verify that this phenomena persists in an entirely separate
-sport. To that end, we look toward
-Major League Baseball, which is also well set up for our quasi-experiment since
-there are many games played back-to-back in the season (more in fact, than NBA).
-There are also anecdotes of players celebrating with alcohol in public.\cite{miller,campbell}
-
-In general, we can replicate our analysis and use the same resources to obtain our data,
- but there are also some notable differences.
-In the MLB, money-lines
-are used instead of point-spreads. So as opposed to predicting
-the likelihood of meeting the spread, we predict the probability
-a team would win as both a function of the book-makers'
-odds of winning and our party variable. 
-Additionally, our methodology changes ever so slightly: when creating our
-continuous measure of nightlife, we interact the variable with weekend. Interviews with athletes suggest that MLB players are more likely to
-restrict their partying to weekends.
-One of the last major differences between NBA and MLB games is that MLB games
-are played in series, so the same match-up is repeated multiple times. This remedies
-the problem of an unknown travel schedule we faced with NBA because we are sure 
-teams stay overnight in the same location within a series.
-
-\begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & (team.score $ > $ opponent.score) \\  \hline \\[-1.8ex]   party & $-$0.035$^{*}$ (0.020) \\    odds & 2.602$^{***}$ (0.162) \\    I(team == location) & 0.025 (0.034) \\    ndays.lgame & 0.014 (0.019) \\    log(travel.dist + 1) & $-$0.001 (0.005) \\    weekend & 0.040 (0.036) \\    Constant & $-$1.331$^{***}$ (0.080) \\   \hline \\[-1.8ex]  Observations & 25,215 \\  Log Likelihood & $-$17,274.450 \\  Akaike Inf. Crit. & 34,562.900 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular} 
-
-As shown above, our continuous measure of nightlife remains statistically significant.
-
-\subsubsection{Betting performance}
-We also validate our MLB model by seeing how well we can perform against the
-market.
-\begin{figure}[!h]
-  \centering
-  \includegraphics{mlb_bets_by_season}
-  \caption{Betting performance by season. In each season, the 
-    circled point represents the worst out of pocket expense incurred.
-    We first train a model on historical data then use said model to predict on ``current year''
-    data, plotting profits as a function of time over the ``current'' season. For each relevant
-    game, we place a bet of \$100 if the expected value of the bet is positive after accounting for the bookmaker's cut. E.g. in the     early 2016 season,
-    at its worst we are out of pocket \$750 dollars. By season end, we have     recouped all of
-    our initial investment plus an additional \$11.5k. We are profitable in each season, and mention that 2015 is the ``worst'', but we still come out ahead.}
-  \label{bettingperf}
-\end{figure}
-
-\clearpage
-
+\section{Conclusions and Avenues for Future Research}
 \subsection{Extending the research}
 \paragraph{Within the NBA} 
 We're interested to explore what other factors may affect a team's propensity to suffer hangover effects beyond simply visiting a party city; e.g. are teams more likely to go out after
@@ -349,8 +441,7 @@ pitching (ERA, WHIP) or general fielding stats are effected by party.
 In both sports, it's possible there are prolonged effects of partying, and applying some sort of kernel on the number of hours played since the last game could be interesting. 
 Future work may consider similar effects in European soccer leagues.
 
-
-\section{Conclusions}
+\subsection{Conclusion}
 We do find that visiting a city with active nightlife the day before a game does have 
 a statistically significant negative impact on a team's likelihood of meeting the spread in NBA. This decreased likelihood to meet the spread may be explained 
 by the team's defense letting up more points. In turn, we believe that the drop in
