@@ -127,6 +127,9 @@ nba.lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team, log(n
 nba.lines[, party.discrete := grepl("(los angeles)|(new york)|(brooklyn)", last.game.loc) & 
                 nhours.lgame <= HOURS & 
                 last.game.loc != team]
+nba.lines[, party.placebo := grepl("(los angeles)|(new york)|(brooklyn)", last.game.loc) & 
+                nhours.lgame > HOURS & 
+                last.game.loc != team]
 
 @
 
@@ -195,17 +198,17 @@ summary(m1)
 stargazer(m0, m1, covariate.labels = c('party discrete', 'party continuous', 'lag changes in posession', 'logged travel distance', 'east-west travel direction', 'number hours rest time', 'time of game during day', 'home team effect', 'logged travel distance * east-west', 'Constant'),
           dep.var.labels = 'Meet the Spread') 
 
-tmp <- musicians[, list(party.continuous = mean(log(nmusicians+1))), 
-                 by = team][order(party.continuous)][!is.na(party.continuous)]
-
 ##################################################
 ### Dot plot of Party-Continuous by Team Location
 ##################################################
+tmp <- musicians[, list(party.continuous = mean(log(nmusicians+1))), 
+                 by = team][order(party.continuous)][!is.na(party.continuous)]
+
 pdf('writing/Party_by_Team_Location.pdf', width = 14, height = 8.5)
 ticks = 1:nrow(tmp)
 plot(x = ticks, 
      y = tmp$party.continuous, 
-     main = 'Continuous measure of party by Team Location',
+     main = 'Continuous measure of party by Team Location: NBA',
      ylab = 'Log Avg of Musicians and Sound Recording Studios',
      xlab = '',
      axes = F)
@@ -215,9 +218,61 @@ axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>%
 axis(side = 2)
 dev.off()
 
+##################################################
+### Histogram of travel dist by party vs not
+##################################################
+pdf('writing/travel_dist_by_party.pdf', width = 11, height = 8.5)
+par(mfrow = c(2,1))
+hist(x = nba.lines[party.discrete == F, travel.dist], 
+     main = 'Histogram of Travel Distance by Last Game Location', xlab = '')
+legend(x = 2250, y = 3500, legend = c('Non Party Cities', 'LA and NY'), 
+       col = c('white', 'black'), fill = c(F, T))
+hist(x = nba.lines[party.discrete == T, travel.dist], 
+     main = '', col = 'black', xlab = 'Travel Distance')
+dev.off()
 
 
-@ 
+pdf('writing/travel_dist_density_by_party.pdf', width = 12, height = 11)
+plot(density(nba.lines[(party.discrete) & !is.na(travel.dist), travel.dist]), 
+     xlim = c(-100, 18e2), lty = 1,
+     main = 'Density of travel distance\nfor (non) party cities: NBA',
+     xlab = 'Travel Distance (Miles)')
+lines(density(nba.lines[!(party.discrete) & !is.na(travel.dist), travel.dist]), lty = 2)
+legend(x = 15e2, y = 0.0015, legend = c('LA/NY', 'non-party cities'), lty = 1:2)
+dev.off()
+
+##################################################
+### Placebo model
+##################################################
+mp <- update(m0, . ~ party.placebo + . - party.discrete)
+
+stargazer(mp, covariate.labels = c('party placebo', 'lag changes in posession', 'logged travel distance', 'east-west travel direction', 'number hours rest time', 'time of game during day', 'home team effect', 'logged travel distance * east-west', 'Constant'),
+          dep.var.labels = 'Meet the Spread')
+
+##################################################
+### Table for uncorrelated next day opponent
+##################################################
+
+tmp <- nba.lines[, .N, 
+                 keyby = list(location, last.game.loc, 
+                              cur.game = paste('Current game', 
+                                               ifelse(location == team, 'at home', 'away')),
+                              lst.game = paste('Last game',
+                                               ifelse(last.game.loc == team, 'at home', 'away')))] %>% 
+    na.omit
+
+pdf('writing/next_day_opponent.pdf', width = 14, height = 14)
+ggplot(tmp, aes(x = location, y = last.game.loc, fill = log(N))) + 
+    geom_tile() +
+    facet_wrap(~lst.game + cur.game) + 
+    labs(x = 'Current Game Location', y = 'Last Game Location', 
+         title = 'Distribution of Next Day Opponent - NBA') +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 315, vjust = 0.5),
+          plot.title = element_text(hjust=.5))
+dev.off()
+
+@
 
 The sign of our ``\texttt{party}'' variable is intuitively correct, and 
 statistically significant. The magnitude is also practically significant
@@ -287,22 +342,38 @@ m2 <- lm(demeaned.reb.per.min ~ party + lag.chg.pos + log(travel.dist+1) + nhour
    data = data[last.game.loc != team] %>% na.omit)
 summary(m2)
 
-mpa <- lm(team.pts.admitted ~ party + lag.chg.pos + log(travel.dist+1) + nhours.lgame, 
+tpa <- lm(team.pts.admitted ~ party + lag.chg.pos + log(travel.dist+1) + nhours.lgame, 
    data=nba.lines[last.game.loc!=team] %>% na.omit)
-mpo <- update(mpa, team.pts.scored ~ .)
+tpo <- update(tpa, team.pts.scored ~ .)
 
 ### Points  allowed as afunction of last game location (by party)
 nba.lines[, demeaned.pts.admitted := team.pts.admitted - mean(team.pts.admitted), by = list(season, team)]
 nba.lines[, mean(demeaned.pts.admitted), by = list(last.game.loc, party.discrete)][order(V1)]
 mpa1 <- lm(demeaned.pts.admitted ~ party.discrete, data = nba.lines)
-#stargazer(mpa1, mpa, mpo, single.row=T)
 
-tmp <- nba.lines[, list(demeaned.pts.admitted = mean(demeaned.pts.admitted)), 
-                 by = list(last.game.loc, party)][order(demeaned.pts.admitted)]
-plot(x=jitter(tmp$party),y=tmp$demeaned.pts.admitted)
-abline(lm(demeaned.pts.admitted ~ party, data=tmp))
-#stargazer(m, style = 'qje', single.row = T)
-## stargazer(m)
+stargazer(mpa1, tpa, tpo, dep.var.labels = c('Points Admitted by Team', 'Team Points Admitted', 'Team Points Scored'),
+          covariate.labels = c('Discrete party indicator',
+                               'Continuous party measure',
+                               'Lag change in possessions',
+                               'Logged travel distance',
+                               'Number hours since last game',
+                               'Constant'))
+
+
+stargazer(m2, dep.var.labels = 'Demeanead Rebounds Per Minute',
+          covariate.labels = c('Continuous party measure',
+                               'Lag change in possessions',
+                               'Logged travel distance',
+                               'Number hours since last game',
+                               'Constant'))
+
+
+## tmp <- nba.lines[, list(demeaned.pts.admitted = mean(demeaned.pts.admitted)), 
+##                  by = list(last.game.loc, party)][order(demeaned.pts.admitted)]
+## plot(x=jitter(tmp$party),y=tmp$demeaned.pts.admitted)
+## abline(lm(demeaned.pts.admitted ~ party, data=tmp))
+## #stargazer(m, style = 'qje', single.row = T)
+## ## stargazer(m)
 
 @ 
 
@@ -325,8 +396,58 @@ m3 <- glm(I(team.score > opponent.score) ~ party + odds + I(team == location) +
 summary(m3)
 
 mlb.lines[, party.discrete := grepl("(los angeles)|(new york)", last.game.loc) & ndays.lgame == 1 & weekend == T]
-#stargazer(m0, m1, m2, m3, single.row = T)
-@ 
+
+## stargazer(m3, covariate.labels = c('Continuous measure of nightlife',
+##                                    'Bookmaker\'s odds', 'Home-team effect',
+##                                    'Number of rest days', 'Logged travel distance',
+##                                    'Weekend', 'Constant'), 
+##           dep.var.capation = 'Probability of Winning')
+
+##################################################
+### Heat Map for next day opponent
+##################################################
+tmp <- mlb.lines[, .N, 
+                 keyby = list(location, last.game.loc, 
+                              cur.game = paste('Current game', 
+                                               ifelse(location == team, 'at home', 'away')),
+                              lst.game = paste('Last game',
+                                               ifelse(last.game.loc == team, 'at home', 'away')))] %>% 
+    na.omit
+
+pdf('writing/next_day_opponent_mlb.pdf', width = 14, height = 14)
+ggplot(tmp, aes(x = location, y = last.game.loc, fill = log(N))) + 
+    geom_tile() +
+    facet_wrap(~lst.game + cur.game) + 
+    labs(x = 'Current Game Location', y = 'Last Game Location', 
+         title = 'Distribution of Next Day Opponent - MLB') +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 315, vjust = 0.5),
+          plot.title = element_text(hjust=.5))
+dev.off()
+
+
+##################################################
+### Party by team location
+##################################################
+load(file = 'tmp_data/nmusician_estabs_mlb.RData')
+tmp <- musicians[, list(party.continuous = mean(log(nmusicians+1))), 
+                 by = team][order(party.continuous)][!is.na(party.continuous)]
+
+pdf('writing/Party_by_Team_Location_mlb.pdf', width = 14, height = 8.5)
+ticks = 1:nrow(tmp)
+plot(x = ticks, 
+     y = tmp$party.continuous, 
+     main = 'Continuous measure of party by Team Location: MLB',
+     ylab = 'Log Avg of Musicians and Sound Recording Studios',
+     xlab = '',
+     axes = F)
+axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>% 
+                               gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
+axis(side = 2)
+dev.off()
+
+
+@
 
 We note that although we don't quite achieve conventional statistical significance,
 we're not that far off the mark. The difference in significance between 
@@ -342,7 +463,7 @@ taken by the betting house.
 
 <<echo=2:4>>=
 
-pdf('mlb_bets_by_season.pdf')
+pdf('writing/mlb_bets_by_season.pdf')
 par(mfrow = c(3,2))
 b <- lapply(2012:2016, function(yr) {
     m <- glm(I(team.score > opponent.score) ~ party + odds,
@@ -421,7 +542,7 @@ text(x = tholds, y = tmp[1, ], labels = tmp[2, ], pos = 1)
     Jeremy P. Jamieson.
     \textit{The Home Field Advantage in Athletics: A Meta-Analysis}
     \href{http://onlinelibrary.wiley.com/doi/10.1111/j.1559-1816.2010.00641.x/full}{paper}
-     \end{thebibliography}
+\end{thebibliography}
 
 \end{document}
 
