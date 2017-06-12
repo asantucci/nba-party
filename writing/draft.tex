@@ -37,12 +37,14 @@
 %% the article.
 
 \section{Introduction}
-It's not unreasonable to think that game performance can be affected 
-(in part) by what takes place off the court. 
+It's not unreasonable to think that in-game sporting performance can be affected 
+partly by what takes place off the court. 
 We are interested to see if 
 teams exhibit a decline in performance the day following a game in a city 
-with active nightlife; part of the question is determining which cities are notorious
-for nightlife.
+with active nightlife; we call this a ``hangover effect''.
+Part of the question is determining a reasonable way to measure
+levels of nightlife, and correspondingly which cities are notorious for it; we colloquially
+refer to such cities as ``party cities''.
 
 \paragraph{Why do we care} 
 Inquiring about this causal relationship is worthwhile for several reasons. The
@@ -50,7 +52,7 @@ NBA Commissioner Adam Silver has reported that there is \$400 billion per year s
 on sports betting in the U.S. alone.\citep{asilver,cnnsilver} Apart from arbitrage opportunities,
 knowing how player performance is affected by external factors could inform coaches of a more
 optimal play strategy. E.g. if visitation to a city with active nightlife is correlated with
-next-day injury, perhaps coaches might bench their star players if the game isn't crucial.
+next-day injury, perhaps coaches might bench their star players if the latter game isn't crucial.
 
 \paragraph{What do we do}
 We exploit data on bookmaker spreads, the expected score 
@@ -69,24 +71,22 @@ We replicate this analysis for both the National Basketball Association
 a city with active nightlife the day prior to a game does have a statistically
 significant negative effect on a team's likelihood of meeting the point-spread set
 by a betting house, for both NBA and MLB. Within the NBA, we analyze specific performance
-metrics such as number of points allowed and number of rebounds obtained, and find that
-both are negatively effected by previous day visitation to a city with active nightlife.
-Lastly, having established a causal model, we realize a profitable betting scheme for MLB.
+metrics such as number of points allowed and number of rebounds obtained, and find that both are negatively effected by previous day visitation to a city with active nightlife. Having established a causal model, we realize a profitable betting scheme for MLB. We also perform a robustness check and see that if players rest more than
+ 24 hours after visiting a ``party-city'', the hangover effect dissipates.
 
 \section{Effects of Partying on Athletic Performance}
 
 \subsection{Anecdotal evidence of the effects on sporting performance}
-Players openly admit they are interested in nightlife: Matt Barnes recently complained that 
+Professional players openly admit they are interested in nightlife: Matt Barnes recently complained that 
 ``there's no nightlife in Utah'' when asked about playing Jazz in the second round of NBA playoffs 
 in 2017.\citep{cestone}
 There are also numerous reports of teams partying to the detriment of the game.
 Within the NBA, J.R. Smith's performance metrics substantially improved 
  after being traded from New York to Cleveland; when an interviewer
-asked what contributed to this bump in statistics, he infamously replied
-that in New York he would have been out partying, but because there's no nightlife in Cleveland, he ends up hitting the gym.\citep{price,ley} Before being traded,
-he would score 42 percent of shots taken over the course of his career, but only 34 percent
-on Sunday afternoon games in the 2012-13 season, presumably because such games followed a long
-weekend of partying.\citep{princeofthecity}
+asked what contributed to this bump in performance, he infamously replied
+that in New York he would have been out partying, but because there's no nightlife in Cleveland he ends up hitting the gym.\citep{price,ley} Before being traded, J.R. Smith's career-to-date success rate of shots taken was 42 percent, but somehow he only managed 
+34 percent on Sunday afternoon games in the 2012-13 season.
+Presumably, this was because such games followed a long weekend of partying.\citep{princeofthecity}
 
 \subsection{Individual Players}
 Studies have also been carried out on statistical ranking of the players
@@ -107,8 +107,8 @@ There has been an attempt to answer the question at the team-level before: i.e. 
 worse after a night on the town, and if so does it depend on which city they 
 visited.\citep{ezekowitz} However, the study only
 looks at performance in party cities, as opposed to subsequent day performance (i.e. the study does not consider a delayed hangover effect). Moreover, their sample size was much smaller, because the author only considered Sunday afternoon games
-from 2006-14. Finally, there was no methodology used behind the selection of party cities;
-the authors first tried to define ad-hoc five cities as ``party cities'', and when that did not yield
+from 2006-14. Finally, there was no methodology used behind the selection of party cities:
+the authors first tried to define ad-hoc five ``party cities'', and when that did not yield
 a significant result they tried estimating fixed-effects for each city. The author does conclude
 with weak statistical evidence that teams systematically play worse on Sunday 
 afternoons when on the road, regardless of the city.
@@ -124,27 +124,36 @@ Sleep deprivation has also been shown to strongly impair cognitive and motor per
 
 
 \section{Defining a Measure for Partying}
+
+\paragraph{On the correlation between next day opponent and last game location}
 A key assumption in our analysis is that next-day opponent is reasonably uncorrelated with
 last game location. We plot a heat-map displaying the relationship between last game location
 and next game location, and further break this down according to whether the game(s)
 were played at home or away.
 
 \begin{figure}
-  \hspace{-44pt}
+  \centering
+  \label{fig: next day opponent}
   \includegraphics[scale=0.45]{next_day_opponent}
   \caption{We examine the relationship between last game location and next day opponent in the NBA. Starting from the top left, notice that the most likely scenario across all seasons is that a game will be played at home, and the last game was also at home. This makes sense; 1/2 of all games are played at home, and 1/2 are played away, so clearly each team is most likely to be found playing a home game for any given game. When exactly one of the last game or current game was played away,
-we observe that some combinations cease to exist in our data; e.g. we never observe Charlotte Bobcats play Utah Jazz on the road and then fly directly back home for a game. Lastly, notice the patterns exhibited when last game is played on the road, and current game also played on the road. We see that when last game location was in Los Angeles, next day opponent likely to be a west coast team. There appears to be less of a correlation between last game location in New York or Brooklyn and next day opponent, perhaps because players ``gain'' time when flying east-to-west.} \end{figure}
+we observe that some combinations cease to exist in our data; e.g. we never observe Charlotte Bobcats play Utah Jazz on the road and then fly directly back home for a game. Lastly, notice the patterns that emerge when both the last game and current game are played on the road. E.g. we see that when last game location was in Los Angeles, next day opponent likely to be a west coast team. There appears to be less of a correlation between last game location in New York or Brooklyn and next day opponent, perhaps because flying from east-to-west
+is less burdensome as it relates to timezone changes.} 
+\end{figure}
 
-Our takeaway from the figure above is that indeed there is a correlation between last game location
-and next day opponent, in particular this is true for west coast teams. We hypothesize that
-this is due to practical limitations on flight schedules. The fact that there is a correlation between last game location and next day opponent increases the motivation for conditioning on spread, which accounts may help account for systematic biases to the extent that some of these next-day opponents are particularly (not) skilled. 
+Our takeaway from the figure on page \ref{fig: next day opponent} is that indeed there is some correlation between last game location
+and next day opponent, and in particular this is true for west coast teams. We hypothesize that
+this is due to practical limitations on flight schedules. E.g. if a team is unwilling to take a red-eye
+flight, then there is little hope to play an evening west coast game and make it to the east coast for a game the very next day;
+the same is \emph{not true} when flying from east to west, in which case a morning flight is reasonable.
+The fact that there is some correlation between last game location and next day opponent, even if only in west coast cities, increases the motivation for conditioning on spread, which accounts may help account for systematic biases to the extent that some of these next-day opponents are particularly (not) skilled. 
 
 \paragraph{Partying as a latent variable}
 One of the hardest parts of this analysis is that partying is a latent variable.
 In order to determine when players partied, one may consider looking at social media data for direct mentions of partying, either by athletes or witnesses. However, due to the intense public scrutiny that athletes face, there is a strong reluctance to disclose their personal lives on social media. There are notable exceptions, such
 as Oddel Beckham Jr.'s recent trip to Miami.\citep{bleler}
 However, these reports are few and far enough between that picking up statistical evidence would be fruitless.
-We develop two approaches: a discrete indicator and a continuous measure of nightlife.
+Instead, we develop two approaches which do not rely on this data: a discrete indicator 
+based on player interviews and also a continuous measure of nightlife based on local community patterns.
 
 \paragraph{A discrete indicator}
 Because famous athletes often enjoy a celebrity lifestyle, using conventional statistics
@@ -177,12 +186,12 @@ This captures
 how much nightlife there is in a city since musical performances are correlated
 with parties, if not an essential feature.
 
-% A *density* plot with overlay instead of two histograms
-
-\begin{sidewaysfigure}
-  \hspace{-55pt}
-  \includegraphics[scale=0.7,angle=180]{Party_by_Team_Location}
-\end{sidewaysfigure}
+\begin{figure}
+  \centering
+  \label{fig: party by team loc}
+  \includegraphics[scale=0.6,angle=270]{Party_by_Team_Location}
+  \caption{We plot our continuous measure of nightlife for each city within the NBA. We present the analagous plot for MLB in the appendix.\ref{fig: party by team location mlb}}
+\end{figure}
 
 \section{Data}
 \subsection{Points-spread and money-lines data} We first look toward 
@@ -318,12 +327,14 @@ We find that after accounting for player fatigue incurred during the last game, 
 have a statistically significant effect on likelihood of meeting the spread.
 In laymens terms, teams under perform book-maker's expectations after playing in cities 
 with active nightlife.
-This supports the hypothesis that players enjoy nightlife systematically in certain
-cities and that a ``hangover'' effect is felt on the court the next day.
 
 \begin{center}
-\begin{tabular}{@{\extracolsep{5pt}}lcc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{2}{c}{\textit{Dependent variable:}} \\  \cline{2-3}  \\[-1.8ex] & \multicolumn{2}{c}{Meet the Spread} \\  \\[-1.8ex] & (1) & (2)\\  \hline \\[-1.8ex]   party discrete & $-$0.513$^{***}$ &  \\    & (0.145) &  \\    & & \\   party continuous &  & $-$0.050$^{**}$ \\    &  & (0.022) \\    & & \\   lag changes in posession & 0.0001 & 0.00004 \\    & (0.002) & (0.002) \\    & & \\   logged travel distance & $-$0.017 & $-$0.015 \\    & (0.026) & (0.026) \\    & & \\   east-west travel direction & $-$0.146 & $-$0.115 \\    & (0.231) & (0.231) \\    & & \\   number hours rest time & 0.001 & 0.001 \\    & (0.001) & (0.001) \\    & & \\   time of game during day & 0.005 & 0.005 \\    & (0.013) & (0.013) \\    & & \\   home team effect & 0.001 & 0.004 \\    & (0.043) & (0.043) \\    & & \\   logged travel distance * east-west & 0.022 & 0.018 \\    & (0.036) & (0.036) \\    & & \\   Constant & $-$0.048 & $-$0.036 \\    & (0.378) & (0.378) \\    & & \\  \hline \\[-1.8ex]  Observations & 9,823 & 9,823 \\  Log Likelihood & $-$6,800.675 & $-$6,804.511 \\  Akaike Inf. Crit. & 13,619.350 & 13,627.020 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular} 
+\begin{tabular}{@{\extracolsep{5pt}}lcc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{2}{c}{\textit{Dependent variable:}} \\  \cline{2-3}  \\[-1.8ex] & \multicolumn{2}{c}{Meet the Spread} \\ \hline \\[-1.8ex]   party discrete & $-$0.513$^{***}$ &  \\    & (0.145) &  \\    & & \\   party continuous &  & $-$0.050$^{**}$ \\    &  & (0.022) \\    & & \\   lag changes in posession & 0.0001 & 0.00004 \\    & (0.002) & (0.002) \\    & & \\   logged travel distance & $-$0.017 & $-$0.015 \\    & (0.026) & (0.026) \\    & & \\   east-west travel direction & $-$0.146 & $-$0.115 \\    & (0.231) & (0.231) \\    & & \\   number hours rest time & 0.001 & 0.001 \\    & (0.001) & (0.001) \\    & & \\   time of game during day & 0.005 & 0.005 \\    & (0.013) & (0.013) \\    & & \\   home team effect & 0.001 & 0.004 \\    & (0.043) & (0.043) \\    & & \\   logged travel distance * east-west & 0.022 & 0.018 \\    & (0.036) & (0.036) \\    & & \\   Constant & $-$0.048 & $-$0.036 \\    & (0.378) & (0.378) \\ \hline \\[-1.8ex]  Observations & 9,823 & 9,823 \\  Log Likelihood & $-$6,800.675 & $-$6,804.511 \\  Akaike Inf. Crit. & 13,619.350 & 13,627.020 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01}
+\end{tabular} 
 \end{center} 
+
+This model supports the hypothesis that players enjoy nightlife systematically in certain
+cities and that a ``hangover'' effect is felt on the court the next day.
 The features describing jet-lag and recovery time are not significant, but this is to be
 expected: such salient information has already been taken into account in setting the spread.
 In the next section, we explore which specific areas of gameplay are affected.
@@ -359,6 +370,7 @@ We also validate our MLB model by seeing how well we can perform against the
 market.
 \begin{figure}[!h]
   \centering
+  \label{mlb bets by season}
   \includegraphics[scale=0.82]{mlb_bets_by_season}
   \caption{Betting performance by season. In each season, the 
     circled point represents the worst out of pocket expense incurred.
@@ -476,6 +488,7 @@ With a causal model established, we realize a profitable betting strategy in eac
 \begin{figure}   
   \centering
   \hspace{-55pt}
+  \label{fig: party by team location mlb}
   \includegraphics[scale=0.5]{Party_by_Team_Location_mlb}
   \caption{Continuous measure of nightlife by team location for MLB. What's interesting here is that because New York Yankees are in the Bronx, they show up as having few musicians and sound recording studios. We might wonder if this is a bad thing, since with NBA New York city was deemed a major party city. It turns out that when we define a discrete indicator of party based on New York or Los Angeles, it is not at all significant, and in fact the sign is incorrect. When we use our continuous
  measure of nightlife, its significant, and it helps inform our profitable betting model.
@@ -485,7 +498,25 @@ This is good news for our proxy, although begs the question why New York should 
 \begin{figure}   
   \centering
   \hspace{-55pt}
+  \label{fig: next day opponent mlb}
   \includegraphics[scale=0.5]{next_day_opponent_mlb} 
 \end{figure}
+
+\begin{sidewaysfigure}   
+  \centering
+  \label{fig: why drinks or pop dont work}
+  \includegraphics[scale=0.5]{why_drinks_or_population_dont_work} 
+  \caption{We remark why using a statistic such as number of drinking establishments or 
+    population size doesn't work. Although both of these are linearly correlated with musicians, 
+    and even in spite of the extremal observations being ranked consistently across each statistic, 
+    i.e. Charlotte Bobcats at the bottom and Los Angeles at the top,  
+    the problem is that population and number of drinking establishments have sinusoidal 
+    relationships with respect to the rank ordering imposed by the musicians index 
+    that do not properly reflect variation in nightlife between cities. For example, both 
+    incorrectly rank Detroit Michigan as having a high nightlife index. Another example, population incorrectly places New Orleans, Louisiana as having a low nightlife index, when in reality it is famous for its vibrant city life.}
+\end{sidewaysfigure}
+
+
+
 
 \end{document}
