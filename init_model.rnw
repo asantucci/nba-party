@@ -40,8 +40,13 @@ require(sampling)
 set.seed(4052017)
 
 load(file = 'tmp_data/covers_lines.RData')
-load(file = 'tmp_data/nmusician_estabs.RData')
+## load(file = 'tmp_data/nmusician_estabs.RData')
 load(file = 'tmp_data/population_by_county_year.RData')
+load(file = 'tmp_data/nba_musicians.RData')
+
+musicians <- copy(dt)
+rm(dt)
+setnames(musicians, 'variable', 'nmusicians')
 musicians <- merge(musicians, pop, by = c('county', 'season'), all.x = T)
 
 @ 
@@ -271,6 +276,46 @@ ggplot(tmp, aes(x = location, y = last.game.loc, fill = log(N))) +
     theme(axis.text.x = element_text(angle = 315, vjust = 0.5),
           plot.title = element_text(hjust=.5))
 dev.off()
+
+
+##################################################
+### Why drinking estabs doesn't work.
+##################################################
+load(file = 'tmp_data/nba_drinking.RData')
+drinking <- copy(dt)
+setnames(drinking, 'variable', 'ndrinks')
+rm(dt)
+
+tmpm <- musicians[, list(log.nmusicians = mean(log(nmusicians+1)),
+                         log.population = mean(log(population))), 
+                  by = team][order(log.nmusicians)] %>% na.omit
+tmpd <- drinking[, list(log.ndrinks = mean(log(ndrinks+1))), 
+                  by = team][order(log.ndrinks)] %>% na.omit
+tmp <- merge(tmpm, tmpd, by = 'team')
+setorder(tmp, log.nmusicians)
+
+pdf('writing/why_drinks_or_population_dont_work.pdf', width = 16, height = 8.5)
+ticks = 1:nrow(tmp)
+plot(x = ticks, 
+     y = tmp$log.nmusicians,
+     main = 'Why drinking establishments or population don\'t work as a proxy for nightlife',
+     ylab = 'Log Avg of Variable',
+     xlab = '', axes = F, pch = 1, ylim = c(0, max(tmp$log.population)))
+points(x = ticks, y = tmp$log.ndrinks, pch = 16, col = 'purple')
+points(x = ticks, y = tmp$log.population, pch = 18, col = 'orange')
+axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>% 
+                               gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
+axis(side = 2)
+legend(x = 22.5, y = 10.25, legend = c('Musicians and sound recording studios',
+                                 'Drinking establishments and liquor stores',
+                                 'Population'), pch = c(1, 16, 18), col = c('black', 'purple', 'orange'))
+text(x = 24.6, y = 10.5, labels = paste("Correlation (alcohol):       ", 
+                                       cor(tmp$log.nmusicians, tmp$log.ndrinks) %>% round(., 3)))
+text(x = 24.6, y = 11, labels = paste("Correlation (population): ", 
+                                       cor(tmp$log.nmusicians, tmp$log.population) %>% round(., 3)))
+dev.off()
+
+
 
 @
 
