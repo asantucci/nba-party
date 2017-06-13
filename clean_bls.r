@@ -50,15 +50,16 @@ MyGeoCode <- function(teams) {
 }
 
 CleanBLS <- function(party.regex, suffix, years = 2010:2016, RESCRAPE = F) {
+    ### Subset BLS data into manageable chunks.
     parLapplyLB(cl, years, SubsetBLS, party.regex = party.regex, sport = suffix)
     files <- list.files(path = 'tmp_data/bls', pattern = paste0(suffix, '\\.csv$'), full.names = T)
-    bls <- lapply(files, fread) %>% rbindlist
-    load(file = 'tmp_data/covers_lines.RData')
+    bls <- lapply(files, fread) %>% rbindlist    # Load in chunks of data.
+    load(file = 'tmp_data/covers_lines.RData')   # Load lines data to get listing of team-names (overkill)
     lines[, pct := NULL]
-    if (RESCRAPE) MyGeoCode(unique(lines$team))
+    if (RESCRAPE) MyGeoCode(unique(lines$team))  # Geocode the locations for each of our NBA teams.
     load(file = 'tmp_data/team_locations.RData')
-    dt <- merge(locs, bls, by.x = 'county', by.y = 'area.title', all.x = T)
-    dt <- dt[, list(variable = mean(qtrly.estabs.count %>% as.numeric)),
+    dt <- merge(locs, bls, by.x = 'county', by.y = 'area.title', all.x = T)  # Merge BLS with location data.
+    dt <- dt[, list(variable = mean(qtrly.estabs.count %>% as.numeric)),     # Average across variables.
              by = list(county, team, year)][order(year, variable)]
     setnames(dt, 'year', 'season')
     dt[, season := as.numeric(season) %>% `+`(1)]
