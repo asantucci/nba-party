@@ -42,7 +42,8 @@ set.seed(4052017)
 load(file = 'tmp_data/covers_lines.RData')
 ## load(file = 'tmp_data/nmusician_estabs.RData')
 load(file = 'tmp_data/population_by_county_year.RData')
-load(file = 'tmp_data/nba_musicians.RData')
+## load(file = 'tmp_data/nba_musicians.RData')
+load(file = 'tmp_data/nba_studios.RData')
 
 musicians <- copy(dt)
 rm(dt)
@@ -128,12 +129,13 @@ teams playing in their own cities.
 <<>>=
 
 HOURS <- 24
+## nba.lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team & weekdays(date) %in% c('Saturday', 'Sunday'), log(nmusicians+1), 0)]
 nba.lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team, log(nmusicians+1), 0)]
-nba.lines[, party.discrete := grepl("(los angeles)|(new york)|(brooklyn)", last.game.loc) & 
-                nhours.lgame <= HOURS & 
+nba.lines[, party.discrete := grepl("(los angeles)|(new york)|(brooklyn)", last.game.loc) &
+                nhours.lgame <= HOURS &
                 last.game.loc != team]
-nba.lines[, party.placebo := grepl("(los angeles)|(new york)|(brooklyn)", last.game.loc) & 
-                nhours.lgame > HOURS & 
+nba.lines[, party.placebo := grepl("(los angeles)|(new york)|(brooklyn)", last.game.loc) &
+                nhours.lgame > HOURS &
                 last.game.loc != team]
 
 @
@@ -266,12 +268,26 @@ tmp <- nba.lines[, .N,
                                                ifelse(last.game.loc == team, 'at home', 'away')))] %>% 
     na.omit
 
+### We sort our table according to last.game.loc distance to NYC to show travel restrictions.
+load(file = 'tmp_data/distance_matrix.RData')
+dmat <- melt(dmat)
+setDT(dmat)
+setnames(dmat, c('last.game.loc', 'location', 'distance'))
+dmat <- dmat[location == 'brooklyn nets', list(last.game.loc, distance)] 
+setorder(dmat, distance)
+
+tmp <- merge(tmp, dmat, by = 'last.game.loc')
+setnames(tmp, 'distance', 'distance to NYC')
+setorder(tmp, 'distance to NYC')
+tmp[, last.game.loc := factor(last.game.loc, levels = dmat[order(distance, decreasing = T), last.game.loc])]
+tmp[, location      := factor(location,      levels = dmat[order(distance, decreasing = T), last.game.loc])]
+
 pdf('writing/next_day_opponent.pdf', width = 14, height = 14)
-ggplot(tmp, aes(x = location, y = last.game.loc, fill = log(N))) + 
+ggplot(tmp, aes(x = location, y = last.game.loc, fill = log(N))) +
     geom_tile() +
     facet_wrap(~lst.game + cur.game) + 
     labs(x = 'Current Game Location', y = 'Last Game Location', 
-         title = 'Distribution of Next Day Opponent - NBA') +
+         title = 'Distribution of Next Day Opponent - NBA\n(sorted by distance to NYC)') +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 315, vjust = 0.5),
           plot.title = element_text(hjust=.5))
@@ -458,6 +474,22 @@ tmp <- mlb.lines[, .N,
                               lst.game = paste('Last game',
                                                ifelse(last.game.loc == team, 'at home', 'away')))] %>% 
     na.omit
+
+
+
+### We sort our table according to last.game.loc distance to NYC to show travel restrictions.
+load(file = 'tmp_data/distance_matrix_mlb.RData')
+dmat <- melt(dmat)
+setDT(dmat)
+setnames(dmat, c('last.game.loc', 'location', 'distance'))
+dmat <- dmat[location == 'new york yankees', list(last.game.loc, distance)] 
+setorder(dmat, distance)
+
+tmp <- merge(tmp, dmat, by = 'last.game.loc')
+setnames(tmp, 'distance', 'distance to NYC')
+setorder(tmp, 'distance to NYC')
+tmp[, last.game.loc := factor(last.game.loc, levels = dmat[order(distance, decreasing = T), last.game.loc])]
+tmp[, location      := factor(location,      levels = dmat[order(distance, decreasing = T), last.game.loc])]
 
 pdf('writing/next_day_opponent_mlb.pdf', width = 14, height = 14)
 ggplot(tmp, aes(x = location, y = last.game.loc, fill = log(N))) + 
