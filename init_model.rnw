@@ -331,12 +331,12 @@ points(x = ticks, y = tmp$log.population, pch = 18, col = 'orange')
 axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>% 
                                gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
 axis(side = 2)
-legend(x = 22.5, y = 10.25, legend = c('Musicians and sound recording studios',
+legend(x = 21.5, y = 12.5, legend = c('Musicians and sound recording studios',
                                  'Drinking establishments and liquor stores',
                                  'Population'), pch = c(1, 16, 18), col = c('black', 'purple', 'orange'))
-text(x = 24.6, y = 10.5, labels = paste("Correlation (alcohol):       ", 
+text(x = 24.6, y = 9.5, labels = paste("Correlation (alcohol):       ", 
                                        cor(tmp$log.nmusicians, tmp$log.ndrinks) %>% round(., 3)))
-text(x = 24.6, y = 11, labels = paste("Correlation (population): ", 
+text(x = 24.6, y = 10, labels = paste("Correlation (population): ", 
                                        cor(tmp$log.nmusicians, tmp$log.population) %>% round(., 3)))
 dev.off()
 
