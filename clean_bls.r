@@ -38,3 +38,7 @@ clusterCall(cl, function() {
 
 CleanBLS(party.regex = c('sound recording', 'music publisher', 'musical group'),
          suffix = 'studios_and_artists', sport = 'nba', FUN = sum)
+
+
+CleanBLS(party.regex = c('alcohol', 'drinking'),
+         suffix = 'alcohol_and_drinking', sport = 'nba', FUN = sum)
