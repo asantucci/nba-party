@@ -39,46 +39,52 @@
 \section{Introduction}
 It's not unreasonable to think that in-game sporting performance can be affected 
 partly by what takes place off the court. 
+We can't observe what happens between games directly. Instead, we proxy for the 
+possibility of athletes partying by looking at play following games in party cities.
 We are interested to see if 
 teams exhibit a decline in performance the day following a game in a city 
 with active nightlife; we call this a ``hangover effect''.
 Part of the question is determining a reasonable way to measure
-levels of nightlife, and correspondingly which cities are notorious for it; we colloquially
-refer to such cities as ``party cities''.
+levels of nightlife, and correspondingly which cities are notorious for it; we colloquially refer to such cities as ``party cities''.
+At first glance, the topic might seem callow, but in fact there are many interesting
+nuances to work through.
 
-\paragraph{Why do we care} 
-Inquiring about this causal relationship is worthwhile for several reasons. The
-NBA Commissioner Adam Silver has reported that there is \$400 billion per year spent 
-on sports betting in the U.S. alone.\citep{asilver,cnnsilver} Apart from arbitrage opportunities,
-knowing how player performance is affected by external factors could inform coaches of a more
-optimal play strategy. E.g. if visitation to a city with active nightlife is correlated with
+Inquiring about this causal relationship is worthwhile for several reasons. 
+Knowing how player performance is affected by external factors could inform coaches of a more
+optimal play strategy: if visitation to a city with active nightlife is correlated with
 next-day injury, perhaps coaches might bench their star players if the latter game isn't crucial.
+It could also inform team managers how travel schedules should be set, or even team rules.
+Further, there are potential opportunities for arbitrage.  The
+NBA Commissioner Adam Silver has reported that there is \$400 billion per year spent 
+on sports betting in the U.S. alone.\citep{asilver,cnnsilver} 
 
-\paragraph{What do we do}
-We exploit data on bookmaker spreads, the expected score 
-differential between two teams after conditioning on observable performance. 
+% \paragraph{What do we do}
+How do we carry out this study?
+We exploit data on bookmaker spreads: the expected score 
+differential between two teams after conditioning on observable performance in past games
+and expectations about the upcoming game. 
 We expect a team to meet the spread half the time, since this is one of the easiest ways for 
 bookmakers to guarantee a profit.\citep{dubnerlevitt} We construct a model which attempts to 
-estimate the causal effect of  visiting a ``party-city'' on subsequent day 
-performance as measured by the spread. In particular, we are only looking at
-cases where games are played back-to-back within 24 hours of each other.
-To the extent that next-day opponent is uncorrelated with exposure to treatment, 
-we have identification in our variable of interest.
+estimate the causal effect of  visiting a ``party city'' on subsequent day 
+performance as measured by the odds of beating the spread. In particular, we only consider the hangover effect 
+on games played back-to-back within 24 hours of each other.
+To the extent that odds of beating the spread against next day opponent 
+is uncorrelated with playing in a party city the day before, which should be the case 
+under an efficient betting market, we have identification in our variable of interest.
 
-\paragraph{What do we find}
-We replicate this analysis for both the National Basketball Association
-(NBA) and Major League Baseball (MLB). In particular, we find that visiting
-a city with active nightlife the day prior to a game does have a statistically
-significant negative effect on a team's likelihood of meeting the point-spread set
-by a betting house, for both NBA and MLB. Within the NBA, we analyze specific performance
-metrics such as number of points allowed and number of rebounds obtained, and find that both are negatively effected by previous day visitation to a city with active nightlife. Having established a causal model, we realize a profitable betting scheme for MLB. We also perform a robustness check and see that if players rest more than
- 24 hours after visiting a ``party-city'', the hangover effect dissipates.
+% \paragraph{What do we find}
+We perform this analysis for both the National Basketball Association
+(NBA) and Major League Baseball (MLB). 
+We find that visiting a city with active nightlife the day prior to a game does have a 
+statistically significant negative effect on a team's likelihood of meeting bookmakers' expectations
+for both NBA and MLB. Within the NBA, we analyze specific team performance metrics such as number of points allowed and number of rebounds obtained in a game, and find that both are negatively effected by previous day visitation to a city with active nightlife. Having established a causal model, we realize a profitable betting scheme for MLB. We also perform a robustness check and see that if players rest more than
+ 24 hours after visiting a ``party city'', the hangover effect dissipates.
 
 \section{Effects of Partying on Athletic Performance}
 
 \subsection{Anecdotal evidence of the effects on sporting performance}
 Professional players openly admit they are interested in nightlife: Matt Barnes recently complained that 
-``there's no nightlife in Utah'' when asked about playing Jazz in the second round of NBA playoffs 
+``there's no nightlife in Utah'' when asked about playing the Jazz in the second round of NBA playoffs 
 in 2017.\citep{cestone}
 There are also numerous reports of teams partying to the detriment of the game.
 Within the NBA, J.R. Smith's performance metrics substantially improved 
@@ -97,22 +103,30 @@ cautions that with so many players in the NBA, it is expected that we find a spl
 as J.R.'s simply due to chance.
 The study goes on to look
 at historical performance for all NBA players who began their career after 1974, and compares
-Sunday afternoon performance to overall career performance. A binomial test is carried out, and the 
-study concludes with strong statistical significance that across the NBA, 
-individual players perform worse on Sundays when compared with other days, 
-as measured by the ratio of shots scored to shots taken.
+Sunday afternoon performance to overall career performance. 
+In particular, the study examines
+2,035 players with at least one shot on Sunday games and finds that 1,092 of them shot worse
+on Sundays than they did on all other days, as measured by the ratio of shots scored to shots
+taken. A binomial test concludes that across the NBA, 
+individual players perform worse on Sundays. Effect sizes are not considered, 
+i.e. although players perform worse, we don't know by how much.
 
 \subsection{Teams}
 There has been an attempt to answer the question at the team-level before: i.e. do teams perform
 worse after a night on the town, and if so does it depend on which city they 
 visited.\citep{ezekowitz} However, the study only
-looks at performance in party cities, as opposed to subsequent day performance (i.e. the study does not consider a delayed hangover effect). Moreover, their sample size was much smaller, because the author only considered Sunday afternoon games
-from 2006-14. Finally, there was no methodology used behind the selection of party cities:
-the authors first tried to define ad-hoc five ``party cities'', and when that did not yield
-a significant result they tried estimating fixed-effects for each city. The author does carry out a binomial test of how many home-game covers vs. away-game covers were met, 
-and concludes
-with weak statistical evidence that teams systematically play worse on Sunday afternoons 
-when on the road, regardless of city.
+looks at performance in party cities, as opposed to subsequent day performance (i.e. the study does not consider a delayed hangover effect). Moreover, the sample size was much smaller than ours, because the author only considered Sunday afternoon games from 2006-14. Finally, there was no methodology used behind the selection of party cities: the authors first define ad-hoc five ``party cities'', and when that did not yield a significant result they estimate fixed-effects for each city. The author does carry out a binomial test of how many home-game covers vs. away-game covers were met, and concludes with weak statistical evidence that teams 
+systematically play worse on Sunday afternoons when on the road, regardless of city, as measured by
+their ability to meet bookmakers' expectations.
+
+Allow us to elaborate on why we think that a delayed hangover effect is a more plausible model.
+Suppose for a moment that teams do in fact systematically play worse when playing with cities in active nightlife.
+Notice that a simple fixed effect for the team match-up and an interaction with a home team indicator would be sufficient to model this.
+Given the size of the betting market, it's not hard to believe that such a simple arbitrage opportunity has already been considered
+and factored into bookmakers' expectations. There is also the issue of an unknown travel schedule: if a team plays in a party city,
+we can't infer whether they even had the option of being exposed to nightlife without looking at where they were the day prior.
+This motivates us to examine a feature describing lagged game location.
+
 
 \subsection{Laboratory studies}
 Studies on effects of alcohol on sports performance in a controlled setting
