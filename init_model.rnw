@@ -40,10 +40,8 @@ require(sampling)
 set.seed(4052017)
 
 load(file = 'tmp_data/covers_lines.RData')
-## load(file = 'tmp_data/nmusician_estabs.RData')
 load(file = 'tmp_data/population_by_county_year.RData')
-## load(file = 'tmp_data/nba_musicians.RData')
-load(file = 'tmp_data/nba_studios.RData')
+load(file = 'tmp_data/studios_and_artists_nba.RData')
 
 musicians <- copy(dt)
 rm(dt)
@@ -89,10 +87,6 @@ setkey(nba.lines, season, team, date)
 ### Exclude playoff games.
 nba.lines <- nba.lines[, head(.SD, n=82), by=list(season,team)]
 
-## nba.lines[, list(date, team, opponent, location, 
-##              line, score, outcome, nhours.lgame, 
-##              travel.dist, avg.age, nmusicians)]
-
 @ 
 
 \subsection{Minutes data}
@@ -130,13 +124,18 @@ teams playing in their own cities.
 
 HOURS <- 24
 ## nba.lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team & weekdays(date) %in% c('Saturday', 'Sunday'), log(nmusicians+1), 0)]
-nba.lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team, log(nmusicians+1), 0)]
+
+### We create a discrete indicator for party based on LA or NY. As well as a placebo (longer rest)
 nba.lines[, party.discrete := grepl("(los angeles)|(new york)|(brooklyn)", last.game.loc) &
                 nhours.lgame <= HOURS &
                 last.game.loc != team]
 nba.lines[, party.placebo := grepl("(los angeles)|(new york)|(brooklyn)", last.game.loc) &
                 nhours.lgame > HOURS &
                 last.game.loc != team]
+
+### We then create a continuous measure of nightlife. We rescale to 0-1 so it's comparable.
+nba.lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team, log(nmusicians+1), 0)]
+nba.lines[, party := party / max(party, na.rm = T)]
 
 @
 
@@ -147,7 +146,9 @@ and travel distance between games, we're also interested to get a measure of
 fatigue incurred on the court.
 We account for this by bringing in minutes data, and counting the number of 
 times the players run back and forth on the court. This is crudely measured
-by the number of changes in posession. We back out this quantity.
+by the number of changes in posession. We back out this quantity by looking
+at the number of three pointers and field goals made, the number of missed shots,
+as well as the number of turnovers and rebounds.
 
 <<echo=6>>=
 
@@ -202,7 +203,15 @@ m1 <- update(m0, . ~ party + . - party.discrete)
 summary(m1)
 
 ## nba.lines[,.N/2,by=list(season)]
-stargazer(m0, m1, covariate.labels = c('party discrete', 'party continuous', 'lag changes in posession', 'logged travel distance', 'east-west travel direction', 'number hours rest time', 'time of game during day', 'home team effect', 'logged travel distance * east-west', 'Constant'),
+stargazer(m0, m1, covariate.labels = c('Party discrete', 'Party continuous', 
+                                       'Lag changes in posession', 
+                                       'Logged travel distance', 
+                                       'East-west travel direction', 
+                                       'Number hours rest time', 
+                                       'Time of game during day', 
+                                       'Home team effect', 
+                                       'Logged travel distance * east-west', 
+                                       'Constant'),
           dep.var.labels = 'Meet the Spread') 
 
 ##################################################
@@ -254,7 +263,7 @@ dev.off()
 mp <- update(m0, . ~ party.placebo + . - party.discrete)
 
 stargazer(mp, covariate.labels = c('party placebo', 'lag changes in posession', 'logged travel distance', 'east-west travel direction', 'number hours rest time', 'time of game during day', 'home team effect', 'logged travel distance * east-west', 'Constant'),
-          dep.var.labels = 'Meet the Spread')
+          dep.var.labels = 'Meet the Spread (NBA)')
 
 ##################################################
 ### Table for uncorrelated next day opponent
@@ -295,15 +304,15 @@ dev.off()
 
 
 ##################################################
-### Why drinking estabs doesn't work.
+### Why drinking estabs doesn't work. (NBA)
 ##################################################
-load(file = 'tmp_data/nba_drinking.RData')
+load(file = 'tmp_data/alcohol_and_drinking_nba.RData')
 drinking <- copy(dt)
 setnames(drinking, 'variable', 'ndrinks')
 rm(dt)
 
-tmpm <- musicians[, list(log.nmusicians = mean(log(nmusicians+1)),
-                         log.population = mean(log(population))), 
+tmpm <- nba.lines[, list(log.nmusicians = mean(log(nmusicians+1), na.rm = T),
+                         log.population = mean(log(population),   na.rm = T)), 
                   by = team][order(log.nmusicians)] %>% na.omit
 tmpd <- drinking[, list(log.ndrinks = mean(log(ndrinks+1))), 
                   by = team][order(log.ndrinks)] %>% na.omit
@@ -446,23 +455,38 @@ we implicitly interact it with \texttt{weekend}.
 <<echo=-1>>=
 load(file = 'tmp_data/covers_lines_mlb.RData')
 mlb.lines <- lines
-mlb.lines[, party := ifelse(team != location & weekend == 1, log(nmusicians), 0)]
 
 setkey(mlb.lines, season, team, date)
 mlb.lines <- mlb.lines[, head(.SD, n=162),by=list(season,team,date)] #Exclude playoff games
+
+mlb.lines[, party := ifelse(team != location & weekend == 1, log(nmusicians), 0)]
+mlb.lines[, party := party / max(party, na.rm = T)]
+
+### See what happens if we don't interact with weekend, i.e. no weekend effect.
+mlb.lines[, party.now := ifelse(team != location, log(nmusicians), 0)]
+mlb.lines[, party.now := party.now / max(party.now, na.rm = T)]
 
 m3 <- glm(I(team.score > opponent.score) ~ party + odds + I(team == location) + 
              ndays.lgame + log(travel.dist+1) + weekend,
          data = mlb.lines, family = 'binomial')
 summary(m3)
+m4 <- update(m3, . ~ party.now + . - party)
 
 mlb.lines[, party.discrete := grepl("(los angeles)|(new york)", last.game.loc) & ndays.lgame == 1 & weekend == T]
 
-## stargazer(m3, covariate.labels = c('Continuous measure of nightlife',
-##                                    'Bookmaker\'s odds', 'Home-team effect',
-##                                    'Number of rest days', 'Logged travel distance',
-##                                    'Weekend', 'Constant'), 
-##           dep.var.capation = 'Probability of Winning')
+stargazer(m3, m4, covariate.labels = c('Continuous measure of nightlife',
+                                       'Nightlife (no weekend interaction)', 
+                                       'Bookmaker\'s odds', 'Home-team effect',
+                                       'Number of rest days', 'Logged travel distance',
+                                       'Weekend', 'Constant'), 
+          dep.var.labels = 'Probability of Winning')
+
+stargazer(m4, covariate.labels = c('Party placebo',
+                                   'Bookmaker\'s odds', 'Home-team effect',
+                                   'Number of rest days', 'Logged travel distance',
+                                   'Weekend', 'Constant'), 
+          dep.var.labels = 'Probability of Winning (MLB)')
+
 
 ##################################################
 ### Heat Map for next day opponent
@@ -506,9 +530,11 @@ dev.off()
 ##################################################
 ### Party by team location
 ##################################################
-load(file = 'tmp_data/nmusician_estabs_mlb.RData')
-tmp <- musicians[, list(party.continuous = mean(log(nmusicians+1))), 
-                 by = team][order(party.continuous)][!is.na(party.continuous)]
+load(file = 'tmp_data/studios_and_artists_mlb.RData')
+setnames(dt, 'variable', 'nmusicians')
+
+tmp <- dt[, list(party.continuous = mean(log(nmusicians+1))),
+          by = team][order(party.continuous)][!is.na(party.continuous)]
 
 pdf('writing/Party_by_Team_Location_mlb.pdf', width = 14, height = 8.5)
 ticks = 1:nrow(tmp)
