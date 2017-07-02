@@ -7,16 +7,14 @@ MyGeoCode <- function(teams, sport) {
     locs <- lapply(teams, geocode, output = 'more') %>% rbindlist(., fill = T)
     setnames(locs, gsub('_', '.', names(locs)))
     locs <- locs[, lapply(.SD, as.character), .SDcols = 1:ncol(locs)]
-    ### Here, we use an if-else since Washington D.C. not a county...
-    locs[, county := ifelse(is.na(administrative.area.level.2),
-                            administrative.area.level.1,
-                            paste(administrative.area.level.2,
-                                  administrative.area.level.1, sep = ', '))]
-    locs <- data.table(team = teams, county = locs$county)
+    ### We take care to fetch the MSA for each area (i.e. locality)
+    ### Sometimes, we need to make manual adjustments. We do this for NBA and MLB.
+    if (sport == 'nba')  locs[is.na(locality), locality := 'New York']
+    locs <- data.table(team = teams, locality = locs$locality,
+                       state = locs$administrative.area.level.1, lon = locs$lon, lat = locs$lat)
     if (sport == 'mlb') {
-        locs[county == 'Maryland', county := 'Baltimore County, Maryland']
-        locs[county == 'Missouri', county := 'Clay County, Missouri']
-        locs[team == 'atlanta braves', county := 'Fulton County, Georgia'] # Changes in 2017.
+        locs[is.na(locality) & state == 'Florida', `:=`(locality = 'Atlanta', state = 'Georgia')]
+        locs[is.na(locality) & state == 'New York', locality := 'New York']
     }
     save(locs, file = paste0('tmp_data/', sport, '_team_locations.RData'))
 }
@@ -27,7 +25,7 @@ MyGeoCode <- function(teams, sport) {
 ###   a sport, and an aggregation function, this functional subsets each year of BLS
 ###   data such that only observations matching the party.regex are retained.
 ###   Results are saved to disk according to a labeling which uses suffix and sport.
-CleanBLS <- function(party.regex, suffix, sport, FUN, years = 2010:2016, RESCRAPE = F) {
+CleanBLS <- function(party.regex, suffix, sport, FUN, years = 2010:2016, RESCRAPE = T) {
     ### Subset each year of BLS data to only observations matching regular expression.
     parLapplyLB(cl, years, SubsetBLS, party.regex = party.regex, sport = sport, suffix = suffix)
     files <- list.files(path = 'tmp_data/bls',
@@ -46,9 +44,18 @@ CleanBLS <- function(party.regex, suffix, sport, FUN, years = 2010:2016, RESCRAP
     ### Geocode the location of each team within the sport, and add this to our BLS data.
     if (RESCRAPE) MyGeoCode(teams, sport)
     load(file = paste0('tmp_data/', sport, '_team_locations.RData'))
-    dt <- merge(locs, bls, by.x = 'county', by.y = 'area.title', all.x = T)
+    bls[, area.title := gsub(' msa$', '', area.title, ignore.case = T)]
+    states <- data.table(state = state.name, state.abb = state.abb)
+    locs <- locs[states, on = 'state', nomatch = 0]
+    ### We can't simply merge. We have to look for the county within the MSA.
+    dt <- lapply(1:nrow(locs), function(i) { 
+        matched <- bls[grepl(locs[i, locality],  area.title, ignore.case = T) &
+                       grepl(locs[i, state.abb], area.title, ignore.case = T)]
+        matched[, c('locality', 'state', 'team') := locs[i, list(locality, state.abb, team)]]
+    }) %>% rbindlist
+    ## dt <- merge(locs, bls, by.x = 'msa', by.y = 'area.title', all.x = T)
     dt <- dt[, list(variable = FUN(qtrly.estabs.count %>% as.numeric)),
-             by = list(county, team, year)][order(year, variable)]
+             by = list(locality, team, year)][order(year, variable)]
     setnames(dt, 'year', 'season')
     dt[, season := as.numeric(season)]
     ### NBA season spans new-years, e.g. change 2010-11 season --> 2011.
@@ -66,9 +73,10 @@ SubsetBLS <- function(year, party.regex, sport, suffix,
     files <- list.files(path = foldr,
                         pattern = 'm(icro)?sa\\.csv',
                         full.names = T, ignore.case = T)
-    bls <- lapply(files, fread, select = c('area_fips', 'year', 'qtr', 'industry_code',
-                                           'area_title', 'industry_title', 'agglvl_title',
-                                           'size_title', 'qtrly_estabs_count')) %>% rbindlist
+    bls <- lapply(files, fread, colClasses = 'character',
+                  select = c('area_fips', 'year', 'qtr', 'industry_code',
+                             'area_title', 'industry_title', 'agglvl_title',
+                             'size_title', 'qtrly_estabs_count')) %>% rbindlist
     setnames(bls, gsub('_', '.', names(bls)))
     ### We will take our own total later, so for now we take granular data.
     bls <- bls[grep("NAICS 6-digit", agglvl.title)]
