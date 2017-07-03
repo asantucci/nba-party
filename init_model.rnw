@@ -40,13 +40,20 @@ require(sampling)
 set.seed(4052017)
 
 load(file = 'tmp_data/covers_lines.RData')
-load(file = 'tmp_data/population_by_county_year.RData')
+load(file = 'tmp_data/population_by_MSA_year.RData')
 load(file = 'tmp_data/studios_and_artists_nba.RData')
 
 musicians <- copy(dt)
 rm(dt)
 setnames(musicians, 'variable', 'nmusicians')
-musicians <- merge(musicians, pop, by = c('county', 'season'), all.x = T)
+
+### This is simply ad-hoc.
+musicians[, population := 0.0]
+for (i in 1:nrow(musicians))
+    set(musicians, i, j = 'population', 
+        value = pop[grepl(musicians[i, locality], locality) &
+                    grepl(musicians[i, state],    locality) &
+                    musicians[i, season] == season, mean(population)])
 
 @ 
 
@@ -67,7 +74,7 @@ number of sound recording studios, musical groups, and music publishers there
 are for a particular county-year: we simply calculate the average number of establishments across all three music categories listed above.\footnote{We caveat that since the Toronto Raptors are located in Canada, we don't have BLS data for this team.}
 
 <<echo=F,results='hide'>>=
-musicians[, county := gsub(' (county)|(division),.*$', '', county, ignore.case = T)]
+#musicians[, county := gsub(' (county)|(division),.*$', '', county, ignore.case = T)]
 @ 
 
 We then merge this in with our lines data, taking care to do so according to each season-team's last game location; we also lag our BLS data by one year.
@@ -82,9 +89,8 @@ nba.lines <- merge(nba.lines, musicians,
                by.x = c('season', 'last.game.loc'),
                by.y = c('season', 'team'), all.x = T)
 
-setkey(nba.lines, season, team, date)
-
 ### Exclude playoff games.
+setkey(nba.lines, season, team, date)
 nba.lines <- nba.lines[, head(.SD, n=82), by=list(season,team)]
 
 @ 
@@ -108,7 +114,7 @@ bottom and top five.
 
 <<echo=F>>= 
 musicians[, list(average.nmusicians = mean(nmusicians) %>% round(., digits = 1)),
-          by = team][order(average.nmusicians)][c(1:5, 25:29)]
+          by = team][order(average.nmusicians)][c(1:5, 25:27)]
 @ 
 
 Los Angeles stands out, as does New York. Some runner ups include Chicago and Miami. 
@@ -225,7 +231,7 @@ ticks = 1:nrow(tmp)
 plot(x = ticks, 
      y = tmp$party.continuous, 
      main = 'Continuous measure of party by Team Location: NBA',
-     ylab = 'Log Avg of Musicians and Sound Recording Studios',
+     ylab = 'Log sum of Musicians and Sound Recording Studios',
      xlab = '',
      axes = F)
 axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>% 
@@ -302,6 +308,17 @@ ggplot(tmp, aes(x = location, y = last.game.loc, fill = log(N))) +
           plot.title = element_text(hjust=.5))
 dev.off()
 
+pdf('writing/next_day_opponent_on_tour.pdf', width = 14, height = 14)
+ggplot(tmp[cur.game == 'Current game away' &
+           lst.game == 'Last game away'], aes(x = location, y = last.game.loc, fill = log(N))) +
+    geom_tile() +
+    labs(x = 'Current Game Location', y = 'Last Game Location', 
+         title = 'Distribution of Next Day Opponent - NBA\n(sorted by distance to NYC)') +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 315, vjust = 0.5),
+          plot.title = element_text(hjust=.5))
+dev.off()
+
 
 ##################################################
 ### Why drinking estabs doesn't work. (NBA)
@@ -312,7 +329,7 @@ setnames(drinking, 'variable', 'ndrinks')
 rm(dt)
 
 tmpm <- nba.lines[, list(log.nmusicians = mean(log(nmusicians+1), na.rm = T),
-                         log.population = mean(log(population),   na.rm = T)), 
+                         log.population = mean(log(population+1), na.rm = T)), 
                   by = team][order(log.nmusicians)] %>% na.omit
 tmpd <- drinking[, list(log.ndrinks = mean(log(ndrinks+1))), 
                   by = team][order(log.ndrinks)] %>% na.omit
@@ -324,19 +341,19 @@ ticks = 1:nrow(tmp)
 plot(x = ticks, 
      y = tmp$log.nmusicians,
      main = 'Why drinking establishments or population don\'t work as a proxy for nightlife',
-     ylab = 'Log Avg of Variable',
-     xlab = '', axes = F, pch = 1, ylim = c(0, max(tmp$log.population)))
-points(x = ticks, y = tmp$log.ndrinks, pch = 16, col = 'purple')
-points(x = ticks, y = tmp$log.population, pch = 18, col = 'orange')
+     ylab = 'Log sum of Variable',
+     xlab = '', axes = F, pch = 1, ylim = c(0, max(tmp$log.population)), type = 'l')
+points(x = ticks, y = tmp$log.ndrinks, pch = 16, col = 'purple', type = 'l')
+points(x = ticks, y = tmp$log.population, pch = 18, col = 'orange', type = 'l')
 axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>% 
                                gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
 axis(side = 2)
-legend(x = 21.5, y = 12.5, legend = c('Musicians and sound recording studios',
+legend(x = 1.5, y = 12.5, legend = c('Musicians and sound recording studios',
                                  'Drinking establishments and liquor stores',
                                  'Population'), pch = c(1, 16, 18), col = c('black', 'purple', 'orange'))
-text(x = 24.6, y = 9.5, labels = paste("Correlation (alcohol):       ", 
+text(x = 3.6, y = 9.5, labels = paste("Correlation (alcohol):       ", 
                                        cor(tmp$log.nmusicians, tmp$log.ndrinks) %>% round(., 3)))
-text(x = 24.6, y = 10, labels = paste("Correlation (population): ", 
+text(x = 3.6, y = 10, labels = paste("Correlation (population): ", 
                                        cor(tmp$log.nmusicians, tmp$log.population) %>% round(., 3)))
 dev.off()
 
@@ -421,6 +438,14 @@ nba.lines[, demeaned.pts.admitted := team.pts.admitted - mean(team.pts.admitted)
 nba.lines[, mean(demeaned.pts.admitted), by = list(last.game.loc, party.discrete)][order(V1)]
 mpa1 <- lm(demeaned.pts.admitted ~ party.discrete, data = nba.lines)
 
+
+stargazer(m2, dep.var.labels = 'Demeanead Rebounds Per Minute',
+          covariate.labels = c('Continuous party measure',
+                               'Lag change in possessions',
+                               'Logged travel distance',
+                               'Number hours since last game',
+                               'Constant'))
+
 stargazer(mpa1, tpa, tpo, dep.var.labels = c('Points Admitted by Team', 'Team Points Admitted', 'Team Points Scored'),
           covariate.labels = c('Discrete party indicator',
                                'Continuous party measure',
@@ -429,13 +454,6 @@ stargazer(mpa1, tpa, tpo, dep.var.labels = c('Points Admitted by Team', 'Team Po
                                'Number hours since last game',
                                'Constant'))
 
-
-stargazer(m2, dep.var.labels = 'Demeanead Rebounds Per Minute',
-          covariate.labels = c('Continuous party measure',
-                               'Lag change in possessions',
-                               'Logged travel distance',
-                               'Number hours since last game',
-                               'Constant'))
 
 
 ## tmp <- nba.lines[, list(demeaned.pts.admitted = mean(demeaned.pts.admitted)), 
@@ -468,7 +486,7 @@ mlb.lines[, party.now := party.now / max(party.now, na.rm = T)]
 
 m3 <- glm(I(team.score > opponent.score) ~ party + odds + I(team == location) + 
              ndays.lgame + log(travel.dist+1) + weekend,
-         data = mlb.lines, family = 'binomial')
+         data = mlb.lines[season < 2017], family = 'binomial')
 summary(m3)
 m4 <- update(m3, . ~ party.now + . - party)
 
@@ -480,13 +498,6 @@ stargazer(m3, m4, covariate.labels = c('Continuous measure of nightlife',
                                        'Number of rest days', 'Logged travel distance',
                                        'Weekend', 'Constant'), 
           dep.var.labels = 'Probability of Winning')
-
-stargazer(m4, covariate.labels = c('Party placebo',
-                                   'Bookmaker\'s odds', 'Home-team effect',
-                                   'Number of rest days', 'Logged travel distance',
-                                   'Weekend', 'Constant'), 
-          dep.var.labels = 'Probability of Winning (MLB)')
-
 
 ##################################################
 ### Heat Map for next day opponent
@@ -541,7 +552,7 @@ ticks = 1:nrow(tmp)
 plot(x = ticks, 
      y = tmp$party.continuous, 
      main = 'Continuous measure of party by Team Location: MLB',
-     ylab = 'Log Avg of Musicians and Sound Recording Studios',
+     ylab = 'Log sum of Musicians and Sound Recording Studios',
      xlab = '',
      axes = F)
 axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>% 
