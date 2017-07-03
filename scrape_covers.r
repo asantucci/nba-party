@@ -8,9 +8,11 @@
 ###
 ### Date: March 2017
 ###
-### Inputs: NA
+### Inputs: 'tmp_data/game_days.RData'
 ###
-### Dependencies: data.table, XML
+### Output: 'raw_data/covers/[date].csv'
+###
+### Dependencies: data.table, magrittr, parallel, XML
 ###
 ################################################################################
 ################################################################################
