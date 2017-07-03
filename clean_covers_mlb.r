@@ -8,9 +8,11 @@
 ###
 ### Date: April 2017
 ###
-### Inputs:
+### Inputs: 'tmp_data/covers_mlb/[date].csv'
 ###
-### Dependencies: 
+### Output: 'tmp_data/covers_lines_mlb.RData'
+###
+### Dependencies: data.table, magrittr, sampling
 ###
 ################################################################################
 ################################################################################
@@ -99,7 +101,7 @@ data <- data[!is.na(line) & !is.na(matchup)]
 
 ### Set the location of the game.
 ##  Ex: http://www.covers.com/sports/MLB/matchups?selectedDate=2011-4-01
-data[, location := opponent] ### .
+data[, location := opponent]
 
 ### Determine the odds of winning, backed out from the money-line.
 data[, odds := ifelse(line < 0, 100 / (-line + 100), line / (line + 100))]
@@ -171,8 +173,9 @@ lines[, weekend := weekday %in% c('Saturday', 'Sunday')]
 ##################################################
 ### Musicians from BLS
 ##################################################
-load(file = 'tmp_data/nmusician_estabs_mlb.RData')
-lines <- merge(lines, musicians,
+load(file = 'tmp_data/studios_and_artists_mlb.RData')
+setnames(dt, 'variable', 'nmusicians')
+lines <- merge(lines, dt,
                by.x = c('season', 'last.game.loc'),
                by.y = c('season', 'team'), all.x = T)
 
@@ -184,7 +187,7 @@ lines[, first.in.series := ifelse(is.na(lag.opponent) | opponent != lag.opponent
 lines[, not.first := !first.in.series]
 
 ## t <- lines[, mean(team.score > opponent.score), by = list(location, first.in.series)][, diff(V1), by = location][order(V1)]
-lines[, party := ifelse(team != location & weekend == 1, nmusicians, 0)]
+lines[, party := ifelse(team != location & weekend == 1, log(nmusicians), 0)]
 
 glm(I(team.score > opponent.score) ~ party + odds,
          data = lines, family = 'binomial') %>% summary
