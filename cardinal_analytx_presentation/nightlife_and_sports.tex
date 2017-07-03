@@ -183,12 +183,14 @@
   For this, we need a little bit more. \end{frame}
 
 \begin{frame}   \frametitle{Accounting for Jetlag}
+  Prolonged air travel negatively effects sporting performance.\footnote{Lee and Galvez ('12).}
+
   In order to account for jet-lag, we need to be mindful of the direction of travel. We calculate
   \begin{itemize}     \item distance traveled between games,
     \item final direction (bearing) traveling from $a \to b$, and
     \item direction of travel (in east-west degrees) by taking sine.
   \end{itemize}
-  Finally, to account for jetlag we interact this east-west measure with travel distance. \end{frame}
+  Finally, to account for jetlag we interact this east-west measure with travel distance.\footnote{Lallensack ('17)} \end{frame}
 
 \begin{frame}   \frametitle{Next day opponent: NBA}
   \centering \includegraphics[scale=0.25]{../writing/next_day_opponent} \end{frame}
@@ -303,7 +305,7 @@
   rebound rates. \end{frame}
 
 \begin{frame}   \frametitle{Analysis: rebounds}
-  \begin{itemize}     \item For each player and each game, we calculate the number of rebounds obtained per-minute of gamep-lay
+  \begin{itemize}     \item For each player and each game, we calculate the number of rebounds obtained per-minute of game-play
     \item From each observation, we subtract the player's average number of rebounds per minute taken across the entire season.
     \item We then run a linear regression explaining demeaned rebounds as a function of 
       nightlife visitation and other features describing player fatigue.   \end{itemize} \end{frame}
