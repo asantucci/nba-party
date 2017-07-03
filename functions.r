@@ -9,7 +9,10 @@ MyGeoCode <- function(teams, sport) {
     locs <- locs[, lapply(.SD, as.character), .SDcols = 1:ncol(locs)]
     ### We take care to fetch the MSA for each area (i.e. locality)
     ### Sometimes, we need to make manual adjustments. We do this for NBA and MLB.
-    if (sport == 'nba')  locs[is.na(locality), locality := 'New York']
+    if (sport == 'nba')  {
+        locs[is.na(locality), locality := 'New York']
+        locs[locality == 'El Segundo', locality := 'Los Angeles']
+    }
     locs <- data.table(team = teams, locality = locs$locality,
                        state = locs$administrative.area.level.1, lon = locs$lon, lat = locs$lat)
     if (sport == 'mlb') {
@@ -22,8 +25,9 @@ MyGeoCode <- function(teams, sport) {
 ### Function: Clean BLS
 ### -------------------
 ### Given a string describing what kinds of business patterns to look for, a labeling suffix,
-###   a sport, and an aggregation function, this functional subsets each year of BLS
+###   a sport, and an aggregation function, this functional subsets each year of raw BLS
 ###   data such that only observations matching the party.regex are retained.
+###   The data are then aggregated using the aggregation function FUN.
 ###   Results are saved to disk according to a labeling which uses suffix and sport.
 CleanBLS <- function(party.regex, suffix, sport, FUN, years = 2010:2016, RESCRAPE = T) {
     ### Subset each year of BLS data to only observations matching regular expression.
@@ -46,6 +50,7 @@ CleanBLS <- function(party.regex, suffix, sport, FUN, years = 2010:2016, RESCRAP
     load(file = paste0('tmp_data/', sport, '_team_locations.RData'))
     bls[, area.title := gsub(' msa$', '', area.title, ignore.case = T)]
     states <- data.table(state = state.name, state.abb = state.abb)
+    states <- rbind(states, data.frame(state = 'District of Columbia', state.abb = 'DC'))
     locs <- locs[states, on = 'state', nomatch = 0]
     ### We can't simply merge. We have to look for the county within the MSA.
     dt <- lapply(1:nrow(locs), function(i) { 
@@ -55,7 +60,7 @@ CleanBLS <- function(party.regex, suffix, sport, FUN, years = 2010:2016, RESCRAP
     }) %>% rbindlist
     ## dt <- merge(locs, bls, by.x = 'msa', by.y = 'area.title', all.x = T)
     dt <- dt[, list(variable = FUN(qtrly.estabs.count %>% as.numeric)),
-             by = list(locality, team, year)][order(year, variable)]
+             by = list(locality, state, team, year)][order(year, variable)]
     setnames(dt, 'year', 'season')
     dt[, season := as.numeric(season)]
     ### NBA season spans new-years, e.g. change 2010-11 season --> 2011.
