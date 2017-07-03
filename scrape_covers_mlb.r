@@ -8,9 +8,11 @@
 ###
 ### Date: April 2017
 ###
-### Inputs: 
+### Inputs: 'tmp_data/game_days_mlb.RData'
 ###
-### Dependencies: 
+### Output: 'tmp_data/covers_mlb/[date].csv'
+###
+### Dependencies: data.table, magrittr, parallel, XML
 ###
 ################################################################################
 ################################################################################
@@ -25,7 +27,7 @@ require(parallel)
 require(XML)
 load(file = 'tmp_data/game_days_mlb.RData')
 
-game.days <- Filter(function(x) x < Sys.Date() & x > as.Date('2011-01-01'),
+game.days <- Filter(function(x) x > as.Date('2011-01-01'),
                     x = game.days) %>% as.character
 
 ##############################
