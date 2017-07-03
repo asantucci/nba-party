@@ -8,17 +8,19 @@
 ###
 ### Date: April 2017
 ###
-### Inputs: 
+### Inputs: 'https://data.bls.gov/cew/data/files/[year]/csv/[year]_qtrly_by_area.zip'
 ###
-### Dependencies: 
+### Output: 'raw_data/bls/'
+###
+### Dependencies: magrittr, parallel, RCurl, XML 
 ###
 ################################################################################
 ################################################################################
 
-require(XML)
 require(magrittr)
-require(RCurl)
 require(parallel)
+require(RCurl)
+require(XML)
 
 cl <- makeCluster(detectCores())
 
