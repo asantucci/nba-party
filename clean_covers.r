@@ -10,7 +10,9 @@
 ###
 ### Inputs: 'raw_data/covers/[year]-[month]-[day].csv'
 ###
-### Dependencies: data.table, magrittr
+### Output: 'tmp_data/covers_lines.RData'
+###
+### Dependencies: data.table, ggmap, geosphere, magrittr, sp
 ###
 ################################################################################
 ################################################################################
@@ -20,8 +22,9 @@
 ##################################################
 
 require(data.table)
-require(magrittr)
+require(geosphere)
 require(ggmap)
+require(magrittr)
 require(sp)
 
 files <- list.files('raw_data/covers', full.names = T)
@@ -32,8 +35,6 @@ lines <- lapply(files, fread) %>% rbindlist
 ##################################################
 
 lines[, date := as.POSIXct(date, format = '%A, %B %d %Y %I:%M%p')]
-## lines[, game.time := gsub('^.* ([0-9:APM]+)$', '\\1', date)]
-## lines[, date := as.Date(date, format = '%A, %B %d %Y')]
 
 lines[, line := gsub('^(-?[0-9.]+)/.*$', '\\1', line)]
 lines[, line.ts := NULL]
@@ -87,7 +88,6 @@ lines[, score := paste(home.pts, away.pts, sep = '-')]
 lines[, nominal.outcome := home.pts > away.pts %>% as.integer]
 lines[, `:=`(home.pts = NULL, away.pts = NULL)]
 lines[, location := team]
-#lines <- lines[, list(season, date, team, opponent, location, line, score, outcome)]
 
 ##################################################
 ### Creating a panel-data set.
@@ -143,7 +143,8 @@ lines[, travel.dist := getDist(location, last.game.loc, dmat),
 ##################################################
 ### Direction Traveled.
 ##################################################
-
+load(file = 'tmp_data/nba_team_locations.RData')
+locs[, `:=`(lon = as.numeric(lon), lat = as.numeric(lat))]
 ### Get directions.
 dirs <- matrix(nrow = nrow(dmat), ncol = ncol(dmat), dimnames = dimnames(dmat))
 for (i in 1:(nrow(dirs)))
@@ -209,4 +210,3 @@ lines[, `:=`(team.pts.scored = as.numeric(team.pts.scored),
              team.pts.admitted = as.numeric(team.pts.admitted))]
 
 save(lines, file = 'tmp_data/covers_lines.RData')
-
