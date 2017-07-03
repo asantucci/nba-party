@@ -27,6 +27,8 @@
 
 \begin{frame}   \frametitle{What is the problem?}
   \begin{block}{Do pro athletes party to the detriment of their performance?}
+    Anecdotally, yes.\footnote{Cestone ('17), Price ('15), Concepcion ('15), Miller ('15), Campbell ('15).}
+
     It's not unreasonable to think that what happens off the court affects outcome, but!
     \begin{itemize}       \item Can we even measure this?
       \item Are there systematic tendencies?     \end{itemize}
@@ -34,20 +36,30 @@
 
 \begin{frame}   
   \frametitle{Who cares?}
-  \begin{block}{\$400 billion spent on sports betting per year in the US.\footnote{NBA Commissioner Adam Silver}}
+  \begin{block}{\$400 billion spent on sports betting per year in the US.\footnote{NBA Commissioner Adam Silver, 2014.}}
 
     Apparently, a lot of people. 
 
     Knowing the causal relation between partying and next-day performance might inform
-    \begin{itemize}       \item How coaches set team-rules, 
-      \item How travel schedules are determined.     \end{itemize}
+    \begin{itemize}       
+      \item How coaches set team-rules, 
+      \item How travel schedules are determined.
+      \item Which players to bench, and when.
+      \end{itemize}
   \end{block}
 \end{frame}
 
 \begin{frame}   \frametitle{Is the problem hard?}
   Yes, in general finding arbitrage opportunities is hard.
 
-  Further, it's not obvious that we will find an effect. \end{frame}
+  Further, it's not obvious that we will find an effect. 
+
+  \begin{block}{Previous research}
+    Players under-perform proportion of shots made on Sundays.\footnote{Chase ('15): 1,092 NBA players under-perform relative to their own season-long average out of 2,035 who took at least one shot on Sunday.}
+
+    Teams under-perform bookmakers expectations on Sunday afternoons when on the road.\footnote{Ezekowitz, ('14): Only 129 out of 284 games did the away team meet the spread, using 2008-14 data.}   \end{block}
+
+\end{frame}
 
 \begin{frame}   
   \frametitle{What is our solution?}
@@ -60,11 +72,16 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{How can we measure unexpected changes in performance?}   \begin{block}{Bookmaker spreads}     The expected score differential between two teams.
+  \frametitle{How can we measure unexpected changes in performance?}     \begin{block}{Bookmaker spreads}     
+    The expected score differential between two teams.
 
     Conditions on observed performance, and future expectations.
 
-    A team is expected to meet the spread $\frac{1}{2}$ the time.   \end{block} \end{frame}
+    A team is expected to meet the spread $\frac{1}{2}$ the time.\footnote{Dubner and Levitt, 2006}
+  \end{block}
+  \begin{block}{Bookmaker money-lines}     The odds that a team will beat their opponent.
+
+    After conditioning on odds, successful prediction is like a coin-flip.   \end{block} \end{frame}
 
 \begin{frame}
   \centering   \includegraphics[scale=0.55]{../writing/meet_the_spread} \end{frame}
