@@ -8,9 +8,11 @@
 ###
 ### Date: April 2017
 ###
-### Inputs: 
+### Inputs: 'raw_data/bls/20[xx].q1-q4.by_area'
 ###
-### Dependencies: 
+### Output: 'tmp_data/bls/20[xx]_[sport]_[suffix].csv'
+###
+### Dependencies: data.table, ggmap, magrittr, parallel
 ###
 ################################################################################
 ################################################################################
@@ -36,8 +38,10 @@ clusterCall(cl, function() {
     require(magrittr)
 })
 
+### Loads raw data. Subsets based on regex. Aggregate using FUN. Save using suffix and sport.
 CleanBLS(party.regex = c('sound recording', 'music publisher', 'musical group'),
          suffix = 'studios_and_artists', sport = 'nba', FUN = sum)
 
+### We add option 'rescrape = F' to avoid scraping location data a second time.
 CleanBLS(party.regex = c('alcohol', 'drinking'),
          suffix = 'alcohol_and_drinking', sport = 'nba', FUN = sum, RESCRAPE = F)
