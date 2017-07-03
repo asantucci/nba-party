@@ -21,36 +21,30 @@ require(RCurl)
 require(XML)
 
 ### Download population estimates by county-year.
-pop <- fread('https://www2.census.gov/programs-surveys/popest/datasets/2010-2016/counties/totals/co-est2016-alldata.csv',
-             select = c('STNAME', 'CTYNAME', paste0('POPESTIMATE', 2010:2016)))
-setnames(pop, tolower(names(pop)))
+## pop <- fread('https://www2.census.gov/programs-surveys/popest/datasets/2010-2016/counties/totals/co-est2016-alldata.csv',
+##              select = c('STNAME', 'CTYNAME', paste0('POPESTIMATE', 2010:2016)))
+## setnames(pop, tolower(names(pop)))
 
 ### Don't forget Washington D.C., which is technically a metro area.
-dc <- fread('https://www2.census.gov/programs-surveys/popest/datasets/2010-2016/metro/totals/csa-est2016-alldata.csv',
+pop <- fread('https://www2.census.gov/programs-surveys/popest/datasets/2010-2016/metro/totals/csa-est2016-alldata.csv',
             select = c('NAME', paste0('POPESTIMATE', 2010:2016)))
 Sys.setlocale('LC_ALL','C') 
-dc <- dc[grep("district", NAME, ignore.case = T)]
-dc[, stname := 'Washington DC']
-setnames(dc, c('ctyname', paste0('popestimate', 2010:2016), 'stname'))
-dc[, ctyname := 'District of Columbia']
-pop <- rbind(pop, dc)
+## dc <- dc[grep("district", NAME, ignore.case = T)]
+## dc[, stname := 'Washington DC']
+setnames(pop, c('locality', paste0('popestimate', 2010:2016)))
+## dc[, locality := 'District of Columbia']
+## pop <- rbind(pop, dc)
 
 ### Reshape our data.
-pop <- melt(pop, id.vars = c('stname', 'ctyname'), variable.name = 'year')
+pop <- melt(pop, id.vars = 'locality', variable.name = 'year')
 pop[, year := gsub('popestimate', '', year) %>% as.integer]
 setnames(pop, 'value', 'population')
-
-setnames(pop, c('stname', 'ctyname'), c('state', 'county'))
 
 ### We use lagged data.
 setnames(pop, 'year', 'season')
 pop[, season := season + 1]
-pop <- pop[state != county]
-pop[, county := paste(county, state, sep = ', ')]
-pop[, state := NULL]
-pop[county == 'District of Columbia, Washington DC', county := 'District of Columbia']
 
-save(pop, file = 'tmp_data/population_by_county_year.RData')
+save(pop, file = 'tmp_data/population_by_MSA_year.RData')
 
 ### Old
 ## fips <- readLines('https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt')
