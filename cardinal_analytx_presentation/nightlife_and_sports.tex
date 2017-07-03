@@ -54,12 +54,23 @@
 
   Further, it's not obvious that we will find an effect. 
 
-  \begin{block}{Previous research}
-    Players under-perform proportion of shots made on Sundays.\footnote{Chase ('15): 1,092 NBA players under-perform relative to their own season-long average out of 2,035 who took at least one shot on Sunday.}
-
-    Teams under-perform bookmakers expectations on Sunday afternoons when on the road.\footnote{Ezekowitz, ('14): Only 129 out of 284 games did the away team meet the spread, using 2008-14 data.}   \end{block}
-
 \end{frame}
+
+\begin{frame}
+  \frametitle{Previous Research - Player shooting average}     Players under-perform proportion of shots made on Sundays.\footnote{Chase, ('15).}
+    \begin{itemize}       \item 1,092 of 2,035 NBA players who took $\geq 1$ shot on Sundays under-perform relative to their own season-long average; $p=0.001$.
+      \item Effect size is not considered.
+      \item Density of support is questionable.\footnote{What if we miss the only shot we took on Sunday, should that be considered?}     \end{itemize}
+\end{frame}
+
+\begin{frame}   \frametitle{Previous Research - Team's ability to meet spread}
+  Teams under-perform bookmakers expectations on Sunday afternoons when on the road.\footnote{Ezekowitz, ('14).}
+    \begin{itemize}       
+    \item Only 129 out of 284 games did the away team meet the spread, 
+      using 2008-14 data; $p=0.1089$.
+    \item Not quite significant at the 90\% confidence level.     
+    \end{itemize}
+  \end{frame}
 
 \begin{frame}   
   \frametitle{What is our solution?}
@@ -72,14 +83,14 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{How can we measure unexpected changes in performance?}     \begin{block}{Bookmaker spreads}     
+  \frametitle{How can we measure unexpected changes in performance?}     \begin{block}{Bookmaker spreads (NBA)}     
     The expected score differential between two teams.
 
     Conditions on observed performance, and future expectations.
 
     A team is expected to meet the spread $\frac{1}{2}$ the time.\footnote{Dubner and Levitt, 2006}
   \end{block}
-  \begin{block}{Bookmaker money-lines}     The odds that a team will beat their opponent.
+  \begin{block}{Bookmaker money-lines (MLB)}     The odds that a team will beat their opponent.
 
     After conditioning on odds, successful prediction is like a coin-flip.   \end{block} \end{frame}
 
@@ -92,7 +103,7 @@
     
 
     Weaker, still: if odds of beating the spread uncorrelated \\
-    $\leadsto$ identification.\footnote{Under an efficient market, the latter assumption should hold.}    \end{block}  
+    $\leadsto$ identification.\footnote{Under an efficient market, this assumption should hold.}    \end{block}  
 \end{frame}
 
 \begin{frame}   \frametitle{Sports: NBA and MLB}
