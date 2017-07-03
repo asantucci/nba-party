@@ -1,4 +1,14 @@
-\documentclass{beamer} \usepackage{tikz} \usepackage{pdfrender}  \usetikzlibrary{shapes,arrows} \setbeamerfont{author}{size=\Huge} \setbeamerfont{institute}{size=\normalsize\itshape} \setbeamerfont{title}{size=\fontsize{30}{36}\bfseries} \setbeamerfont{subtitle}{size=\Large\normalfont\slshape}  \setbeamertemplate{title page} { \begin{tikzpicture}[remember picture,overlay] \fill[orange]   ([yshift=15pt]current page.west) rectangle (current page.south east); \node[anchor=east]    at ([yshift=-50pt]current page.north east) (author)   {\parbox[t]{.6\paperwidth} {\raggedleft      \usebeamerfont{author}\textcolor{orange} {     \textpdfrender{     TextRenderingMode=FillStroke,     FillColor=orange,     LineWidth=.1ex,     }{\insertauthor}}}};
+\documentclass{beamer} 
+\usepackage{tikz} 
+\usepackage{pdfrender} 
+\usepackage{mathtools}
+\usepackage{bbm}
+\usepackage{hyperref}
+\usepackage{changepage}
+
+\setbeamertemplate{navigation symbols}{}
+
+\usetikzlibrary{shapes,arrows} \setbeamerfont{author}{size=\Huge} \setbeamerfont{institute}{size=\normalsize\itshape} \setbeamerfont{title}{size=\fontsize{30}{36}\bfseries} \setbeamerfont{subtitle}{size=\Large\normalfont\slshape}  \setbeamertemplate{title page} { \begin{tikzpicture}[remember picture,overlay] \fill[orange]   ([yshift=15pt]current page.west) rectangle (current page.south east); \node[anchor=east]    at ([yshift=-50pt]current page.north east) (author)   {\parbox[t]{.6\paperwidth} {\raggedleft      \usebeamerfont{author}\textcolor{orange} {     \textpdfrender{     TextRenderingMode=FillStroke,     FillColor=orange,     LineWidth=.1ex,     }{\insertauthor}}}};
 \node[anchor=north east]
   at ([yshift=-70pt]current page.north east) (institute) {
     \parbox[t]{.78\paperwidth} { 
@@ -12,6 +22,291 @@
       \textpdfrender { 
         TextRenderingMode=FillStroke, FillColor=white, LineWidth=.1ex}{\inserttitle}}}}; \node[anchor=east] at ([yshift=-60pt,xshift=-20pt]current page.east) (subtitle) {
   \parbox[t]{.6\paperwidth}{\raggedleft\usebeamerfont{subtitle}\textcolor{black}{\insertsubtitle}}};  
-\end{tikzpicture} }  \author{John Doe} \institute{Harvard College Professor and \\ Johnstone Family Professor in Psychology, Harvard University} \title{Say What?} \subtitle{Linguistics as a Window for Understanding the Brain} % \titlegraphic{\includegraphics[width=2cm]{ctanlion}}
+\end{tikzpicture} }  \author{Andreas Santucci} \institute{Stanford Teaching Fellow \\ Computational Math, Data Science} \title{Effects of nightlife on sports} \subtitle{Cardinal Analytx Interview} % \titlegraphic{\includegraphics[width=2cm]{ctanlion}}
+ \begin{document}  \begin{frame} \maketitle \end{frame}
 
- \begin{document}  \begin{frame} \maketitle \end{frame}  \end{document}
+\begin{frame}   \frametitle{What is the problem?}
+  \begin{block}{Do pro athletes party to the detriment of their performance?}
+    It's not unreasonable to think that what happens off the court affects outcome, but!
+    \begin{itemize}       \item Can we even measure this?
+      \item Are there systematic tendencies?     \end{itemize}
+  \end{block} \end{frame}
+
+\begin{frame}   
+  \frametitle{Who cares?}
+  \begin{block}{\$400 billion spent on sports betting per year in the US.}
+    Apparently, a lot of people. 
+
+    Knowing the causal relation between partying and next-day performance might inform
+    \begin{itemize}       \item How coaches set team-rules, 
+      \item How travel schedules are determined.     \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}   
+  \frametitle{What is our solution?}
+  \begin{block}{We can't observe whether players party.}
+    Instead, we consider a quasi-experiment.
+    \begin{itemize}       \item Do teams play worse the day after visiting a ``party city''?
+      \item How do we even determine whether a city has nightlife?     \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{How can we measure unexpected changes in performance?}   \begin{block}{Bookmaker spreads}     The expected score differential between two teams.
+
+    Conditions on observed performance, and future expectations.
+
+    A team is expected to meet the spread $\frac{1}{2}$ the time.   \end{block} \end{frame}
+
+\begin{frame}   \frametitle{Quasi Experiment}
+  \begin{block}{Consider games played back-to-back within 24 hours.}     If odds of beating the spread uncorrelated with next day opponent 
+    $\longrightarrow$ identification.
+
+  (Under an efficient market, this should be the case)    \end{block}  
+\end{frame}
+
+\begin{frame}   \frametitle{Sports: NBA and MLB}
+  \begin{block}{We perform the analysis for both NBA and MLB}     If we yield a causal model, we can realize a betting schema.   \end{block} \end{frame}
+
+\begin{frame}   \frametitle{NBA Data: 2010-11 through 2016-17 season}
+  \begin{itemize}     \item Each team plays 82 games per season.
+    \item 30 teams in the NBA.
+    \item Total of $82 \times 30 / 2 = 1,230$ games per season.  
+  \end{itemize}
+
+  We query \href{http://www.basketball-reference.com/leagues/}{basketball-reference.com}
+  for a listing of game-days, and then 
+  \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{covers.com} for 
+  game outcomes alongside a point-spread.
+
+  \begin{itemize}     \item Missing the first couple months of 2010-11 season.
+    \item At most two missing games in each of remaining seasons.
+    \item Total of 7,829 games in our dataset.   \end{itemize}
+\end{frame}
+
+\begin{frame}   \frametitle{MLB Data: 2011 through 2017 season}
+  \begin{itemize}     \item Each team plays 162 games per season.
+    \item 30 teams in the MLB.
+    \item Total of $162 \times 30 / 2 = 2,430$ games per season.   \end{itemize}
+  
+  We query \href{http://www.baseball-reference.com/leagues/}{baseball-reference.com}
+  for a listing of game days, and again look to Covers.com for game outcomes and money-lines.
+  
+  \begin{itemize}     \item We have on average 2,100 games per season.
+    \item (Missing observations due to broken links?)
+    \item Total of 12,709 games in our dataset.    \end{itemize} \end{frame}
+
+\begin{frame}   \frametitle{Bureau of Labor Statistics Data: 2010-2016}
+  We look toward BLS data which describes the number of sound recording
+  studios, musical groups, and musical publishers in each metropolitan statistical area
+  for each quarter of each year.
+  
+  All teams are in the US with the exception of 
+  \begin{itemize}     \item Toronto Raptors (NBA)
+    \item Toronto Blue Jays (MLB)   \end{itemize} 
+
+  These two locations are excluded from our analysis. \end{frame}
+
+\begin{frame}   \frametitle{Minutes data for NBA}
+  For NBA, we also collect minutes data, which describes the number of 
+  \begin{itemize}     \item Free-throws
+    \item Field goals
+    \item Three-pointers   \end{itemize}
+  attempted and made by each player in each game. For each season and each team,
+  we have nearly complete minutes data; 85\% of our season-teams' have no more than
+  3 missing games. \end{frame}
+
+
+\begin{frame}   
+  \frametitle{Possible Confounders}
+  What might influence game-outcomes apart from player-ability?
+
+  \begin{itemize}     
+    \item Home team effect
+    \item Fatigue from previous game
+    \item Jet lag   
+    \end{itemize}
+
+  The benefit of using spread data is that it controls for salient factors which affect game outcomes.
+  The downside is that we don't know exactly what it controls for. \end{frame}
+
+\begin{frame}   \frametitle{Feature Creation}
+  We add features which describe
+  \begin{itemize}     \item Number of days since the last game (i.e. rest-time),
+    \item Lagged game location, and
+    \item Travel Distance.   \end{itemize}
+  We seek to construct a model which accounts for travel-fatigue and jet-lag.
+  For this, we need a little bit more. \end{frame}
+
+\begin{frame}   \frametitle{Accounting for Jetlag}
+  In order to account for jet-lag, we need to be mindful of the direction of travel. We calculate
+  \begin{itemize}     \item distance traveled between games,
+    \item final direction (bearing) traveling from $a \to b$, and
+    \item direction of travel (in east-west degrees) by taking sine.
+  \end{itemize}
+  Finally, to account for jetlag we interact this east-west measure with travel distance. \end{frame}
+
+\begin{frame}   \frametitle{Next day opponent: NBA}
+  \centering \includegraphics[scale=0.25]{../writing/next_day_opponent} \end{frame}
+
+\begin{frame}   \frametitle{A closer look at NBA games on the road}
+  \centering \includegraphics[scale=0.25]{../writing/next_day_opponent_on_tour} \end{frame}
+
+\begin{frame}   \frametitle{Further motivation for conditioning on the spread}
+  \begin{block}{With some correlation between next-day opponent, this further motivates conditioning
+  on bookmakers' expectations.}
+  \begin{itemize}     \item If bookkeepers aware of hangover effects, our variable of interest may not appear significant, in spite of there being a true effect.
+
+    \item If bookkeepers systematically mis-value teams which are more likely to be encountered after visiting a city with active nightlife, we could see a spurious effect.
+
+      (Given size of betting market, this is unlikely)
+    \end{itemize}   \end{block}
+\end{frame}
+
+\begin{frame}   \frametitle{Partying as a latent variable}
+  \begin{block}{We can't observe when players go for a night on the town.}
+    Instead, we develop two approaches to proxy for partying. 
+
+    A discrete indicator and a continuous measure.
+  \end{block} \end{frame}
+
+\begin{frame}   \frametitle{Discrete Indicator}
+  \begin{block}{Anecdotally, LA and NY appear in news articles frequently.}     This motivates a binary indicator for party when either of these two cities have been visited within 24-hours of another game.
+    \[
+      \texttt{party} \coloneqq \mathbbm 1 \left \{\substack{\textrm{last game played in LA or NY} \\ \textrm{at most 24-hours ago}}\right \}
+    \]   \end{block} \end{frame}
+
+
+\begin{frame}   
+  \frametitle{Travel Distance Comparison}
+  \centering \includegraphics[scale=0.25]{../writing/travel_dist_density_by_party} 
+\end{frame}
+
+
+\begin{frame}   \frametitle{Continuous Measure}
+  \begin{block}{A-list celebrities tend to party with other celebrities.}     Idea: proxy nightlife using number of musicians in previous location
+
+    \[
+      \texttt{party} \coloneqq \begin{cases}       \log \left(\# \textrm{musical groups}\right) &\substack{\textrm{ if last game played} \\ \textrm{at most 24-hours ago,}} \\
+      0 &\textrm{ otherwise.}
+    \end{cases}
+    \]
+    \newline
+    Specifically, we consider the sum total of
+    \[
+      \textrm{Sound recording studios } + \textrm{ musical groups } + \textrm{ musical publishers}.
+    \]   \end{block} \end{frame}
+
+\begin{frame}   
+  \frametitle{Continuous Measure of Party (NBA)}
+  \centering \includegraphics[scale=0.3]{../writing/Party_by_Team_Location} 
+\end{frame}
+
+\begin{frame}   \frametitle{Results: NBA}
+  \vspace{-2pt}
+  \centering
+  \tiny{
+  \begin{tabular}{@{\extracolsep{5pt}}lcc}  \\[-1.8ex]\hline   \\[-1.8ex] & \multicolumn{2}{c}{Meet the Spread} \\  \hline \\[-1.8ex]   Party discrete & $-$0.513$^{***}$ &  \\    & (0.145) &  \\ & & \\   [-1.8ex] Party continuous &  & $-$0.181$^{**}$ \\    &  & (0.091) \\    & & \\   Lag changes in posession & 0.0001 & 0.00004 \\    & (0.002) & (0.002) \\    & & \\   Logged travel distance & $-$0.017 & $-$0.014 \\    & (0.026) & (0.026) \\    & & \\   East-west travel direction & $-$0.145 & $-$0.113 \\    & (0.232) & (0.231) \\    & & \\   Number hours rest time & 0.001 & 0.001 \\    & (0.001) & (0.001) \\    & & \\   Time of game during day & 0.005 & 0.004 \\    & (0.013) & (0.013) \\    & & \\   Home team effect & 0.001 & 0.004 \\    & (0.043) & (0.043) \\    & & \\   Logged travel distance * east-west & 0.022 & 0.018 \\    & (0.036) & (0.036) \\    & & \\   Constant & $-$0.048 & $-$0.028 \\    & (0.378) & (0.378) \\ [-1.8ex] & & \\ \hline \\[-1.8ex]  Observations & 9,823 & 9,823 \\  Log Likelihood & $-$6,800.677 & $-$6,805.100 \\  Akaike Inf. Crit. & 13,619.350 & 13,628.200 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}
+}   \end{frame}
+
+\begin{frame}   \frametitle{Placebo Test: what if we let players rest?}
+  \centering
+  \tiny{
+  \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & Meet the Spread (NBA) \\  \hline \\[-1.8ex]   party placebo & 0.072 \\    & (0.082) \\    & \\   lag changes in posession & 0.00001 \\    & (0.002) \\    & \\   logged travel distance & $-$0.005 \\    & (0.026) \\    & \\   east-west travel direction & $-$0.099 \\    & (0.232) \\    & \\   number hours rest time & 0.001$^{*}$ \\    & (0.001) \\    & \\   time of game during day & 0.001 \\    & (0.013) \\    & \\   home team effect & $-$0.009 \\    & (0.043) \\    & \\   logged travel distance * east-west & 0.015 \\    & (0.036) \\    & \\   Constant & $-$0.070 \\    & (0.378) \\    & \\  \hline \\[-1.8ex]  Observations & 9,823 \\  Log Likelihood & $-$6,806.702 \\  Akaike Inf. Crit. & 13,631.400 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
+} \end{frame}
+
+\begin{frame}   \frametitle{Differences between NBA and MLB}
+  The same analysis can be replicated for MLB. Notable differences:
+  \begin{itemize}     \item Money-lines are used instead of point-spreads. 
+      So instead of predicting likelihood of meeting the spread,
+      we predict likelihood of winning conditional on bookmakers odds.
+    \item We interact our measure of nightlife with a weekend indicator.
+    \item Games are played in series, so we no longer have the problem of an unknown travel schedule, i.e. players stay overnight in the same location within a series.   \end{itemize} \end{frame}
+
+\begin{frame}   
+  \frametitle{Continuous Measure of Party (MLB)}
+  \centering \includegraphics[scale=0.3]{../writing/Party_by_Team_Location_mlb}   
+\end{frame}
+
+\begin{frame}   \frametitle{Results: MLB}
+  \centering
+  \tiny{
+  \begin{tabular}{@{\extracolsep{5pt}}lcc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{2}{c}{\textit{Dependent variable:}} \\  \cline{2-3}  \\[-1.8ex] & \multicolumn{2}{c}{Probability of Winning} \\  \\[-1.8ex] & (1) & (2)\\  \hline \\[-1.8ex]   Continuous measure of nightlife & $-$0.126$^{*}$ &  \\    & (0.074) &  \\    & & \\   Nightlife (no weekend interaction) &  & $-$0.016 \\    &  & (0.110) \\    & & \\   Bookmaker's odds & 2.638$^{***}$ & 2.583$^{***}$ \\    & (0.163) & (0.165) \\    & & \\   Home-team effect & 0.008 & 0.034 \\    & (0.035) & (0.083) \\    & & \\   Number of rest days & 0.019 & 0.018 \\    & (0.020) & (0.020) \\    & & \\   Logged travel distance & $-$0.002 & $-$0.003 \\    & (0.005) & (0.005) \\    & & \\   Weekend & 0.044 & 0.003 \\    & (0.038) & (0.030) \\    & & \\   Constant & $-$1.344$^{***}$ & $-$1.324$^{***}$ \\    & (0.081) & (0.113) \\    & & \\  \hline \\[-1.8ex]  Observations & 24,734 & 24,033 \\  Log Likelihood & $-$16,946.080 & $-$16,470.850 \\  Akaike Inf. Crit. & 33,906.160 & 32,955.700 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
+} \end{frame}
+
+\begin{frame}   \frametitle{Validating our model in the market}
+  Our results are statistically significant, but so what? We validate our model by seeing
+  how well we fare against the market.
+
+  \begin{itemize}     \item We hold out data for validation.
+    \item For each unseen relevant game, we place a bet of \$100 if the expected value of the bet
+      is positive after accounting for bookmakers cut (\$10)
+    \item Are we profitable?
+  \end{itemize} \end{frame}
+
+\begin{frame}   \frametitle{Betting in MLB}
+  \centering
+  \includegraphics[scale=0.5]{../writing/mlb_bets_by_season} \end{frame}
+
+\begin{frame}   \frametitle{Returning to NBA: Player Performance}
+  We additionally look toward actual performance metrics, instead of relying on point-spread data.
+  
+  \begin{itemize}     \item Avoid using black-box feature
+    \item Pinpoint more precisely what elements of game-play are affected by nightlife visitation.   \end{itemize}
+
+  Anecdotally, rebounds are considered a ``hustle'' statistic, in the sense that players
+  who work harder on the court and expend energy boxing out other players will have higher
+  rebound rates. \end{frame}
+
+\begin{frame}   \frametitle{Analysis: rebounds}
+  \begin{itemize}     \item For each player and each game, we calculate the number of rebounds obtained per-minute of gamep-lay
+    \item From each observation, we subtract the player's average number of rebounds per minute taken across the entire season.
+    \item We then run a linear regression explaining demeaned rebounds as a function of 
+      nightlife visitation and other features describing player fatigue.   \end{itemize} \end{frame}
+
+\begin{frame}   \frametitle{Results: rebounds}
+  \centering
+  \tiny{
+\begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & Demeanead Rebounds Per Minute \\  \hline \\[-1.8ex]   Continuous party measure & $-$0.003$^{*}$ \\    & (0.002) \\    & \\   Lag change in possessions & 0.00003 \\    & (0.0001) \\    & \\   Logged travel distance & 0.001 \\    & (0.001) \\    & \\   Number hours since last game & 0.00003 \\    & (0.00002) \\    & \\   Constant & $-$0.008$^{*}$ \\    & (0.004) \\    & \\  \hline \\[-1.8ex]  Observations & 43,547 \\  R$^{2}$ & 0.0003 \\  Adjusted R$^{2}$ & 0.0002 \\  Residual Std. Error & 0.104 (df = 43542) \\  F Statistic & 2.945$^{**}$ (df = 4; 43542) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
+} \end{frame}
+
+\begin{frame}   \frametitle{Hangover correlates with allowing more points}
+  We examine points allowed and points scored (on the team level).
+
+  Common knowledge suggests that overall defense of a team is strongly influenced by individual player effort.
+
+  Is it the case the hangover effects are more prevalent on defensive aspects of gameplay? \end{frame}
+
+\begin{frame}   \frametitle{Defense in the NBA}
+  \begin{adjustwidth}{-.75cm}{}
+  \tiny{
+  \begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & Points Admitted by Team & Team Points Admitted & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.828$^{***}$ &  &  \\    & (0.699) &  &  \\    & & & \\   Continuous party measure &  & 1.667$^{***}$ & 0.080 \\    &  & (0.587) & (0.575) \\    & & & \\   Lag change in possessions &  & 0.267$^{***}$ & 0.285$^{***}$ \\    &  & (0.016) & (0.016) \\    & & & \\   Logged travel distance &  & $-$0.447$^{**}$ & 0.143 \\    &  & (0.191) & (0.187) \\    & & & \\   Number hours since last game &  & 0.011 & 0.017$^{**}$ \\    &  & (0.007) & (0.007) \\    & & & \\   Constant & $-$0.047 & 70.710$^{***}$ & 64.859$^{***}$ \\    & (0.090) & (2.271) & (2.223) \\    & & & \\  \hline \\[-1.8ex]  Observations & 15,658 & 6,426 & 6,426 \\  R$^{2}$ & 0.001 & 0.045 & 0.051 \\  Adjusted R$^{2}$ & 0.001 & 0.044 & 0.051 \\  Residual Std. Error & 11.159 (df = 15656) & 11.941 (df = 6421) & 11.688 (df = 6421) \\  F Statistic & 16.357$^{***}$ (df = 1; 15656) & 74.877$^{***}$ (df = 4; 6421) & 86.792$^{***}$ (df = 4; 6421) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
+}
+\end{adjustwidth} \end{frame}
+
+\begin{frame}   \frametitle{Future Research}
+  Within the NBA
+  \begin{itemize}     \item Are teams more likely to party after a win or a loss?
+    \item Do teams who aren't going to make the playoffs party more?
+    \item Are there demographic differences which influence propensity to party? E.g. are younger, unmarried players more susceptible to our treatment effect?
+    \item We could also examine how shots taken vs. shots scored are affected for star players.
+  \end{itemize}
+  A preliminary and ad-hoc analysis shows that injury risk increases as a function of party.
+
+  This might inform coaches which players to bench and when.
+
+  Within the MLB, we can look at statistics such as batting averages or general fielding statistics. \end{frame}
+
+\begin{frame}   \frametitle{Future Research (General)}
+  \begin{itemize}     \item It's possible there are prolonged effects; recall our magic 24 hour number.
+    \item European soccer leagues.   \end{itemize} \end{frame}
+
+\begin{frame}   \frametitle{Conclusions}
+  \begin{itemize}     \item NBA and MLB players under-perform bookmakers expectations after visiting LA and NY, and in general we see that performance decreases as a function of (our proxy for) nightlife.
+    \item The decrease in likelihood can (in part) be explained by a drop in defensive performance.
+    \item With a causal model established, we realize a profitable betting scheme.   \end{itemize} \end{frame}
+
+\end{document}
+
+
