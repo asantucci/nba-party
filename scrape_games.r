@@ -8,7 +8,9 @@
 ###
 ### Date: March 2017
 ###
-### Inputs: NA
+### Inputs: 'http://www.basketball-reference.com/leagues/NBA_[year]_games-[month].html'
+###
+### Output: 'tmp_data/game_days.RData'
 ###
 ### Dependencies: data.table, magrittr, XML
 ###
@@ -57,3 +59,15 @@ game.days <- unique(data$date)
 game.days <- as.Date(game.days, format = '%A, %b %d, %Y')
 
 save(game.days, file = 'tmp_data/game_days.RData')
+
+
+
+
+
+
+
+
+
+
+
+
