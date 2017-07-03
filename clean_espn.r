@@ -8,9 +8,12 @@
 ###
 ### Date: April 2017
 ###
-### Inputs: 
+### Inputs: 'tmp_data/team_abbreviations.csv'
+###         ''raw_data/espn[game-id].csv'
 ###
-### Dependencies: 
+### Output: 'tmp_data/espn_player_data.csv'
+###
+### Dependencies: data.table, magrittr, zoo
 ###
 ################################################################################
 ################################################################################
@@ -39,7 +42,6 @@ setnames(data, c('player', 'min', 'fg', 'three.pt', 'ft',
                  'oreb', 'dreb', 'reb', 'ast', 'stl', 'blk',
                  'to', 'pf', 'pm', 'pts', 'team', 'date'))
 data[, team := tolower(team)]
-#data <- na.omit(data)
 
 data <- merge(data, abbrs, by.x = 'team', by.y = 'abbr', all.x = T)
 data[, 1 := NULL, with = F]
@@ -100,3 +102,4 @@ data[, (paste0('lag.', cols)) := shift(.SD),
      by = list(season, player), .SDcols = cols]
 
 write.csv(data, file = 'tmp_data/espn_player_data.csv', row.names = F)
+
