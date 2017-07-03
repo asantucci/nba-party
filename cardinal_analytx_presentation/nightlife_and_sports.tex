@@ -34,7 +34,8 @@
 
 \begin{frame}   
   \frametitle{Who cares?}
-  \begin{block}{\$400 billion spent on sports betting per year in the US.}
+  \begin{block}{\$400 billion spent on sports betting per year in the US.\footnote{NBA Commissioner Adam Silver}}
+
     Apparently, a lot of people. 
 
     Knowing the causal relation between partying and next-day performance might inform
@@ -43,12 +44,18 @@
   \end{block}
 \end{frame}
 
+\begin{frame}   \frametitle{Is the problem hard?}
+  Yes, in general finding arbitrage opportunities is hard.
+
+  Further, it's not obvious that we will find an effect. \end{frame}
+
 \begin{frame}   
   \frametitle{What is our solution?}
   \begin{block}{We can't observe whether players party.}
-    Instead, we consider a quasi-experiment.
+    Instead, we consider a quasi-experiment. Motivating questions:
     \begin{itemize}       \item Do teams play worse the day after visiting a ``party city''?
-      \item How do we even determine whether a city has nightlife?     \end{itemize}
+      \item How do we even determine whether a city has nightlife?    
+      \item What does it mean to ``play worse''? \end{itemize}
   \end{block}
 \end{frame}
 
@@ -59,11 +66,16 @@
 
     A team is expected to meet the spread $\frac{1}{2}$ the time.   \end{block} \end{frame}
 
-\begin{frame}   \frametitle{Quasi Experiment}
-  \begin{block}{Consider games played back-to-back within 24 hours.}     If odds of beating the spread uncorrelated with next day opponent 
-    $\longrightarrow$ identification.
+\begin{frame}
+  \centering   \includegraphics[scale=0.55]{../writing/meet_the_spread} \end{frame}
 
-  (Under an efficient market, this should be the case)    \end{block}  
+\begin{frame}   \frametitle{Quasi Experiment}
+  \begin{block}{Consider games played back-to-back within 24 hours.}     
+    If next day opponent is uncorrelated with visitation to a party city $\leadsto$ identification.
+    
+
+    Weaker, still: if odds of beating the spread uncorrelated \\
+    $\leadsto$ identification.\footnote{Under an efficient market, the latter assumption should hold.}    \end{block}  
 \end{frame}
 
 \begin{frame}   \frametitle{Sports: NBA and MLB}
@@ -98,15 +110,15 @@
     \item Total of 12,709 games in our dataset.    \end{itemize} \end{frame}
 
 \begin{frame}   \frametitle{Bureau of Labor Statistics Data: 2010-2016}
-  We look toward BLS data which describes the number of sound recording
-  studios, musical groups, and musical publishers in each metropolitan statistical area
+  We look toward BLS data which describes the number of business establishments 
+  (of a very particular type) in each metropolitan statistical area
   for each quarter of each year.
   
   All teams are in the US with the exception of 
   \begin{itemize}     \item Toronto Raptors (NBA)
     \item Toronto Blue Jays (MLB)   \end{itemize} 
 
-  These two locations are excluded from our analysis. \end{frame}
+  These two teams are excluded from our analysis.\footnote{We don't expect Toronto to be a huge party city.} \end{frame}
 
 \begin{frame}   \frametitle{Minutes data for NBA}
   For NBA, we also collect minutes data, which describes the number of 
@@ -133,9 +145,12 @@
 
 \begin{frame}   \frametitle{Feature Creation}
   We add features which describe
-  \begin{itemize}     \item Number of days since the last game (i.e. rest-time),
+  \begin{itemize}     
+    \item Number of days since the last game (i.e. rest-time),
+    \item Lagged changes in possession,
     \item Lagged game location, and
-    \item Travel Distance.   \end{itemize}
+    \item Travel Distance.   
+  \end{itemize}
   We seek to construct a model which accounts for travel-fatigue and jet-lag.
   For this, we need a little bit more. \end{frame}
 
@@ -299,13 +314,16 @@
   Within the MLB, we can look at statistics such as batting averages or general fielding statistics. \end{frame}
 
 \begin{frame}   \frametitle{Future Research (General)}
-  \begin{itemize}     \item It's possible there are prolonged effects; recall our magic 24 hour number.
+  \begin{itemize}     \item Possibly prolonged effects; recall our magic 24 hour number.
     \item European soccer leagues.   \end{itemize} \end{frame}
 
 \begin{frame}   \frametitle{Conclusions}
   \begin{itemize}     \item NBA and MLB players under-perform bookmakers expectations after visiting LA and NY, and in general we see that performance decreases as a function of (our proxy for) nightlife.
     \item The decrease in likelihood can (in part) be explained by a drop in defensive performance.
     \item With a causal model established, we realize a profitable betting scheme.   \end{itemize} \end{frame}
+
+\begin{frame}   \frametitle{Why \# Drinking Establishments or Population won't work}
+  \includegraphics[scale=0.3]{../writing/why_drinks_or_population_dont_work} \end{frame}
 
 \end{document}
 
