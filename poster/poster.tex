@@ -1,7 +1,29 @@
 \documentclass[24pt, a0paper, portrait]{tikzposter} 
- \usepackage{algorithm2e} \usepackage{amsmath} \usepackage{amsthm} \usepackage{amsfonts} \usepackage{bbm} \usepackage{color,soul} \usepackage{framed} \usepackage{hyperref} \usepackage{mathtools} \usepackage[utf8]{inputenc} 
+
+\usepackage{algorithm2e} 
+\usepackage{amsmath} 
+\usepackage{amsthm} \usepackage{amsfonts} 
+\usepackage{bbm} 
+\usepackage{color,soul} \usepackage{framed} 
+\usepackage{hyperref} 
+\usepackage{mathtools} \usepackage[utf8]{inputenc} 
 \usepackage{subcaption}
- \newtheorem{theorem}{Theorem}[section] \newtheorem{lemma}[theorem]{Lemma} \newtheorem{proposition}[theorem]{Proposition} \newtheorem{corollary}[theorem]{Corollary}  \DeclareMathOperator*{\argmin}{arg\,min} \DeclareMathOperator*{\argmax}{arg\,max} \newcommand{\D}{\mathrm{d}} \SetKwInput{KwInput}{Input} \SetKwInput{KwOutput}{Output}   \title{The effects of night-life on subsequent day sporting performance} \author{Eric Lax, Andreas Santucci} \date{May 19th, 2017} \institute{Institute for Computational and Mathematical Engineering}   \usetheme{Board}   \begin{document}   \maketitle
+
+\newtheorem{theorem}{Theorem}[section] 
+\newtheorem{lemma}[theorem]{Lemma} \newtheorem{proposition}[theorem]{Proposition} \newtheorem{corollary}[theorem]{Corollary}  \DeclareMathOperator*{\argmin}{arg\,min} \DeclareMathOperator*{\argmax}{arg\,max} 
+\newcommand{\D}{\mathrm{d}} 
+\SetKwInput{KwInput}{Input} 
+\SetKwInput{KwOutput}{Output}   
+
+\title{The effects of night-life on subsequent day sporting performance} 
+\author{Eric Lax, Andreas Santucci} 
+\date{May 19th, 2017} 
+\institute{Institute for Computational and Mathematical Engineering}   
+\usetheme{Board}   
+
+\begin{document}   
+
+\maketitle
 
 \block{~} {     It's not unreasonable to think that game performance can be affected (in part) by what takes place off the court. We are interested to see if teams exhibit a decline in performance the day following a game in a city with active nightlife. 
 We exploit data on bookmaker spreads, the expected score differential between two teams after conditioning on observable performance. We expect a team to meet the spread half the time, since this is how bookmakers minimize risk on their end. We construct a model which attempts to estimate the causal effect of  visiting a "party-city" on subsequent day performance as measured by the spread. Since next-day
