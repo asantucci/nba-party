@@ -8,9 +8,11 @@
 ###
 ### Date: April 2017
 ###
-### Inputs: 
+### Inputs: 'tmp_data/game_days.RData'
 ###
-### Dependencies: 
+### Output: 'raw_data/espn/[gameID].csv'
+###
+### Dependencies: data.table, magrittr, parallel, RCurl, XML
 ###
 ################################################################################
 ################################################################################
@@ -19,7 +21,6 @@ require(data.table)
 require(magrittr)
 require(RCurl)
 require(XML)
-
 require(parallel)
 cl <- makeCluster(detectCores())
 
@@ -38,6 +39,7 @@ extractGameIDs <- function(date) {
 
 ### Obtain a listing of game ID's.
 gameIDs <- parSapplyLB(cl, game.days, extractGameIDs, simplify = F)
+names(gameIDs) <- game.days
 save(gameIDs, file = 'tmp_data/espn_gameIDs.RData')
 
 ### For each game ID, we scrape the player data.
