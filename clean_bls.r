@@ -40,9 +40,9 @@ clusterCall(cl, function() {
 })
 
 ### Loads raw data. Subsets based on regex. Aggregate using FUN. Save using suffix and sport.
-CleanBLS(party.regex = c('sound recording', 'music publisher', 'musical group'),
-         suffix = 'studios_and_artists', sport = 'nba', FUN = sum)
+hangover::CleanBLS(party.regex = c('sound recording', 'music publisher', 'musical group'),
+                   suffix = 'studios_and_artists', sport = 'nba', FUN = sum)
 
 ### We add option 'rescrape = F' to avoid scraping location data a second time.
-CleanBLS(party.regex = c('alcohol', 'drinking'),
-         suffix = 'alcohol_and_drinking', sport = 'nba', FUN = sum, RESCRAPE = F)
+hangover::CleanBLS(party.regex = c('alcohol', 'drinking'),
+                   suffix = 'alcohol_and_drinking', sport = 'nba', FUN = sum, RESCRAPE = F)
