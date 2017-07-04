@@ -37,6 +37,7 @@ require(data.table)
 require(ggplot2)
 require(magrittr)
 require(sampling)
+require(stargazer)
 set.seed(4052017)
 
 load(file = 'tmp_data/covers_lines.RData')
@@ -357,8 +358,6 @@ text(x = 3.6, y = 10, labels = paste("Correlation (population): ",
                                        cor(tmp$log.nmusicians, tmp$log.population) %>% round(., 3)))
 dev.off()
 
-
-
 @
 
 The sign of our ``\texttt{party}'' variable is intuitively correct, and 
@@ -607,6 +606,28 @@ b <- lapply(2012:2016, function(yr) {
 #    dev.off()
 })
 dev.off()
+
+### Meet the spread for both NBA and MLB
+pdf('writing/meet_the_spread.pdf')
+par(mfcol = c(2, 1))
+nba.lines[, list(meet.spread = mean(outcome == 'W')), 
+          by = list(season, team)][, hist(meet.spread, 
+                                          main = paste('How often do teams meet the spread? (NBA)', 
+                                                       'By season-team, 2010-11 through 2016-17',
+                                                       sep = '\n'),
+                                          xlab = 'Meet the Spread', breaks = 25)]
+### There should be 'no information' left over after conditioning on odds.
+noinf <- lm(I(team.score > opponent.score) ~ odds, data = mlb.lines)
+preds <- fitted(noinf)
+mlb.lines[, fitted := fitted(noinf)]
+mlb.lines[, resid  := resid(noinf)]
+mlb.lines[, list(avg.residual = mean(resid)), by = round(fitted, 3)] %>% 
+    plot(., xlab = 'Fitted Probability', ylab = 'Average Residual', 
+         main = paste('After conditioning on bookkeeper\'s odds (MLB),',
+                      'successful prediction is a coin-flip', sep = '\n'))
+abline(a = 0, b = 0, col = 'red', lty = 'dashed')
+dev.off()
+
 
 @ 
 
