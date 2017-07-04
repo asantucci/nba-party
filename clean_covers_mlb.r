@@ -24,14 +24,7 @@ require(sampling)
 require(hangover)
 
 ### A character vector of full team names.
-fulls <- c('arizona diamondbacks', 'atlanta braves', 'baltimore orioles', 'boston redsox',
-           'chicago cubs', 'chicago whitesox', 'cincinati reds', 'cleveland indians',
-           'colorado rockets', 'detroit tigers', 'houston astros', 'kansas city royals',
-           'los angeles angels', 'los angeles dodgers', 'miami marlins', 'milwaukee brewers',
-           'minnesota twins', 'new york mets', 'new york yankees', 'oakland athletics',
-           'philadelphia phillies', 'pittsburgh pirates', 'san diego padres', 'seattle mariners',
-           'san francisco giants', 'st louis cardinals', 'tampa bay rays', 'texas rangers',
-           'toronto blue jays', 'washington nationals')
+fulls <- hangover::getFullTeamnames('mlb')
 
 ##################################################
 ### Load raw money-lines from covers.com.
@@ -160,11 +153,8 @@ lines <- lines[ndays.lgame != 0]
 ## save(dmat, file = 'tmp_data/distance_matrix_mlb.RData')
 load(file = 'tmp_data/distance_matrix_mlb.RData')
 
-getDist <- function(current, last, distances)
-    if (!is.na(current) && !is.na(last))
-        distances[current, last]
-
-lines[, travel.dist := getDist(location, last.game.loc, dmat), by = list(location, last.game.loc)]
+lines[, travel.dist := hangover::getDist(location, last.game.loc, dmat),
+      by = list(location, last.game.loc)]
 
 
 lines[, c('team.score', 'opponent.score') := tstrsplit(score, split = '-')]
