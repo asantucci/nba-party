@@ -93,7 +93,8 @@ Within the NBA, J.R. Smith's performance metrics substantially improved
 asked what contributed to this bump in performance, he infamously replied
 that in New York he would have been out partying, but because there's no nightlife in Cleveland he ends up hitting the gym.\citep{price,ley} Before being traded, J.R. Smith's career-to-date success rate of shots taken was 42 percent, but somehow he only managed 
 34 percent on Sunday afternoon games in the 2012-13 season.
-Presumably, this was because such games followed a long weekend of partying.\citep{princeofthecity}
+Presumably, this was because such games followed a long weekend of partying.\citep{princeofthecity} It has been suggested that because
+NBA games are played in the evenings, athletes can get away with late-nights.\citep{drodmanbleacherreport}
 
 \subsection{Individual players}
 Studies have also been carried out on statistical ranking of the players
@@ -116,9 +117,8 @@ i.e. although players perform worse, we don't know by how much.
 There has been an attempt to answer the question at the team-level before: i.e. do teams perform
 worse after a night on the town, and if so does it depend on which city they 
 visited.\citep{ezekowitz} However, the study only
-looks at performance in party cities, as opposed to subsequent day performance (i.e. the study does not consider a delayed hangover effect). Moreover, the sample size was much smaller than ours, because the author only considered Sunday afternoon games from 2006-14. Finally, there was no methodology used behind the selection of party cities: the authors first define ad-hoc five ``party cities'', and when that did not yield a significant result they estimate fixed-effects for each city. The author does carry out a binomial test of how many home-game covers vs. away-game covers were met, and concludes with weak statistical evidence that teams 
-systematically play worse on Sunday afternoons when on the road, regardless of city, as measured by
-their ability to meet bookmakers' expectations.
+looks at performance in party cities, as opposed to subsequent day performance (i.e. the study does not consider a delayed hangover effect). Moreover, the sample size was much smaller than ours, because the author only considered Sunday afternoon games from 2006-14. Finally, there was no methodology used behind the selection of party cities: the authors first define ad-hoc five ``party cities'', and when that did not yield a significant result they estimate fixed-effects for each city. The author does carry out a binomial test, using 284 games, of how many home-game covers vs. away-game covers were met; the author concludes with weak statistical evidence that teams  systematically play worse on Sunday afternoons when on the road, 
+regardless of city, as measured by their ability to meet bookmakers' expectations.
 
 Allow us to elaborate on why we think that a delayed hangover effect is a more plausible model.
 Suppose for a moment that teams do in fact systematically play worse when playing with cities in active nightlife.
@@ -187,7 +187,9 @@ This motivates using a binary indicator for party when either of these two citie
 
 \paragraph{A continuous measure}
 We also found that athletes tend to party with other A-list celebrities,
-particularly musicians. This motivated a continuous measure of nightlife, based on a simple count of the number of musicians in the metropolitan statistical area (MSA) 
+particularly musicians.\citep{jbutlerdwade} After winning the NBA finals
+in 2016, the Cleveland Cavaliers were found celebrating in nightclubs.\citep{xsclub} 
+This motivated a continuous measure of nightlife, based on a simple count of the number of musicians in the metropolitan statistical area (MSA) 
 in which the stadium resides: if the last game was played at most 24-hours ago, use the log of the total number
 of musical groups, sound recording studios, and musical publishers in county of the 
 last game location, else emit zero.  We also re-scale this feature to lie within the
