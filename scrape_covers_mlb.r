@@ -55,6 +55,6 @@ if (!RESCRAPE) {
 }
 
 ### Scrape.
-lapply(game.days, scrapeCoverLinesMLB)  # May have to run this a few times to scrape all files.
+lapply(game.days, hangover::scrapeCoverLinesMLB)  # May have to run this a few times to scrape all files.
 
 

@@ -20,29 +20,18 @@
 ##############################
 ### Set up workspace, define functions.
 ##############################
+require(hangover)
+
 require(data.table)
 require(magrittr)
 require(XML)
-
-scrapeMonth <- function(year, month) {
-    tryCatch(paste0('http://www.basketball-reference.com/leagues/NBA_',
-                    year, '_games-', month, '.html') %>%
-             readHTMLTable(., stringsAsFactors = F) %>%
-             `[[`('schedule'),
-             error = function(e) return(NULL))
-}
-
-scrapeYear <- function(year) {
-    season <- c(month.name[10:12], month.name[1:4]) %>% tolower
-    lapply(season, scrapeMonth, year = year) %>% rbindlist
-}
 
 ##############################
 ### Scrape data.
 ##############################
 years  <- 2011:2017
 
-data <- lapply(years, scrapeYear) %>% rbindlist
+data <- lapply(years, hangover::scrapeBBallRef) %>% rbindlist
 
 setnames(data, c('date', 'start.time', 'visitor', 'visitor.pts',
                  'home', 'home.pts', 'bs', 'ot', 'notes'))
