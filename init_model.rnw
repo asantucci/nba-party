@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}  
+\documentclass[12pt]{article}
 
 \usepackage{algorithm2e} 
 \usepackage{amsmath} 
@@ -10,19 +10,19 @@
 \usepackage[margin=0.5in]{geometry} 
 \usepackage{hyperref} 
 \usepackage{mathtools} 
-\usepackage[dvipsnames]{xcolor}  
+\usepackage[dvipsnames]{xcolor}
 
 \newtheorem{theorem}{Theorem}[section] 
 \newtheorem{lemma}[theorem]{Lemma} 
 \newtheorem{proposition}[theorem]{Proposition} 
 \newtheorem{corollary}[theorem]{Corollary}  
-\newcommand{\D}{\mathrm{d}} 
+\newcommand{\D}{\mathrm{d}}
 
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil} 
 \DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
 
 \SetKwInput{KwInput}{Input} 
-\SetKwInput{KwOutput}{Output}  
+\SetKwInput{KwOutput}{Output}
 
 \begin{document}
 
@@ -33,6 +33,7 @@
 
 <<echo=F,results='hide',messages=F>>=
 
+require(hangover)
 require(data.table)
 require(ggplot2)
 require(magrittr)
@@ -346,7 +347,25 @@ plot(x = ticks,
      xlab = '', axes = F, pch = 1, ylim = c(0, max(tmp$log.population)), type = 'l')
 points(x = ticks, y = tmp$log.ndrinks, pch = 16, col = 'purple', type = 'l')
 points(x = ticks, y = tmp$log.population, pch = 18, col = 'orange', type = 'l')
-axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>% 
+### Houston has large population, but isn't necessarily known for nightlife.
+segments(x0 = which(tmp$team == 'houston rockets'), 
+         x1 = which(tmp$team == 'houston rockets'),
+         y0 = -1,
+         y1 = tmp[team == 'houston rockets', log.population], col = 'gray70', lty = 'dashed')
+segments(x0 = which(tmp$team == 'houston rockets'), 
+         x1 = length(ticks),
+         y0 = tmp[team == 'houston rockets', log.population],
+         y1 = tmp[team == 'houston rockets', log.population], col = 'gray70', lty = 'dashed')
+abline(h = tmp[team == 'houston rockets', log.ndrinks], col = 'gray70', lty = 'dashed')
+### New orleans is infamous for party, but Population places it at the bottom of the index.
+segments(x0 = which(tmp$team == 'new orleans hornets'),
+         x1 = which(tmp$team == 'new orleans hornets'), 
+         y0 = -1, 
+         y1 = tmp[team == 'new orleans hornets', log.population],col = 'gray70', lty = 'dashed')
+segments(x0 = 0, x1 = which(tmp$team == 'new orleans hornets'),
+         y0 = tmp[team == 'new orleans hornets', log.population],
+         y1 = tmp[team == 'new orleans hornets', log.population], col = 'gray70', lty = 'dashed')
+axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>%
                                gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
 axis(side = 2)
 legend(x = 1.5, y = 12.5, legend = c('Musicians and sound recording studios',
@@ -590,7 +609,7 @@ b <- lapply(2012:2016, function(yr) {
                 actual.outcome = mlb.lines[year(date) == yr, team.score > opponent.score][idx],
                 odds = mlb.lines[year(date) == yr, odds][idx], SIMPLIFY = T)
     cat(paste0(sum(b, na.rm = T), '\n'))
-    ### 
+    ###
 #    pdf(paste0('mlb_bets_', yr, '.pdf'))
     betting.days <- mlb.lines[year(date) == yr][idx, date]
     running.prof <- cumsum(ifelse(is.na(b), 0, b))
