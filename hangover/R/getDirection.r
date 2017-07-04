@@ -7,6 +7,7 @@
 #' @keywords get, direction
 #' @export
 #' @examples
+#'
 getDirection <- function(last.loc, cur.loc, dirs)
     if(!is.na(last.loc) && !is.na(cur.loc))
         dirs[last.loc, cur.loc]
