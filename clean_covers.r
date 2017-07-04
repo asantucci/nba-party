@@ -88,23 +88,7 @@ lines[, location := team]
 ### Creating a panel-data set.
 ##################################################
 
-### We first need to reshape our data, since we want a panel-data set.
-### I.e., for each time we want a listing of games played in a season.
-### This does in fact mean that we have the same game listed twice in our data,
-### but the observations will be different since the lagged variables will be different.
-### I.e. the number of days since last game and distance traveled will be different for each
-### of the teams.
-### To do this, we simply 'reverse' each obseration, carefully.
-lines.dup <- copy(lines)
-lines.dup[, `:=`(team = opponent, opponent = team,
-                 score = strsplit(score, split = '-') %>%
-                     lapply(., rev) %>%
-                     sapply(., paste, collapse = '-'),
-                 line = -1 * line,
-                 location = location,
-                 outcome = ifelse(outcome == 'L', 'W', 'L'))]
-
-lines <- rbind(lines, lines.dup)
+lines <- hangover::createPanelDataset(lines, 'nba')
 
 setkey(lines, team, season, date)
 lines[, nhours.lgame   := c(NA, diff(date)),              by = list(team, season)]
@@ -115,17 +99,9 @@ lines[, last.game.time := c(NA, lag(hour(date))[1:.N-1]), by = list(team, season
 ### Distance Traveled.
 ##################################################
 ### Here, we geocode team locations to get lat-lon, and also addresses.
-## teams <- lines[, unique(team)]
-## locs <- sapply(teams, geocode, simplify = F)
-## locs <- do.call(rbind, locs)
-## locs[['team']] <- rownames(locs)
-## setDT(locs)
+locs <- hangover::getLocations(unique(lines$team))
 
-## dmat <- spDists(locs[, list(lon, lat)] %>% as.matrix, longlat = T) # Returns distance in kilometers.
-## dmat <- dmat / 1.60934  # Convert to Miles.
-## rownames(dmat) <- locs$team
-## colnames(dmat) <- locs$team
-## save(dmat, file = 'tmp_data/distance_matrix.RData')
+hangover::calculateDistances(locs, 'tmp_data/distance_matrix.RData', unique(lines$team))
 load(file = 'tmp_data/distance_matrix.RData')
 
 lines[, travel.dist := hangover::getDist(location, last.game.loc, dmat),
@@ -148,9 +124,7 @@ lines[, travel.dir := hangover::getDirection(last.game.loc, location, dirs),
       by = list(last.game.loc, location)]
 
 
-
 lines[, dir.traveled := hangover::degToCompass(travel.dir), by = travel.dir]
-
 
 ##################################################
 ### Standings from last season
@@ -170,9 +144,10 @@ load(file = 'tmp_data/roster.RData')
 roster[, season := gsub('-', '_', season)]
 roster[, season := paste0(substr(season, 1, 2), substr(season, 6, 7)) %>% as.integer]
 setkey(roster, team, season)
-getAvgAge <- function(t, s, game.date, roster) {
+
+getAvgAge <- function(t, s, game.date, roster)
     roster[.(t, s), mean(as.Date(game.date) - birthdate)]
-}
+
 lines[, avg.age := getAvgAge(team, season, date, roster), by = list(team, season, date)]
 lines[, avg.age := as.numeric(avg.age) %>% log]
 
@@ -186,7 +161,7 @@ lines[, loss.season := cumsum(!nominal.outcome), by = list(season, team)]
 ##################################################
 
 lines[, c('team.pts.scored', 'team.pts.admitted') := tstrsplit(score, split = '-', fixed = T)]
-lines[, `:=`(team.pts.scored = as.numeric(team.pts.scored),
+lines[, `:=`(team.pts.scored   = as.numeric(team.pts.scored),
              team.pts.admitted = as.numeric(team.pts.admitted))]
 
 save(lines, file = 'tmp_data/covers_lines.RData')

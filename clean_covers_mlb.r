@@ -115,16 +115,7 @@ data[, start.time := NULL]
 ##################################################
 ### Creating panel data-set.
 ##################################################
-lines.dup <- copy(data)
-lines.dup[, `:=`(team = opponent, opponent = team,
-                 score = strsplit(score, split = '-') %>%
-                     lapply(., rev) %>%
-                     sapply(., paste, collapse = '-'),
-                 odds = 1 - odds,
-                 location = location)]
-
-lines <- rbind(data, lines.dup)
-
+lines <- hangover::createPanelDataset(data, 'mlb')
 lines[, season := year(date)]
 
 setkey(lines, team, season, date)
@@ -138,19 +129,9 @@ lines <- lines[ndays.lgame != 0]
 ### Team Locations and Distance Traveled.
 ##################################################
 ### Here, we geocode team locations to get lat-lon, and also addresses.
-## require(ggmap)
-## require(sp)
-## teams <- lines[, unique(team)]
-## locs <- sapply(teams, geocode, simplify = F)
-## locs <- do.call(rbind, locs)
-## locs[['team']] <- rownames(locs)
-## setDT(locs)
+locs <- hangover::getLocations(unique(lines$team))
 
-## dmat <- spDists(locs[, list(lon, lat)] %>% as.matrix, longlat = T) # Returns distance in kilometers.
-## dmat <- dmat / 1.60934  # Convert to Miles.
-## rownames(dmat) <- locs$team
-## colnames(dmat) <- locs$team
-## save(dmat, file = 'tmp_data/distance_matrix_mlb.RData')
+hangover::calculateDistances(locs, 'tmp_data/distance_matrix_mlb.RData', unique(lines$team))
 load(file = 'tmp_data/distance_matrix_mlb.RData')
 
 lines[, travel.dist := hangover::getDist(location, last.game.loc, dmat),
@@ -190,7 +171,7 @@ save(lines, file = 'tmp_data/covers_lines_mlb.RData')
 ### Causal Model, includes all observations up through 2016.
 m <- glm(I(team.score > opponent.score) ~ party + odds + I(team == location) +
              ndays.lgame + travel.dist + weekend,
-         data = lines, family = 'binomial')
+         data = lines[season < 2017], family = 'binomial')
 summary(m)
 
 ##################################################
