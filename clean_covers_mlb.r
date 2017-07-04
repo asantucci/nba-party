@@ -21,7 +21,7 @@ require(data.table)
 require(magrittr)
 require(sampling)
 
-source('functions.r')
+require(hangover)
 
 ### A character vector of full team names.
 fulls <- c('arizona diamondbacks', 'atlanta braves', 'baltimore orioles', 'boston redsox',

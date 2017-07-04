@@ -24,7 +24,8 @@
 ### Set up Workspace
 ##################################################
 
-source('functions.r') # for subsetBLS, CleanBLS.
+require(hangover)
+
 require(data.table)
 require(ggmap)
 require(magrittr)

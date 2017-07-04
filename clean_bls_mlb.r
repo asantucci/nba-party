@@ -18,6 +18,8 @@
 ################################################################################
 ################################################################################
 
+require(hangover)
+
 require(data.table)
 require(ggmap)
 require(magrittr)
@@ -30,9 +32,6 @@ clusterCall(cl, function() {
     require(data.table)
     require(magrittr)
 })
-
-### All the heavy lifting is done in our CleanBLS function...
-source('functions.r')
 
 ### Load raw data, subset based on party.regex, aggregate using FUN, and save using suffix/sport.
 CleanBLS(party.regex = c('sound recording', 'music publisher', 'musical group'),
