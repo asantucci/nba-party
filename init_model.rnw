@@ -270,7 +270,11 @@ dev.off()
 ##################################################
 mp <- update(m0, . ~ party.placebo + . - party.discrete)
 
-stargazer(mp, covariate.labels = c('party placebo', 'lag changes in posession', 'logged travel distance', 'east-west travel direction', 'number hours rest time', 'time of game during day', 'home team effect', 'logged travel distance * east-west', 'Constant'),
+stargazer(mp, covariate.labels = c('Party placebo', 'Lag changes in posession', 
+                                   'Logged travel distance', 'East-west travel direction', 
+                                   'Number hours rest time', 'Time of game during day', 
+                                   'Home team effect', 'Logged travel distance * east-west', 
+                                   'Constant'),
           dep.var.labels = 'Meet the Spread (NBA)')
 
 ##################################################
@@ -629,12 +633,13 @@ dev.off()
 ### Meet the spread for both NBA and MLB
 pdf('writing/meet_the_spread.pdf')
 par(mfcol = c(2, 1))
-nba.lines[, list(meet.spread = mean(outcome == 'W')), 
-          by = list(season, team)][, hist(meet.spread, 
-                                          main = paste('How often do teams meet the spread? (NBA)', 
-                                                       'By season-team, 2010-11 through 2016-17',
-                                                       sep = '\n'),
-                                          xlab = 'Meet the Spread', breaks = 25)]
+tmp <- nba.lines[, list(meet.spread = mean(outcome == 'W')), 
+          by = list(season, team)]
+hist(tmp$meet.spread, prob = T, main = paste('How often do teams meet the spread? (NBA)', 
+                                             'By season-team, 2010-11 through 2016-17',
+                                             sep = '\n'),
+     xlab = 'Meet the Spread', breaks = 25)
+lines(density(tmp$meet.spread, adjust = 2), col = 'orange', lty = 'dashed')
 ### There should be 'no information' left over after conditioning on odds.
 noinf <- lm(I(team.score > opponent.score) ~ odds, data = mlb.lines)
 preds <- fitted(noinf)
@@ -644,7 +649,7 @@ mlb.lines[, list(avg.residual = mean(resid)), by = round(fitted, 3)] %>%
     plot(., xlab = 'Fitted Probability', ylab = 'Average Residual', 
          main = paste('After conditioning on bookkeeper\'s odds (MLB),',
                       'successful prediction is a coin-flip', sep = '\n'))
-abline(a = 0, b = 0, col = 'red', lty = 'dashed')
+abline(a = 0, b = 0, col = 'orange', lty = 'dashed')
 dev.off()
 
 
