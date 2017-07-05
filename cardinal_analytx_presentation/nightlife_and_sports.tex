@@ -6,23 +6,30 @@
 \usepackage{hyperref}
 \usepackage{changepage}
 
+ % \usetheme{Dresden} % \usecolortheme{beaver} % \setbeamercolor{itemize item}{fg=darkred!80!black}
+
 \setbeamertemplate{navigation symbols}{}
 
-\usetikzlibrary{shapes,arrows} \setbeamerfont{author}{size=\Huge} \setbeamerfont{institute}{size=\normalsize\itshape} \setbeamerfont{title}{size=\fontsize{30}{36}\bfseries} \setbeamerfont{subtitle}{size=\Large\normalfont\slshape}  \setbeamertemplate{title page} { \begin{tikzpicture}[remember picture,overlay] \fill[orange]   ([yshift=15pt]current page.west) rectangle (current page.south east); \node[anchor=east]    at ([yshift=-50pt]current page.north east) (author)   {\parbox[t]{.6\paperwidth} {\raggedleft      \usebeamerfont{author}\textcolor{orange} {     \textpdfrender{     TextRenderingMode=FillStroke,     FillColor=orange,     LineWidth=.1ex,     }{\insertauthor}}}};
-\node[anchor=north east]
-  at ([yshift=-70pt]current page.north east) (institute) {
-    \parbox[t]{.78\paperwidth} { 
-      \raggedleft \usebeamerfont{institute}\textcolor{gray} {\insertinstitute}}}; 
-\node[anchor=south west] at ([yshift=20pt]current page.west) (logo) {
-  \parbox[t]{.19\paperwidth} { 
-    \raggedleft \usebeamercolor[fg]{titlegraphic} \inserttitlegraphic}}; 
-\node[anchor=east] at ([yshift=-10pt,xshift=-20pt]current page.east) (title) {
-  \parbox[t]{\textwidth} {
-    \raggedleft \usebeamerfont{author}\textcolor{white} {  
-      \textpdfrender { 
-        TextRenderingMode=FillStroke, FillColor=white, LineWidth=.1ex}{\inserttitle}}}}; \node[anchor=east] at ([yshift=-60pt,xshift=-20pt]current page.east) (subtitle) {
-  \parbox[t]{.6\paperwidth}{\raggedleft\usebeamerfont{subtitle}\textcolor{black}{\insertsubtitle}}};  
-\end{tikzpicture} }  \author{Andreas Santucci} \institute{Stanford Teaching Fellow \\ Computational Math, Data Science} \title{Effects of nightlife on sports} \subtitle{Cardinal Analytx Interview} % \titlegraphic{\includegraphics[width=2cm]{ctanlion}}
+\usetikzlibrary{shapes,arrows} \setbeamerfont{author}{size=\Huge} 
+\setbeamerfont{institute}{size=\normalsize\itshape} \setbeamerfont{title}{size=\fontsize{30}{36}\bfseries} \setbeamerfont{subtitle}{size=\Large\normalfont\slshape}  \setbeamertemplate{title page} {
+  \begin{tikzpicture}[remember picture,overlay]     \fill[orange]   ([yshift=15pt]current page.west) rectangle (current page.south     east); \node[anchor=east]    at ([yshift=-50pt]current page.north east) (author)       {\parbox[t]{.6\paperwidth} {\raggedleft              \usebeamerfont{author}\textcolor{orange} {     \textpdfrender{                 TextRenderingMode=FillStroke,     FillColor=orange,     LineWidth=.1ex,               }{\insertauthor}}}};
+    \node[anchor=north east]
+    at ([yshift=-70pt]current page.north east) (institute) {
+      \parbox[t]{.78\paperwidth} { 
+        \raggedleft \usebeamerfont{institute}\textcolor{gray}         {\insertinstitute}}}; 
+    \node[anchor=south west] at ([yshift=20pt]current page.west) (logo) {
+      \parbox[t]{.19\paperwidth} { 
+        \raggedleft \usebeamercolor[fg]{titlegraphic} \inserttitlegraphic}}; 
+    \node[anchor=east] at ([yshift=-10pt,xshift=-20pt]current page.east) (title) {
+      \parbox[t]{\textwidth} {
+        \raggedleft \usebeamerfont{author}\textcolor{white} {  
+          \textpdfrender { 
+            TextRenderingMode=FillStroke, FillColor=white,             LineWidth=.1ex}{\inserttitle}}}}; \node[anchor=east] at     ([yshift=-60pt,xshift=-20pt]current page.east) (subtitle) {
+      \parbox[t]{.6\paperwidth}{\raggedleft\usebeamerfont{subtitle}\textcolor{black}{\insertsubtitle}}};  
+  \end{tikzpicture}
+}  
+
+\author{Andreas Santucci} \institute{Stanford Teaching Fellow \\ Computational Math, Data Science} \title{Effects of nightlife on sports} \subtitle{Cardinal Analytx Interview} % \titlegraphic{\includegraphics[width=2cm]{ctanlion}}
  \begin{document}  \begin{frame} \maketitle \end{frame}
 
 \begin{frame}   \frametitle{What is the problem?}
