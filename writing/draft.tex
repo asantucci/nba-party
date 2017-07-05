@@ -165,7 +165,12 @@ and in particular this is true for west coast teams). We hypothesize that
 this is due to practical limitations on flight schedules. E.g. if a team is unwilling to take a red-eye
 flight, then there is little hope to play an evening west coast game and make it to the east coast for a game the very next day;
 the same is \emph{not true} when flying from east to west, in which case a morning flight is reasonable.
+
+
 The fact that there is some correlation between last game location and next day opponent, even if only in west coast cities, increases the motivation for conditioning on spread, which may help account for systematic biases to the extent that some of these next-day opponents are particularly (not) skilled. 
+In fact, using point-spread data we may weaken our assumption: we only need
+likelihood of meeting the spread to be uncorrelated with last game location
+in order to have identification in our variable of interest.
 
 \paragraph{Partying as a latent variable}
 One of the hardest parts of this analysis is that partying is a latent variable.
@@ -436,7 +441,8 @@ by visitation to cities with active nightlife. The analagous placebo test
 for MLB is not relevant, since almost all games are played back to back.
 
 % mp
-\begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & Meet the Spread (NBA) \\  \hline \\[-1.8ex]   party placebo & 0.072 \\    & (0.082) \\    & \\   lag changes in posession & 0.00001 \\    & (0.002) \\    & \\   logged travel distance & $-$0.005 \\    & (0.026) \\    & \\   east-west travel direction & $-$0.099 \\    & (0.232) \\    & \\   number hours rest time & 0.001$^{*}$ \\    & (0.001) \\    & \\   time of game during day & 0.001 \\    & (0.013) \\    & \\   home team effect & $-$0.009 \\    & (0.043) \\    & \\   logged travel distance * east-west & 0.015 \\    & (0.036) \\    & \\   Constant & $-$0.070 \\    & (0.378) \\    & \\  \hline \\[-1.8ex]  Observations & 9,823 \\  Log Likelihood & $-$6,806.702 \\  Akaike Inf. Crit. & 13,631.400 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
+\begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & Meet the Spread (NBA) \\  \hline \\[-1.8ex]   Party placebo & 0.072 \\    & (0.082) \\    & \\   Lag changes in posession & 0.00001 \\    & (0.002) \\    & \\   Logged travel distance & $-$0.005 \\    & (0.026) \\    & \\   East-west travel direction & $-$0.099 \\    & (0.231) \\    & \\   Number hours rest time & 0.001$^{*}$ \\    & (0.001) \\    & \\   Time of game during day & 0.001 \\    & (0.013) \\    & \\   Home team effect & $-$0.009 \\    & (0.043) \\    & \\   Logged travel distance * east-west & 0.015 \\    & (0.036) \\    & \\   Constant & $-$0.069 \\    & (0.378) \\    & \\  \hline \\[-1.8ex]  Observations & 9,823 \\  Log Likelihood & $-$6,806.701 \\  Akaike Inf. Crit. & 13,631.400 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
+
 \subsection{Possible confounders or potential issues}
 
 \paragraph{The problem of an unknown travel schedule} In NBA, we have the difficulty of not observing when teams travel. E.g. if a particular team  plays
