@@ -33,81 +33,63 @@
  \begin{document}  \begin{frame} \maketitle \end{frame}
 
 \begin{frame}   \frametitle{What is the problem?}
-  \begin{block}{Do pro athletes party to the detriment of their performance?}
-    Anecdotally, they do party.\footnote{Duffy ('17), Cestone ('17), Duffy ('16), 
-      Price ('15), Concepcion ('15), Miller ('15), Campbell ('15), Ball ('12).}
-
-    \vspace{12pt}It's not unreasonable to think that what happens off the court affects game-outcomes, but!
+  \begin{block}{Do pro athletes party to the detriment of their performance?}     It's not unreasonable to think that what happens off the court affects game-outcomes, but!
     \begin{itemize}       
-      \item Can we even measure a hangover effect?
+      \item Can we even measure these phenomena?
       \item Are there systematic tendencies?
-      \end{itemize}
-  \end{block} 
+    \end{itemize}       \end{block}
 \end{frame}
 
 % What is our solution?
 
 \begin{frame}   
-  \frametitle{Whether players actually party is a latent variable}
-  \begin{block}{We can't observe whether players party.}
-    Instead, we will consider a quasi-experiment where players are exposed to nightlife. 
-    Motivating questions:
-    \vspace{12pt} 
-    \begin{itemize}       \item Do teams play worse the day after visiting a ``party city''?
-      \item How do we even determine whether a city has nightlife?    
-      \item What does it mean to ``play worse''? \end{itemize}
+  \frametitle{Why is this problem hard?}
+  \begin{block}{Partying is a latent variable.}
+    Instead, we proxy for the possibility of athletes partying by looking at 
+    play following games in party cities. Our question becomes...
   \end{block}
-
-  \vspace{12pt}We define ``play worse'' relative to bookmaker/public expectations.
+  \vspace{12pt}\begin{block}{Do teams exhibit a decline in performance the day following a game in a city with active nightlife?}     I.e. we are concerned with ``hangover effects''.
+  \end{block}
+  \vspace{12pt}\begin{block}{Part of the question is determining a measure for nightlife. }
+    We colloquially call cities with high levels of nightlife ``party cities''.   \end{block}
 \end{frame}
+
+  %   \vspace{12pt} 
+  %   \begin{itemize}       \item Do teams play worse the day after visiting a ``party city''?
+  %     \item How do we even determine whether a city has nightlife?    
+  %     \item What does it mean to ``play worse''? \end{itemize}
+
+  % \vspace{12pt}We define ``play worse'' relative to bookmaker/public expectations.
+
 
 
 \begin{frame}   
   \frametitle{Who cares?}
   \begin{block}{\$400 billion spent on sports betting per year in the US.\footnote{NBA Commissioner Adam Silver, 2014.}}
 
-    Apparently, a lot of people.
+    Apparently, a lot of people. Aside from bettors...
+  \end{block}
 
-    \vspace{12pt}Even aside from bettors, knowing the causal relation between partying and next-day performance might inform
+  \vspace{12pt}\begin{block}{The causal relationship might inform more optimal strategy.}     For example,
+    % Even aside from bettors, knowing the causal relation between % partying and next-day performance might inform
     \begin{itemize}       
       \item how coaches set team-rules, 
-      \item how travel schedules are determined, as well as
-      \item which players to bench, and when.
-      \end{itemize}
+      \item how managers determine travel schedules, as well as
+      \item which players to bench, and when.\footnote{Are players more likely to get injured the next day as a result of partying?}
+    \end{itemize}
   \end{block}
 \end{frame}
 
-\begin{frame}   
-  \frametitle{Is the problem hard?}
+% \begin{frame}   
+%   \frametitle{Is the problem hard?}
 
-  \begin{block}{Finding causal-mechanisms which significantly determine game-outcomes is difficult.}       It's not obvious whether we will find an effect. 
+%   \begin{block}{Finding causal-mechanisms which significantly determine % game-outcomes is difficult.}       It's not obvious whether we will find an % effect. 
 
-      \vspace{12pt}After all, we can't reliably observe if players party, let alone when.
+%       \vspace{12pt}After all, we can't reliably observe if players party, let % alone when.
 
-      Even if we could, can we exploit this in the marketplace?   \end{block}
+%       Even if we could, can we exploit this in the marketplace?   \end{block}
 
-\end{frame}
-
-\begin{frame}
-  \frametitle{Previous research - NBA player shooting average}     
-  NBA Players under-perform proportion of shots made on Sundays.\footnote{Chase, ('15).}
-    \begin{itemize}       
-    \item 1,092 of 2,035 NBA players who took $\geq 1$ shot on Sundays under-perform 
-      relative to their own season-long average; $p=0.001$.
-      \item Effect size is not considered.
-      \item Density of support is questionable.\footnote{What if we miss the only shot we took on Sunday, is that relevant?}     \end{itemize}
-\end{frame}
-
-\begin{frame}   \frametitle{Prev. research - likelihood of meeting the spread in NBA}
-  Teams under-perform bookmakers expectations on Sunday afternoons when on the road.\footnote{Ezekowitz, ('14).}
-\vspace{12pt}
-    \begin{itemize}       
-    \item Only 129 out of 284 games did the away team meet the spread, 
-      using 2006-14 data; $p=0.1089$.
-    \item Not quite significant at the 90\% confidence level.     
-    \item If we bet \$100 on each Sunday game, we'd only profit \$1,310.\footnote{$(284 - 129) \times 100 + 129 \times (-110) = 1,310$.} 
-    \end{itemize}
-  \end{frame}
+% \end{frame}
 
 \begin{frame}
   \frametitle{How can we measure unexpected changes in performance?}     \begin{block}{Bookmaker point-spreads (NBA)}     
@@ -121,37 +103,72 @@
 
     A team is expected to meet the spread $\frac{1}{2}$ the time.\footnote{Dubner and Levitt, ('06). Losers pay 10\% fee on top of wagers; a balanced book guarantees 5\% gain for the house-bookmaker.}
   \end{block}
-  \begin{block}{Bookmaker money-lines (MLB)}     The odds that a team will beat their opponent.
+  \vspace{12pt}\begin{block}{Bookmaker money-lines (MLB)}     The odds that a team will beat their opponent.
 
-    After conditioning on odds, successful prediction is like a coin-flip.   \end{block} \end{frame}
+    After conditioning on odds, successful prediction is like a coin-flip. \end{block} \end{frame}
 
 \begin{frame}
-  \centering   \includegraphics[scale=0.55]{../writing/meet_the_spread} \end{frame}
+  \centering   \includegraphics[scale=0.55]{../writing/meet_the_spread} 
+\end{frame}
 
-\begin{frame}   \frametitle{Identification}
-    If next day opponent is uncorrelated with visitation to a party city,
+\begin{frame}   \frametitle{Our solution: a quasi-experiment.}
+  \begin{block}{Systematic deviations represent unexplained mechanisms.}     We construct a model which attempts to estimate the causal effect of visiting a ``party city''
+    on subsequent day performance, as measured by the odds of meeting the spread.       \end{block}
+
+  \begin{block}{}     We only consider the hangover effect on games played back-to-back within 24 hours of each other.   \end{block} \end{frame}
+
+\begin{frame}   \frametitle{Identifying variation}
+  \begin{block}{Explain performance as a function of prev. day's nightlife index.}     If next day opponent is uncorrelated with visitation to a party city,
     then looking at the \emph{actual outcome} of the game $\leadsto$ identification.
 
-\vspace{15pt} 
-    
+    \vspace{15pt} 
+
     Weaker, still: if odds of beating the spread uncorrelated with previous game location
-    $\leadsto$ identification.\footnote{Under an efficient market, this assumption should hold.}     \end{frame}
+    $\leadsto$ identification.\footnote{Under an efficient market, this assumption should hold.}       \end{block}
+\end{frame}
 
-\begin{frame}   \frametitle{Our solution: a quasi-experiment}
-  Consider games played back-to-back within 24 hours.  
+
+\begin{frame}
+  \frametitle{Previous research - NBA player shooting average}
+  \begin{block}{Empirical evidence: players party to the detriment of the game.}
+  NBA Players under-perform proportion of shots made on Sundays.\footnote{Chase, ('15).}
+  \end{block}
+    \begin{itemize}       
+    \item 1,092 of 2,035 NBA players who took $\geq 1$ shot on Sundays under-perform 
+      relative to their own season-long average; $p=0.001$.
+      \item Effect size is not considered.
+      \item Density of support is questionable.\footnote{What if we miss the only shot we took on Sunday, is that relevant?}     \end{itemize}
+\end{frame}
+
+\begin{frame}   \frametitle{Prev. research - likelihood of meeting the spread in NBA}
+  \begin{block}{Empirical evidence: away teams under-perform on Sundays.}
+  Teams under-perform bookmakers expectations on Sunday afternoons when on the road.\footnote{Ezekowitz, ('14).}
+    \begin{itemize}       
+    \item Only 129 out of 284 games did the away team meet the spread, 
+      using 2006-14 data; $p=0.1089$.
+    \item Not quite significant at the 90\% confidence level.     
+    \item If we bet \$100 on each Sunday game, we'd only profit \$1,310.\footnote{$(284 - 129) \times 100 + 129 \times (-110) = 1,310$.} 
+    \end{itemize}
+  \end{block}
+  \end{frame}
+
+
+% \begin{frame}   \frametitle{Our solution: a quasi-experiment}
+%   Consider games played back-to-back within 24 hours.  
   
-  \vspace{12pt}
-  Examine whether spread is met as a function of nightlife index for lagged game location.
+%   \vspace{12pt}
+%   Examine whether spread is met as a function of nightlife index for lagged game % location.
 
-  \vspace{12pt} (Alcohol and loss of sleep are well correlated with nightlife; both have been shown to have negative effects on sports performance.)\footnote{Shirreffs and Maughan ('06), Barnes ('14), Pilcher and Huffcutt ('96).} \end{frame}
+%   \vspace{12pt} (Alcohol and loss of sleep are well correlated with nightlife; % both have been shown to have negative effects on sports % performance.)\footnote{Shirreffs and Maughan ('06), Barnes ('14), Pilcher and % Huffcutt ('96).} \end{frame}
 
 \begin{frame}   \frametitle{Sports: NBA and MLB}
   \begin{block}{We perform the analysis for both NBA and MLB}     
-    Observe a team traveling to a city with active nightlife.
+    If we observe a team traveling to a city with active nightlife:
     \vspace{12pt}
     \begin{itemize}       \item For NBA teams playing another game in the next 24 hours, are they less likely to meet the points-spread?
       \item For MLB teams, after conditioning on the odds of winning, are they less likely to beat their opponent?     \end{itemize}
-    \vspace{12pt}\begin{block}{If we yield a causal model, we may realize a betting schema.}     \end{block}
+    \vspace{12pt}\begin{block}{If we yield a causal model, we may realize a betting schema.}     
+\end{block}
   \end{block} 
 \end{frame}
 
@@ -249,7 +266,7 @@
 \begin{frame}   \frametitle{A closer look at NBA games on the road}
   \centering \includegraphics[scale=0.25]{../writing/next_day_opponent_on_tour} \end{frame}
 
-\begin{frame}   \frametitle{Further motivation for conditioning on the spread}
+\begin{frame}   %\frametitle{Further motivation for conditioning on the spread}
   \begin{block}{With some correlation between next-day opponent, this further motivates conditioning
   on bookmakers' expectations.}
   \begin{itemize}     \item If bookkeepers aware of hangover effects, our variable of interest may not appear significant, in spite of there being a true effect.
