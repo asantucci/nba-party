@@ -34,6 +34,7 @@
 <<echo=F,results='hide',messages=F>>=
 
 require(hangover)
+
 require(data.table)
 require(ggplot2)
 require(magrittr)
@@ -278,7 +279,7 @@ stargazer(mp, covariate.labels = c('Party placebo', 'Lag changes in posession',
           dep.var.labels = 'Meet the Spread (NBA)')
 
 ##################################################
-### Table for uncorrelated next day opponent
+### Table for (un)-correlated next day opponent
 ##################################################
 
 tmp <- nba.lines[, .N, 
@@ -325,6 +326,9 @@ ggplot(tmp[cur.game == 'Current game away' &
           plot.title = element_text(hjust=.5))
 dev.off()
 
+## tmp <- nba.lines[, list(meet.spread = mean(outcome == 'W'), .N), by = list(last.game.loc, team)][order(N)]
+## hist(tmp$meet.spread, probability = T)
+## lines(density(tmp$meet.spread, adjust = 1))
 
 ##################################################
 ### Why drinking estabs doesn't work. (NBA)
@@ -379,6 +383,13 @@ text(x = 3.6, y = 9.5, labels = paste("Correlation (alcohol):       ",
                                        cor(tmp$log.nmusicians, tmp$log.ndrinks) %>% round(., 3)))
 text(x = 3.6, y = 10, labels = paste("Correlation (population): ", 
                                        cor(tmp$log.nmusicians, tmp$log.population) %>% round(., 3)))
+points(x = c(which(tmp$team == 'new orleans hornets'),
+             which(tmp$team == 'houston rockets'),
+             which(tmp$team == 'houston rockets')),
+       y = c(tmp[team == 'new orleans hornets', log.population],
+             tmp[team == 'houston rockets', log.population],
+             tmp[team == 'houston rockets', log.ndrinks]),
+       type = 'p', col = 'red')
 dev.off()
 
 @
@@ -603,30 +614,37 @@ pdf('writing/mlb_bets_by_season.pdf')
 par(mfrow = c(3,2))
 b <- lapply(2012:2016, function(yr) {
     m <- glm(I(team.score > opponent.score) ~ party + odds,
-             data = mlb.lines[year(date) < yr], family = 'binomial')
+             data = mlb.lines[season < yr], family = 'binomial')
     p <- predict(m, newdata = mlb.lines[year(date) == yr], type = 'response')
-    idx <- which(p < .45)
-    p1 <- mapply(Predict, prediction = p[idx], 
-                 vegas = mlb.lines[year(date) == yr, odds][idx],
-                 MoreArgs=list(threshold = 0.01))
-    b <- mapply(Bet, our.prediction = p1,
-                actual.outcome = mlb.lines[year(date) == yr, team.score > opponent.score][idx],
-                odds = mlb.lines[year(date) == yr, odds][idx], SIMPLIFY = T)
-    cat(paste0(sum(b, na.rm = T), '\n'))
-    ###
-#    pdf(paste0('mlb_bets_', yr, '.pdf'))
-    betting.days <- mlb.lines[year(date) == yr][idx, date]
-    running.prof <- cumsum(ifelse(is.na(b), 0, b))
-    plot(x = 1:length(b), y = running.prof, 
-         main = paste0('Profits over the ', yr, ' season\n',
+    ### Subset data to relevant year we wish to predict on; make predictions.
+    tmp <- mlb.lines[season == yr, .(matchup, date, team, opponent, 
+                                     team.score, opponent.score, odds)]
+    tmp[, fitted := predict(m, newdata = mlb.lines[year(date) == yr], type = 'response')]
+    ### Realize that we can only make one prediction per game. So take the stronger bet.
+    setkey(tmp, date, matchup)
+    tmp <- tmp[, .SD[which.max(abs(fitted - .5))], by = list(matchup, date)]
+    tmp <- mlb.lines[tmp, on = intersect(names(tmp), names(mlb.lines))]
+    ### Translate fitted probabilities into 0-1 predictions if our odds differ by threshold amount.
+    tmp[, prediction := mapply(hangover::Predict, prediction = tmp$fitted, vegas = tmp$odds, 
+                               MoreArgs = list(threshold = 0.02))] # 0.02 was chosen ad-hoc.
+    tmp <- tmp[!is.na(prediction)]
+    ### Translate prediction into a monetary gain or loss based on odds and actual outcome.
+    tmp[, bet := mapply(hangover::Bet, our.prediction = prediction, 
+                        actual.outcome = team.score > opponent.score,
+                        odds = odds)]
+    ### Plot the cumulative sum of profits over the course of the season.
+    tmp[, running.prof := cumsum(bet)]    
+    cat(paste0(sum(tmp$bet), '\n'))
+    plot(x = 1:nrow(tmp), y = tmp$running.prof, 
+         main = paste0('Profit over the ', yr, ' season: $', 
+                       format(round(sum(tmp$bet), digits = -1), big.mark = ','), '\n',
                        'Training on 2011-', yr-1, ' data'),
          xlab = 'Game Number', ylab = 'Profit', type = 'l')
     abline(a = 0, b = 0, lty = 3)
-    points(x = which.min(running.prof), y = min(running.prof), type = 'p')
-    text(x = which.min(running.prof), y = min(running.prof), 
-         labels = round(min(running.prof)), pos = 4)
-    return(b)
-#    dev.off()
+    points(x = which.min(tmp$running.prof), y = min(tmp$running.prof), type = 'p')
+    text(x = which.min(tmp$running.prof), y = min(tmp$running.prof), 
+         labels = round(min(tmp$running.prof)), pos = 4)
+    return(tmp[, bet])
 })
 dev.off()
 
@@ -639,17 +657,18 @@ hist(tmp$meet.spread, prob = T, main = paste('How often do teams meet the spread
                                              'By season-team, 2010-11 through 2016-17',
                                              sep = '\n'),
      xlab = 'Meet the Spread', breaks = 25)
-lines(density(tmp$meet.spread, adjust = 2), col = 'orange', lty = 'dashed')
+lines(density(tmp$meet.spread, adjust = 2), col = 'orange', lty = 'dashed', lwd = 3)
 ### There should be 'no information' left over after conditioning on odds.
 noinf <- lm(I(team.score > opponent.score) ~ odds, data = mlb.lines)
 preds <- fitted(noinf)
 mlb.lines[, fitted := fitted(noinf)]
 mlb.lines[, resid  := resid(noinf)]
-mlb.lines[, list(avg.residual = mean(resid)), by = round(fitted, 3)] %>% 
-    plot(., xlab = 'Fitted Probability', ylab = 'Average Residual', 
-         main = paste('After conditioning on bookkeeper\'s odds (MLB),',
-                      'successful prediction is a coin-flip', sep = '\n'))
-abline(a = 0, b = 0, col = 'orange', lty = 'dashed')
+tmp <- mlb.lines[, .(avg.residual = mean(resid)), by = .(fitted = round(fitted, 3))]
+plot(x = tmp$fitted, y = tmp$avg.residual, 
+     xlab = 'Fitted Probability', ylab = 'Average Residual', 
+     main = paste('After conditioning on bookkeeper\'s odds (MLB),',
+                  'successful prediction is a coin-flip', sep = '\n'))
+abline(lm(avg.residual ~ fitted, tmp), col = 'orange', lty = 'dashed', lwd = 3)
 dev.off()
 
 
@@ -664,28 +683,28 @@ over the course of \Sexpr{sum(!is.na(b))} games.
 <<>>= 
 
 m <- glm(I(team.score > opponent.score) ~ party + odds,
-         data = mlb.lines[year(date) < 2016], family = 'binomial')
-p <- predict(m, newdata = mlb.lines[year(date) == 2016], type = 'response')
+         data = mlb.lines[season < 2016], family = 'binomial')
+p <- predict(m, newdata = mlb.lines[season == 2016], type = 'response')
 idx <- which(p < .45)
 p1 <- mapply(Predict, prediction = p[idx], 
-             vegas = mlb.lines[year(date) == 2016, odds][idx],
+             vegas = mlb.lines[season == 2016, odds][idx],
              MoreArgs=list(threshold = 0.01))
 b <- mapply(Bet, our.prediction = p1,
-                actual.outcome = mlb.lines[year(date) == 2016, team.score > opponent.score][idx],
-            odds = mlb.lines[year(date) == 2016, odds][idx], SIMPLIFY = T)
+                actual.outcome = mlb.lines[season == 2016, team.score > opponent.score][idx],
+            odds = mlb.lines[season == 2016, odds][idx], SIMPLIFY = T)
 
 ### the following plot shows sufficient deviation from house odds to motivate
 ### an optimized betting strategy.
-hist(p- mlb.lines[year(date) == 2016, odds])
+hist(p- mlb.lines[season == 2016, odds])
 
 tholds <- seq(.01, .1, by = .005)
 tmp <- sapply(tholds, function(t) {
     p1 <- mapply(Predict, prediction = p[idx], 
-                 vegas = mlb.lines[year(date) == 2016, odds][idx],
+                 vegas = mlb.lines[season == 2016, odds][idx],
                  MoreArgs=list(threshold = t))
     b <- mapply(Bet, our.prediction = p1,
-                actual.outcome = mlb.lines[year(date) == 2016, team.score > opponent.score][idx],
-                odds = mlb.lines[year(date) == 2016, odds][idx], SIMPLIFY = T)
+                actual.outcome = mlb.lines[season == 2016, team.score > opponent.score][idx],
+                odds = mlb.lines[season == 2016, odds][idx], SIMPLIFY = T)
     return(c(sum(b, na.rm = T) / sum(!is.na(b)), sum(!is.na(b)))) # Avg profit per game.
 })
 
