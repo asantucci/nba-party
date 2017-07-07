@@ -52,6 +52,7 @@ data[, c('matchup', 'team', 'opponent') := NULL]
 ### Rename variables.
 setnames(data, gsub('\\.full', '', tolower(names(data))))
 setcolorder(data, c('date', 'team', 'opponent', 'line', 'score'))
+data[, matchup := paste(team, opponent, sep = '-')]
 
 ##################################################
 ### Merge in Game-Information
@@ -76,6 +77,7 @@ write.csv(abbrs, file = 'mlb_abbrs.csv', row.names = F)
 game.info[, c('team.nick', 'opponent.nick') := tstrsplit(matchup, split = ' Vs\\. ')]
 game.info[, team.nick := gsub('(.*) sox', '\\1sox', team.nick, ignore.case = T) %>% tolower]
 game.info[, opponent.nick := gsub('(.*) sox', '\\1sox', opponent.nick, ignore.case = T) %>% tolower]
+game.info[, matchup := NULL]
 
 ### Set up column names and types for the merge.
 setnames(game.info, 'location', 'stadium')
@@ -87,8 +89,8 @@ data <- data[year(date) > 2010]
 ##################################################
 ### Variable creation and column classes.
 ##################################################
-
 ### Create a numeric money-line variable.
+data <- data[!is.na(line) & !(line %in% c('OFF', 'lines', 'Line'))]
 data[, line := gsub(' \\(Open\\)$', '', line) %>% as.numeric]
 data <- data[!is.na(line) & !is.na(matchup)]
 
@@ -106,6 +108,7 @@ data[, odds := ifelse(line < 0, 100 / (-line + 100), line / (line + 100))]
 data[, weekday := weekdays(as.Date(date))]
 data[, duration := gsub('Game Duration: ', '', duration)]
 data[, stadium  := gsub('Venue: ', '', stadium)]
+cat("The following line of code will generate a warning; it's related to attendance. Don't worry.\n")
 data[, attendance := gsub('Attendance: ', '', attendance) %>% gsub(',', '', . ) %>% as.numeric]
 data[, start.time := gsub('Start Time: ', '', start.time)]
 data[, start.time := gsub(' +(ET)|(Local)$', '', start.time)]
@@ -129,7 +132,8 @@ lines <- lines[ndays.lgame != 0]
 ### Team Locations and Distance Traveled.
 ##################################################
 ### Here, we geocode team locations to get lat-lon, and also addresses.
-locs <- hangover::getLocations(unique(lines$team))
+locs <- hangover::MyGeoCode(unique(lines$team), 'mlb')
+## locs[, `:=`(lon = as.numeric(lon), lat = as.numeric(lat))]
 
 hangover::calculateDistances(locs, 'tmp_data/distance_matrix_mlb.RData', unique(lines$team))
 load(file = 'tmp_data/distance_matrix_mlb.RData')
@@ -144,11 +148,11 @@ lines[, weekend := weekday %in% c('Saturday', 'Sunday')]
 ##################################################
 ### Musicians from BLS
 ##################################################
-load(file = 'tmp_data/studios_and_artists_mlb.RData')
-setnames(dt, 'variable', 'nmusicians')
-lines <- merge(lines, dt,
-               by.x = c('season', 'last.game.loc'),
-               by.y = c('season', 'team'), all.x = T)
+## load(file = 'tmp_data/studios_and_artists_mlb.RData')
+## setnames(dt, 'variable', 'nmusicians')
+## lines <- merge(lines, dt,
+##                by.x = c('season', 'last.game.loc'),
+##                by.y = c('season', 'team'), all.x = T)
 
 ### What does it mean to party?
 setkey(lines, season, team, date)
@@ -158,10 +162,10 @@ lines[, first.in.series := ifelse(is.na(lag.opponent) | opponent != lag.opponent
 lines[, not.first := !first.in.series]
 
 ## t <- lines[, mean(team.score > opponent.score), by = list(location, first.in.series)][, diff(V1), by = location][order(V1)]
-lines[, party := ifelse(team != location & weekend == 1, log(nmusicians), 0)]
+## lines[, party := ifelse(team != location & weekend == 1, log(nmusicians), 0)]
 
-glm(I(team.score > opponent.score) ~ party + odds,
-         data = lines, family = 'binomial') %>% summary
+## glm(I(team.score > opponent.score) ~ party + odds,
+##          data = lines, family = 'binomial') %>% summary
 
 save(lines, file = 'tmp_data/covers_lines_mlb.RData')
 
@@ -169,30 +173,30 @@ save(lines, file = 'tmp_data/covers_lines_mlb.RData')
 ### Causal Modeling
 ##################################################
 ### Causal Model, includes all observations up through 2016.
-m <- glm(I(team.score > opponent.score) ~ party + odds + I(team == location) +
-             ndays.lgame + travel.dist + weekend,
-         data = lines[season < 2017], family = 'binomial')
-summary(m)
+## m <- glm(I(team.score > opponent.score) ~ party + odds + I(team == location) +
+##              ndays.lgame + travel.dist + weekend,
+##          data = lines[season < 2017], family = 'binomial')
+## summary(m)
 
 ##################################################
 ### Predictive Bets
 ##################################################
 
 ### We only include party as our source of identifying variation.
-m <- glm(I(team.score > opponent.score) ~ party + odds,
-         data = lines[year(date) < 2016], family = 'binomial')
+## m <- glm(I(team.score > opponent.score) ~ party + odds,
+##          data = lines[year(date) < 2016], family = 'binomial')
 
 ### We predict on holdout data.
-p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
+## p <- predict(m, newdata = lines[year(date) == 2016], type = 'response')
 
 ### We chose 0.45 base on hist(p), heuristically.
-idx <- which(p < .45)
-p1 <- mapply(Predict, prediction = p[idx],
-             vegas = lines[year(date) == 2016, odds][idx],
-             MoreArgs=list(threshold = 0.01))
-b <- mapply(Bet, our.prediction = p1,
-            actual.outcome =
-                lines[year(date) == 2016, team.score > opponent.score][idx],
-            odds = lines[year(date) == 2016, odds][idx], SIMPLIFY = T)
+## idx <- which(p < .45)
+## p1 <- mapply(Predict, prediction = p[idx],
+##              vegas = lines[year(date) == 2016, odds][idx],
+##              MoreArgs=list(threshold = 0.01))
+## b <- mapply(Bet, our.prediction = p1,
+##             actual.outcome =
+##                 lines[year(date) == 2016, team.score > opponent.score][idx],
+##             odds = lines[year(date) == 2016, odds][idx], SIMPLIFY = T)
 
-sum(b, na.rm = T)
+## sum(b, na.rm = T)
