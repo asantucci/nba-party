@@ -19,12 +19,13 @@ MyGeoCode <- function(teams, sport) {
         locs[locality == 'El Segundo', locality := 'Los Angeles']
     }
     locs <- data.table(team = teams, locality = locs$locality,
-                       state = locs$administrative.area.level.1, lon = locs$lon, lat = locs$lat)
+                       state = locs$administrative.area.level.1,
+                       lon = locs$lon %>% as.numeric, lat = locs$lat %>% as.numeric)
     if (sport == 'mlb') {
         locs[is.na(locality) & state == 'Florida', `:=`(locality = 'Atlanta', state = 'Georgia')]
         locs[is.na(locality) & state == 'New York', locality := 'New York']
         locs[locality == 'Broomfield' & state == 'Colorado', locality := 'Denver']
         locs[team == 'texas rangers', locality := 'Dallas']
     }
-    save(locs, file = paste0('tmp_data/', sport, '_team_locations.RData'))
+    return(locs)
 }
