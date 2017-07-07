@@ -9,7 +9,7 @@
 #' @keywords scrape, espn
 #' @export
 #' @examples
-#' scrapeESPN('2017-04-12', 370411122)
+#' # not run: scrapeESPN('2017-04-12', 370411122)
 scrapeESPN <- function(date, gameIDs, rescrape = F, path = 'raw_data/espn') {
     if (!rescrape) {
         scraped <- list.files(path) %>% gsub('\\.csv', '', .)

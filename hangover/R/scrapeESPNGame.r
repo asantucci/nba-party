@@ -7,7 +7,7 @@
 #' @keywords scrape, ESPN, game
 #' @export
 #' @examples
-#' scrapeESPNGame(370411122, '2017-04-12')
+#' # not run: scrapeESPNGame(370411122, '2017-04-12')
 scrapeESPNGame <- function(gameID, date, save.path = 'raw_data/espn/') {
     # First, we download and parse HTML contents.
     pg <- paste0('http://www.espn.com/nba/boxscore?gameId=', gameID)

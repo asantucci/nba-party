@@ -27,7 +27,7 @@ scrapeLines <- function(link) {
 #' @keywords scrape, mlb
 #' @export
 #' @examples
-#' scrapeCoverLinesMLB('2010-06-15')
+#' # not run: scrapeCoverLinesMLB('2010-06-15')
 scrapeCoverLinesMLB <- function(date) {
     tryCatch(expr = {
         pg <- paste0('http://www.covers.com/sports/MLB/matchups?selectedDate=', date)

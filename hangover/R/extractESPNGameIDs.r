@@ -5,7 +5,7 @@
 #' @keywords scrape, ESPN, id
 #' @export
 #' @examples
-#' extractESPNGameIDs('2017-04-12')
+#' # not run: extractESPNGameIDs('2017-04-12')
 extractESPNGameIDs <- function(date) {
     date <- as.character(date)
     pg <- paste0('http://www.espn.com/nba/scoreboard/_/date/',

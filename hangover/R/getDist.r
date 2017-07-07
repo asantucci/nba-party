@@ -8,7 +8,7 @@
 #' @export
 #' @examples
 #' teams <- c('los angeles lakers', 'new york knicks')
-#' mat <- matrix(data = c(0, 999, 999, 0), nrow = 2, byrow = T)
+#' mat <- matrix(data = c(0, 999, 999, 0), nrow = 2, byrow = TRUE)
 #' rownames(mat) <- teams
 #' colnames(mat) <- teams
 #' getDist('los angeles lakers', 'new york knicks', mat)

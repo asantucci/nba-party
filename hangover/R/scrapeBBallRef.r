@@ -5,7 +5,7 @@
 #' @keywords scrape, basketball, reference.
 #' @export
 #' @examples
-#' scrapeBBallRef(2015)
+#' # not run: scrapeBBallRef(2015)
 scrapeBBallRef <- function(year) {
     season <- c(month.name[10:12], month.name[1:4]) %>% tolower
     lapply(season, hangover::scrapeBBallRefMonth, year = year) %>% rbindlist

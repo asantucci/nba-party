@@ -39,7 +39,7 @@ scrapeGame <- function(link) {
 #' @keywords scrape, covers
 #' @export
 #' @examples
-#' scrapeCoverLinesNBA('2012-11-19')
+#' # not run: scrapeCoverLinesNBA('2012-11-19')
 scrapeCoverLinesNBA <- function(date, rescrape = F, save.path = 'raw_data/covers/', ntries = 0) {
     if (ntries > 5) return(NULL)
     if (!rescrape && file.exists(paste0(save.path, date, '.csv')))

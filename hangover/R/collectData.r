@@ -1,6 +1,4 @@
-
-### Fetch is used as a helper function within CollectData (below).
-#' A helper function used in now defunct collectData.
+#' Defunct: used to parse data from gold-sheet.com.
 #'
 #' Fetches data for a particular team from raw data from gold-sheet.com
 #' @param team A string describing a team name.
@@ -10,7 +8,7 @@
 #' @keywords Fetch, gold-sheet.
 #' @export
 #' @examples
-#' Fetch('los angeles lakers', 10, 20, data)
+#' # not run: Fetch('los angeles lakers', 10, 20, data)
 Fetch <- function(team, beg, end, data) {
     datum <- data[beg:end]
     ### We have to be careful for data entry errors. Ex: missing delimiter.
@@ -22,14 +20,14 @@ Fetch <- function(team, beg, end, data) {
         data.table(.) %>% cbind(team)
 }
 
-#' A function to retrieve data from a raw datafile.
+#' Retrieve data from a raw gold-sheet.com datafile.
 #'
 #' Given a raw datafile from gold-sheet.com, this function parses the data.
 #' @param datafile A string describing input file.
 #' @keywords collect, legacy
 #' @export
 #' @examples
-#' collectData('raw_data/2011.txt')
+#' # not run: collectData('raw_data/2011.txt')
 collectData <- function(datafile) {
     data <- readLines(datafile) # 'raw_data/2011.txt')
     ### Remove blank lines.

@@ -10,7 +10,7 @@
 #' @keywords subset, bls
 #' @export
 #' @examples
-#' SubsetBLS(2010, 'sound recording', 'nba', 'sound_recording_studios')
+#' # not run: SubsetBLS(2010, 'sound recording', 'nba', 'sound_recording_studios')
 SubsetBLS <- function(year, party.regex, sport, suffix,
                       raw.path = 'raw_data/bls/', save.path = 'tmp_data/bls/') {
     ### Create a listing of files for all relevant MSA's, and load data.
@@ -34,3 +34,4 @@ SubsetBLS <- function(year, party.regex, sport, suffix,
     gc()
     return(NULL)
 }
+

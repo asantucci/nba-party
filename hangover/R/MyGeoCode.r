@@ -7,7 +7,7 @@
 #' @keywords geocode, ggmap
 #' @export
 #' @examples
-#' myGeoCode('Los Angeles Lakers', 'nba')
+#' # not run: MyGeoCode('Los Angeles Lakers', 'nba')
 MyGeoCode <- function(teams, sport) {
     locs <- lapply(teams, geocode, output = 'more') %>% rbindlist(., fill = T)
     setnames(locs, gsub('_', '.', names(locs)))
@@ -23,6 +23,8 @@ MyGeoCode <- function(teams, sport) {
     if (sport == 'mlb') {
         locs[is.na(locality) & state == 'Florida', `:=`(locality = 'Atlanta', state = 'Georgia')]
         locs[is.na(locality) & state == 'New York', locality := 'New York']
+        locs[locality == 'Broomfield' & state == 'Colorado', locality := 'Denver']
+        locs[team == 'texas rangers', locality := 'Dallas']
     }
     save(locs, file = paste0('tmp_data/', sport, '_team_locations.RData'))
 }
