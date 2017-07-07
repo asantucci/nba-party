@@ -62,17 +62,8 @@ locs <- locs[states, on = 'state', nomatch = 0]  # Gets rid of Toronto. That's o
 lines <- lines[locs, on = 'team']  # Here, we lose Toronto (that's OK).
 
 
-### We can't simply merge. We have to look for the county within the MSA.
-### For each location, we fetch a panel of corresponding musicians data, 2010-2016.
-LookupLocation <- function(loc, st, data, team = NULL) {
-    sb <- data[grepl(loc, area.title, ignore.case = T) & grepl(st,  area.title)]
-    sb[, `:=`(locality = loc, state = st)]
-    if (!is.null(team)) sb[, team := team]
-    return(sb)
-}
-
 ### Attach nba team-names to BLS data.
-demog <- mapply(LookupLocation, loc = locs$locality, st = locs$state.abb, team = locs$team,
+demog <- mapply(hangover::LookupLocation, loc = locs$locality, st = locs$state.abb, team = locs$team,
                 MoreArgs = list(data = bls), SIMPLIFY = F) %>% rbindlist
 demog <- merge(demog, pop, by = c('area.title', 'year'), all.x = T)
 setnames(demog, 'state', 'state.abb')
@@ -158,7 +149,7 @@ stargazer(m0, m1, covariate.labels = c('Party discrete', 'Party continuous',
                                        'Home team effect', 
                                        'Logged travel distance * east-west', 
                                        'Constant'),
-          dep.var.labels = 'Meet the Spread')
+          dep.var.labels = 'Meet the Spread', report = 'vc*p')
 
 ##################################################
 ### Dot plot of Party-Continuous by Team Location
@@ -214,7 +205,7 @@ stargazer(mp, covariate.labels = c('Party placebo', 'Lag changes in posession',
                                    'Number hours rest time', 'Time of game during day', 
                                    'Home team effect', 'Logged travel distance * east-west', 
                                    'Constant'),
-          dep.var.labels = 'Meet the Spread (NBA)')
+          dep.var.labels = 'Meet the Spread (NBA)', report = 'vc*p')
 
 ##################################################
 ### Table for (un)-correlated next day opponent
@@ -349,7 +340,7 @@ stargazer(m2, dep.var.labels = 'Demeanead Rebounds Per Minute',
                                'Lag change in possessions',
                                'Logged travel distance',
                                'Number hours since last game',
-                               'Constant'))
+                               'Constant'), report = 'vc*p')
 
 stargazer(mpa1, tpa, tpo, dep.var.labels = c('Points Admitted by Team', 'Team Points Admitted', 'Team Points Scored'),
           covariate.labels = c('Discrete party indicator',
@@ -357,7 +348,7 @@ stargazer(mpa1, tpa, tpo, dep.var.labels = c('Points Admitted by Team', 'Team Po
                                'Lag change in possessions',
                                'Logged travel distance',
                                'Number hours since last game',
-                               'Constant'))
+                               'Constant'), report = 'vc*p')
 
 ##############################
 ### MLB
@@ -373,7 +364,7 @@ lines <- lines[locs, on = 'team']
 
 
 ### Attach mlb team-names to BLS data.
-demog <- mapply(LookupLocation, loc = locs$locality, st = locs$state.abb, team = locs$team,
+demog <- mapply(hangover::LookupLocation, loc = locs$locality, st = locs$state.abb, team = locs$team,
                 MoreArgs = list(data = bls), SIMPLIFY = F) %>% rbindlist
 demog <- merge(demog, pop, by = c('area.title', 'year'), all.x = T)
 setnames(demog, 'state', 'state.abb')
@@ -410,7 +401,7 @@ stargazer(m3, m4, covariate.labels = c('Continuous measure of nightlife',
                                        'Bookmaker\'s odds', 'Home-team effect',
                                        'Number of rest days', 'Logged travel distance',
                                        'Weekend', 'Constant'), 
-          dep.var.labels = 'Probability of Winning')
+          dep.var.labels = 'Probability of Winning', report = 'vc*p')
 
 ##################################################
 ### Heat Map for next day opponent
