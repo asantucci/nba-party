@@ -10,7 +10,7 @@
 ###
 ### Inputs: 'raw_data/bls/20[xx].q1-q4.by_area'
 ###
-### Output: 'tmp_data/bls/20[xx]_[sport]_[suffix].csv'
+### Output: 'tmp_data/bls/20[xx]_[suffix].csv'
 ###
 ### Dependencies: data.table, ggmap, magrittr, parallel
 ###
@@ -30,10 +30,9 @@ require(data.table)
 require(ggmap)
 require(magrittr)
 
-### Loads raw data. Subsets based on regex. Aggregate using FUN. Save using suffix and sport.
+### Loads raw data. Subsets based on regex. Aggregate using FUN. Save using suffix.
 hangover::CleanBLS(party.regex = c('sound recording', 'music publisher', 'musical group'),
-                   suffix = 'studios_and_artists', sport = 'nba', FUN = sum)
+                   suffix = 'studios_and_artists', FUN = sum)
 
-### We add option 'rescrape = F' to avoid scraping location data a second time.
 hangover::CleanBLS(party.regex = c('alcohol', 'drinking'),
-                   suffix = 'alcohol_and_drinking', sport = 'nba', FUN = sum)
+                   suffix = 'alcohol_and_drinking', FUN = sum)
