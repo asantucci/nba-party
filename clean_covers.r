@@ -99,7 +99,9 @@ lines[, last.game.time := c(NA, lag(hour(date))[1:.N-1]), by = list(team, season
 ### Distance Traveled.
 ##################################################
 ### Here, we geocode team locations to get lat-lon, and also addresses.
-locs <- hangover::getLocations(unique(lines$team))
+locs <- hangover::MyGeoCode(unique(lines$team), 'nba')
+## load(file = 'tmp_data/nba_team_locations.RData')
+locs[, `:=`(lon = as.numeric(lon), lat = as.numeric(lat))]
 
 hangover::calculateDistances(locs, 'tmp_data/distance_matrix.RData', unique(lines$team))
 load(file = 'tmp_data/distance_matrix.RData')
@@ -110,8 +112,8 @@ lines[, travel.dist := hangover::getDist(location, last.game.loc, dmat),
 ##################################################
 ### Direction Traveled.
 ##################################################
-load(file = 'tmp_data/nba_team_locations.RData')
-locs[, `:=`(lon = as.numeric(lon), lat = as.numeric(lat))]
+## load(file = 'tmp_data/nba_team_locations.RData')
+## locs[, `:=`(lon = as.numeric(lon), lat = as.numeric(lat))]
 ### Get directions.
 dirs <- matrix(nrow = nrow(dmat), ncol = ncol(dmat), dimnames = dimnames(dmat))
 for (i in 1:(nrow(dirs)))
