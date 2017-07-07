@@ -33,6 +33,8 @@
 
 <<echo=F,results='hide',messages=F>>=
 
+Sys.setlocale('LC_ALL','C')  # Needed for population data (within area.title variable)
+
 require(hangover)
 
 require(data.table)
@@ -44,19 +46,51 @@ set.seed(4052017)
 
 load(file = 'tmp_data/covers_lines.RData')
 load(file = 'tmp_data/population_by_MSA_year.RData')
-load(file = 'tmp_data/studios_and_artists_nba.RData')
+load(file = 'tmp_data/studios_and_artists.RData')
 
 musicians <- copy(dt)
 rm(dt)
 setnames(musicians, 'variable', 'nmusicians')
 
-### This is simply ad-hoc.
-musicians[, population := 0.0]
-for (i in 1:nrow(musicians))
-    set(musicians, i, j = 'population', 
-        value = pop[grepl(musicians[i, locality], locality) &
-                    grepl(musicians[i, state],    locality) &
-                    musicians[i, season] == season, mean(population)])
+load(file = 'tmp_data/alcohol_and_drinking.RData')
+drinking <- copy(dt)
+rm(dt)
+setnames(drinking, 'variable', 'ndrinks')
+
+musicians <- merge(musicians, drinking, on = intersect(names(musicians), names(drinking)))
+
+### Geocode team locations. Prepare data for merge.
+locs <- MyGeoCode(unique(lines$team), 'nba')
+states <- data.table(state = state.name, state.abb = state.abb)
+states <- rbind(states, data.frame(state = 'District of Columbia', state.abb = 'DC'))
+locs <- locs[states, on = 'state', nomatch = 0]
+
+### We can't simply merge. We have to look for the county within the MSA.
+musicians[, area.title := gsub(' msa$', '', area.title, ignore.case = T)]
+musicians <- lapply(1:nrow(locs), function(i) { 
+    matched <- musicians[grepl(locs[i, locality],  area.title, ignore.case = T) &
+                         grepl(locs[i, state.abb], area.title, ignore.case = T)]
+    matched[, c('locality', 'state') := locs[i, list(locality, state.abb)]]
+    return(matched)
+}) %>% rbindlist %>% unique
+
+demog <- merge(musicians, pop, by = c('area.title', 'year'), all.x = T)
+setnames(demog, 'state', 'state.abb')
+
+lines <- lines[locs, on = 'team']  # Here, we lose Toronto (that's OK).
+
+setnames(demog, 'year', 'season')
+demog[, season := season + 1]
+
+nba.lines <- lines[demog, on = c('locality', 'state.abb', 'season'), allow.cartesian = T]
+
+nba.lines <- nba.lines[last.game.loc != 'toronto raptors' &
+                       location      != 'toronto raptors']
+
+### Exclude playoff games.
+setkey(nba.lines, season, team, date)
+nba.lines <- nba.lines[, head(.SD, n=82), by=list(season,team)]
+
 
 @ 
 
@@ -66,8 +100,8 @@ For results, skip to section \ref{seq: significant model}.
 
 \subsection{Lines data} We obtained data from \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{Covers.com}, which records the outcome of each game alongside the line set by a betting house.
 <<echo=F>>=
-nba.lines <- lines
-nba.lines[, list(date = as.Date(date), team, opponent, line, score)]
+#nba.lines <- lines
+#nba.lines[, list(date = as.Date(date), team, opponent, line, score)]
 @ 
 
 \subsection{BLS data} We also obtained data from
@@ -87,14 +121,19 @@ average age\footnote{We use $\log \textrm{\# days old}$, at the time the game is
 
 
 <<echo=F>>=
-### Merge lines data with BLS data.
-nba.lines <- merge(nba.lines, musicians,
-               by.x = c('season', 'last.game.loc'),
-               by.y = c('season', 'team'), all.x = T)
 
-### Exclude playoff games.
-setkey(nba.lines, season, team, date)
-nba.lines <- nba.lines[, head(.SD, n=82), by=list(season,team)]
+## nba.lines <- nba.lines[locs, on = 'team']
+
+## ## setnames(nba.lines, 'state.abb', 'state')
+## setnames(musicians, 'year', 'season')
+## musicians[, season := as.integer(season)]
+## merge(nba.lines, musicians, by = c('locality', 'state', 'season'))
+## nba.lines[musicians, on = c('locality', 'state', 'season')]
+## ### Merge lines data with BLS data.
+## nba.lines <- merge(nba.lines, musicians,
+##                by.x = c('season', 'last.game.loc'),
+##                by.y = c('season', 'team'), all.x = T)
+
 
 @ 
 
@@ -116,8 +155,8 @@ We examine which cities have a notable nightlife, as measured by our proxy;
 bottom and top five.
 
 <<echo=F>>= 
-musicians[, list(average.nmusicians = mean(nmusicians) %>% round(., digits = 1)),
-          by = team][order(average.nmusicians)][c(1:5, 25:27)]
+#musicians[, list(average.nmusicians = mean(nmusicians) %>% round(., digits = 1)),
+#          by = team][order(average.nmusicians)][c(1:5, 25:27)]
 @ 
 
 Los Angeles stands out, as does New York. Some runner ups include Chicago and Miami. 
@@ -145,7 +184,6 @@ nba.lines[, party.placebo := grepl("(los angeles)|(new york)|(brooklyn)", last.g
 ### We then create a continuous measure of nightlife. We rescale to 0-1 so it's comparable.
 nba.lines[, party := ifelse(nhours.lgame <= HOURS & last.game.loc != team, log(nmusicians+1), 0)]
 nba.lines[, party := party / max(party, na.rm = T)]
-
 @
 
 \section{Possible confounders}
@@ -226,8 +264,10 @@ stargazer(m0, m1, covariate.labels = c('Party discrete', 'Party continuous',
 ##################################################
 ### Dot plot of Party-Continuous by Team Location
 ##################################################
-tmp <- musicians[, list(party.continuous = mean(log(nmusicians+1))), 
-                 by = team][order(party.continuous)][!is.na(party.continuous)]
+## tmp <- musicians[, list(party.continuous = mean(log(nmusicians+1))), 
+##                  by = team][order(party.continuous)][!is.na(party.continuous)]
+tmp <- nba.lines[, list(party.continuous = mean(log(nmusicians+1))),
+                 by = team][order(party.continuous)]
 
 pdf('writing/Party_by_Team_Location.pdf', width = 14, height = 8.5)
 ticks = 1:nrow(tmp)
@@ -271,6 +311,7 @@ dev.off()
 ##################################################
 mp <- update(m0, . ~ party.placebo + . - party.discrete)
 
+# mp
 stargazer(mp, covariate.labels = c('Party placebo', 'Lag changes in posession', 
                                    'Logged travel distance', 'East-west travel direction', 
                                    'Number hours rest time', 'Time of game during day', 
@@ -333,18 +374,22 @@ dev.off()
 ##################################################
 ### Why drinking estabs doesn't work. (NBA)
 ##################################################
-load(file = 'tmp_data/alcohol_and_drinking_nba.RData')
-drinking <- copy(dt)
-setnames(drinking, 'variable', 'ndrinks')
-rm(dt)
+## load(file = 'tmp_data/alcohol_and_drinking.RData')
+## drinking <- copy(dt)
+## setnames(drinking, 'variable', 'ndrinks')
+## rm(dt)
 
-tmpm <- nba.lines[, list(log.nmusicians = mean(log(nmusicians+1), na.rm = T),
-                         log.population = mean(log(population+1), na.rm = T)), 
-                  by = team][order(log.nmusicians)] %>% na.omit
-tmpd <- drinking[, list(log.ndrinks = mean(log(ndrinks+1))), 
-                  by = team][order(log.ndrinks)] %>% na.omit
-tmp <- merge(tmpm, tmpd, by = 'team')
-setorder(tmp, log.nmusicians)
+## tmpm <- nba.lines[, list(log.nmusicians = mean(log(nmusicians+1), na.rm = T),
+##                          log.population = mean(log(population+1), na.rm = T)), 
+##                   by = team][order(log.nmusicians)] %>% na.omit
+## tmpd <- drinking[, list(log.ndrinks = mean(log(ndrinks+1))), 
+##                   by = team][order(log.ndrinks)] %>% na.omit
+## tmp <- merge(tmpm, tmpd, by = 'team')
+## setorder(tmp, log.nmusicians)
+
+tmp <- nba.lines[, list(log.nmusicians = mean(log(nmusicians+1)),
+                        log.population = mean(log(population+1)),
+                        log.ndrinks    = mean(log(ndrinks+1))), by = team][order(log.nmusicians)]
 
 pdf('writing/why_drinks_or_population_dont_work.pdf', width = 16, height = 8.5)
 ticks = 1:nrow(tmp)
@@ -352,7 +397,7 @@ plot(x = ticks,
      y = tmp$log.nmusicians,
      main = 'Why drinking establishments or population don\'t work as a proxy for nightlife',
      ylab = 'Log sum of Variable',
-     xlab = '', axes = F, pch = 1, ylim = c(0, max(tmp$log.population)), type = 'l')
+     xlab = '', axes = F, pch = 1, ylim = c(0, max(tmp$log.population,na.rm = T)), type = 'l')
 points(x = ticks, y = tmp$log.ndrinks, pch = 16, col = 'purple', type = 'l')
 points(x = ticks, y = tmp$log.population, pch = 18, col = 'orange', type = 'l')
 ### Houston has large population, but isn't necessarily known for nightlife.
@@ -406,21 +451,21 @@ If we re-train an even simpler model, we obtain fantastic betting performance.
 
 <<>>=
 
-HOURS <- 36
-m <- glm(outcome == 'W' ~ party, 
-         data = nba.lines[season < 2016 & last.game.loc != team])
+## HOURS <- 36
+## m <- glm(outcome == 'W' ~ party, 
+##          data = nba.lines[season < 2016 & last.game.loc != team])
 
-### We're only interested in making predictions when teams party.
-p <- predict(m, newdata = nba.lines[season == 2016 & nhours.lgame <= HOURS & 
-                                last.game.loc != team], type = 'response')
+## ### We're only interested in making predictions when teams party.
+## p <- predict(m, newdata = nba.lines[season == 2016 & nhours.lgame <= HOURS & 
+##                                 last.game.loc != team], type = 'response')
 
-idx <- which(p < 0.476)
-out <- table(nba.lines[season == 2016 & nhours.lgame <= HOURS & last.game.loc != team][idx, outcome])
+## idx <- which(p < 0.476)
+## out <- table(nba.lines[season == 2016 & nhours.lgame <= HOURS & last.game.loc != team][idx, outcome])
 
-(out['L'] * 100 - 110*out['W']) %>% as.numeric
+## (out['L'] * 100 - 110*out['W']) %>% as.numeric
 
-table(round(p), nba.lines[season == 2016 & nhours.lgame <= HOURS & 
-                      last.game.loc != team, outcome])
+## table(round(p), nba.lines[season == 2016 & nhours.lgame <= HOURS & 
+##                       last.game.loc != team, outcome])
 
 @
 
@@ -429,15 +474,15 @@ We can try different variants, for example, supposing the treatment effect of vi
 a city filled with musicians depends on the teams average age.
 
 <<echo=1>>=
-source('functions.r')
-m <- glm(outcome == 'W' ~ party,
-         data = nba.lines[season < 2016 & last.game.loc != team])
+## ## source('functions.r')
+## m <- glm(outcome == 'W' ~ party,
+##          data = nba.lines[season < 2016 & last.game.loc != team])
 
-p <- predict(m, newdata = nba.lines[season == 2016 & nhours.lgame <= HOURS & 
-                                last.game.loc != team], type = 'response')
+## p <- predict(m, newdata = nba.lines[season == 2016 & nhours.lgame <= HOURS & 
+##                                 last.game.loc != team], type = 'response')
 
-table(round(p), nba.lines[season == 2016 & nhours.lgame <= HOURS & 
-                      last.game.loc != team, outcome])
+## table(round(p), nba.lines[season == 2016 & nhours.lgame <= HOURS & 
+##                       last.game.loc != team, outcome])
 
 @ 
 
@@ -468,6 +513,10 @@ tpo <- update(tpa, team.pts.scored ~ .)
 
 ### Points  allowed as afunction of last game location (by party)
 nba.lines[, demeaned.pts.admitted := team.pts.admitted - mean(team.pts.admitted), by = list(season, team)]
+nba.lines[, party.discrete := grepl("(los angeles)|(new york)|(brooklyn)", last.game.loc) &
+                nhours.lgame <= HOURS &
+                last.game.loc != team]
+
 nba.lines[, mean(demeaned.pts.admitted), by = list(last.game.loc, party.discrete)][order(V1)]
 mpa1 <- lm(demeaned.pts.admitted ~ party.discrete, data = nba.lines)
 
@@ -505,7 +554,13 @@ we implicitly interact it with \texttt{weekend}.
 
 <<echo=-1>>=
 load(file = 'tmp_data/covers_lines_mlb.RData')
-mlb.lines <- lines
+locs <- MyGeoCode(unique(lines$team), 'mlb')
+states <- data.table(state = state.name, state.abb = state.abb)
+states <- rbind(states, data.frame(state = 'District of Columbia', state.abb = 'DC'))
+locs <- locs[states, on = 'state', nomatch = 0]
+lines <- lines[locs, on = 'team']  # Here, we lose Toronto (that's OK).
+mlb.lines <- lines[demog, on = c('locality', 'state.abb', 'season'), allow.cartesian = T]
+
 
 setkey(mlb.lines, season, team, date)
 mlb.lines <- mlb.lines[, head(.SD, n=162),by=list(season,team,date)] #Exclude playoff games
@@ -559,39 +614,39 @@ setorder(tmp, 'distance to NYC')
 tmp[, last.game.loc := factor(last.game.loc, levels = dmat[order(distance, decreasing = T), last.game.loc])]
 tmp[, location      := factor(location,      levels = dmat[order(distance, decreasing = T), last.game.loc])]
 
-pdf('writing/next_day_opponent_mlb.pdf', width = 14, height = 14)
-ggplot(tmp, aes(x = location, y = last.game.loc, fill = log(N))) + 
-    geom_tile() +
-    facet_wrap(~lst.game + cur.game) + 
-    labs(x = 'Current Game Location', y = 'Last Game Location', 
-         title = 'Distribution of Next Day Opponent - MLB') +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 315, vjust = 0.5),
-          plot.title = element_text(hjust=.5))
-dev.off()
+## pdf('writing/next_day_opponent_mlb.pdf', width = 14, height = 14)
+## ggplot(tmp, aes(x = location, y = last.game.loc, fill = log(N))) + 
+##     geom_tile() +
+##     facet_wrap(~lst.game + cur.game) + 
+##     labs(x = 'Current Game Location', y = 'Last Game Location', 
+##          title = 'Distribution of Next Day Opponent - MLB') +
+##     theme_bw() +
+##     theme(axis.text.x = element_text(angle = 315, vjust = 0.5),
+##           plot.title = element_text(hjust=.5))
+## dev.off()
 
 
 ##################################################
 ### Party by team location
 ##################################################
-load(file = 'tmp_data/studios_and_artists_mlb.RData')
-setnames(dt, 'variable', 'nmusicians')
+## load(file = 'tmp_data/studios_and_artists_mlb.RData')
+## setnames(dt, 'variable', 'nmusicians')
 
-tmp <- dt[, list(party.continuous = mean(log(nmusicians+1))),
-          by = team][order(party.continuous)][!is.na(party.continuous)]
+tmp <- mlb.lines[, list(party.continuous = mean(log(nmusicians+1))),
+                 by = team][order(party.continuous)][!is.na(party.continuous)]
 
-pdf('writing/Party_by_Team_Location_mlb.pdf', width = 14, height = 8.5)
-ticks = 1:nrow(tmp)
-plot(x = ticks, 
-     y = tmp$party.continuous, 
-     main = 'Continuous measure of party by Team Location: MLB',
-     ylab = 'Log sum of Musicians and Sound Recording Studios',
-     xlab = '',
-     axes = F)
-axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>% 
-                               gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
-axis(side = 2)
-dev.off()
+## pdf('writing/Party_by_Team_Location_mlb.pdf', width = 14, height = 8.5)
+## ticks = 1:nrow(tmp)
+## plot(x = ticks, 
+##      y = tmp$party.continuous, 
+##      main = 'Continuous measure of party by Team Location: MLB',
+##      ylab = 'Log sum of Musicians and Sound Recording Studios',
+##      xlab = '',
+##      axes = F)
+## axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>% 
+##                                gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
+## axis(side = 2)
+## dev.off()
 
 
 @
@@ -619,7 +674,7 @@ b <- lapply(2012:2016, function(yr) {
     ### Subset data to relevant year we wish to predict on; make predictions.
     tmp <- mlb.lines[season == yr, .(matchup, date, team, opponent, 
                                      team.score, opponent.score, odds)]
-    tmp[, fitted := predict(m, newdata = mlb.lines[year(date) == yr], type = 'response')]
+    tmp[, fitted := predict(m, newdata = mlb.lines[season == yr], type = 'response')]
     ### Realize that we can only make one prediction per game. So take the stronger bet.
     setkey(tmp, date, matchup)
     tmp <- tmp[, .SD[which.max(abs(fitted - .5))], by = list(matchup, date)]
@@ -659,6 +714,7 @@ hist(tmp$meet.spread, prob = T, main = paste('How often do teams meet the spread
      xlab = 'Meet the Spread', breaks = 25)
 lines(density(tmp$meet.spread, adjust = 2), col = 'orange', lty = 'dashed', lwd = 3)
 ### There should be 'no information' left over after conditioning on odds.
+mlb.lines <- na.omit(mlb.lines)
 noinf <- lm(I(team.score > opponent.score) ~ odds, data = mlb.lines)
 preds <- fitted(noinf)
 mlb.lines[, fitted := fitted(noinf)]
@@ -712,6 +768,13 @@ plot(x = tholds, y = tmp[1, ], main = 'Return per game\nas a function of thresho
 text(x = tholds, y = tmp[1, ], labels = tmp[2, ], pos = 1)
 
 ### plot return per game as a function of difference in odds between us and vegas.
+
+### Musicians by area.
+## load(file = 'tmp_data/studios_and_artists.RData')
+## tmp <- demog[, list(log.nmusicians = log(nmusicians + 1),
+##                       log.ndrinks    = log(ndrinks    + 1),
+##                       log.population = log(population + 1)), by = locality][order(log.nmusicians)]
+## points(demog[, log(nmusicians + 1)])
 
 @ 
 
