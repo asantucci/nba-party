@@ -19,35 +19,35 @@ require(data.table)
 require(magrittr)
 require(RCurl)
 require(XML)
-
-### Download population estimates by county-year.
-## pop <- fread('https://www2.census.gov/programs-surveys/popest/datasets/2010-2016/counties/totals/co-est2016-alldata.csv',
-##              select = c('STNAME', 'CTYNAME', paste0('POPESTIMATE', 2010:2016)))
-## setnames(pop, tolower(names(pop)))
+Sys.setlocale('LC_ALL','C')
 
 ### Don't forget Washington D.C., which is technically a metro area.
-pop <- fread('https://www2.census.gov/programs-surveys/popest/datasets/2010-2016/metro/totals/csa-est2016-alldata.csv',
+pop <- fread(paste0('https://www2.census.gov/programs-surveys/popest/datasets',
+                    '/2010-2016/metro/totals/csa-est2016-alldata.csv'),
             select = c('NAME', paste0('POPESTIMATE', 2010:2016)))
-Sys.setlocale('LC_ALL','C') 
-## dc <- dc[grep("district", NAME, ignore.case = T)]
-## dc[, stname := 'Washington DC']
-setnames(pop, c('locality', paste0('popestimate', 2010:2016)))
-## dc[, locality := 'District of Columbia']
-## pop <- rbind(pop, dc)
+setnames(pop, c('area.title', paste0('popestimate', 2010:2016)))
 
 ### Reshape our data.
-pop <- melt(pop, id.vars = 'locality', variable.name = 'year')
+pop <- melt(pop, id.vars = 'area.title', variable.name = 'year')
 pop[, year := gsub('popestimate', '', year) %>% as.integer]
 setnames(pop, 'value', 'population')
 
-### We use lagged data.
-setnames(pop, 'year', 'season')
-pop[, season := season + 1]
 
+### Notice that Washington DC appears twice.
+### We check 'https://www.census.gov/quickfacts/fact/table/DC#viewtop' for another
+### estimate, and take the more consistent observation.
+### E.g.: pop[area.title == 'Washington-Arlington-Alexandria, DC-VA-MD-WV'] %>% unique
+pop <- pop[, .SD[which.max(population)], by = .(area.title, year)]
+
+### For some reason, San Antonio-New Braunfels metro-area not included in data-file above.
+dt <- fread(paste0('https://www2.census.gov/programs-surveys/popest/datasets',
+                   '/2010-2016/metro/totals/cbsa-est2016-alldata.csv'),
+            select = c('NAME', paste0('POPESTIMATE', 2010:2016)))
+setnames(dt, c('area.title', paste0('popestimate', 2010:2016)))
+dt <- melt(dt, id.vars = 'area.title', variable.name = 'year')
+dt[, year := gsub('popestimate', '', year) %>% as.integer]
+setnames(dt, 'value', 'population')
+dt <- dt[grepl("(phoenix)|(san antonio)", area.title, ignore.case = T)]
+
+pop <- rbind(pop, dt)
 save(pop, file = 'tmp_data/population_by_MSA_year.RData')
-
-### Old
-## fips <- readLines('https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt')
-## fips <- strsplit(fips, split = ',', fixed = T) %>% do.call(rbind, .) %>% data.table
-## fips[, ncol(fips) := NULL, with = F]
-## setnames(fips, c('state', 'state.fips', 'county.fips', 'county'))
