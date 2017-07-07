@@ -36,4 +36,4 @@ hangover::CleanBLS(party.regex = c('sound recording', 'music publisher', 'musica
 
 ### We add option 'rescrape = F' to avoid scraping location data a second time.
 hangover::CleanBLS(party.regex = c('alcohol', 'drinking'),
-                   suffix = 'alcohol_and_drinking', sport = 'nba', FUN = sum, RESCRAPE = F)
+                   suffix = 'alcohol_and_drinking', sport = 'nba', FUN = sum)

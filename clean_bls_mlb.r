@@ -30,12 +30,6 @@ hangover::CleanBLS(party.regex = c('sound recording', 'music publisher', 'musica
 
 ### Avoids rescraping data. This output used for a comparison plot in the paper.
 hangover::CleanBLS(party.regex = c('alcohol', 'drinking'),
-                   suffix = 'alcohol_and_drinking', sport = 'mlb', FUN = sum, RESCRAPE = F)
-
-
-
-
-
-
+                   suffix = 'alcohol_and_drinking', sport = 'mlb', FUN = sum)
 
 
