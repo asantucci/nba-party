@@ -10,12 +10,11 @@
 #' @param sport A string, one of 'nba' or 'mlb'
 #' @param FUN An aggregation function to be used in collapsing BLS data by locality.
 #' @param years A vector of integers describing which years to collect data for.
-#' @param RESCRAPE A boolean indicating whether team-locations should be rescraped.
 #' @keywords BLS, clean
 #' @export
 #' @examples
 #' # not run: CleanBLS(c('recording studio', 'musical group'), 'DJ_proxy', 'nba', sum)
-CleanBLS <- function(party.regex, suffix, sport, FUN, years = 2010:2016, RESCRAPE = T) {
+CleanBLS <- function(party.regex, suffix, sport, FUN, years = 2010:2016) {
     ### Subset each year of BLS data to only observations matching regular expression.
     lapply(years, hangover::SubsetBLS,
            party.regex = party.regex, sport = sport, suffix = suffix)
@@ -33,8 +32,7 @@ CleanBLS <- function(party.regex, suffix, sport, FUN, years = 2010:2016, RESCRAP
         teams <- abbrs$full
     }
     ### Geocode the location of each team within the sport, and add this to our BLS data.
-    if (RESCRAPE) MyGeoCode(teams, sport)
-    load(file = paste0('tmp_data/', sport, '_team_locations.RData'))  # Object loaded: locs
+    locs <- MyGeoCode(teams, sport)
     bls[, area.title := gsub(' msa$', '', area.title, ignore.case = T)]
     states <- data.table(state = state.name, state.abb = state.abb)
     states <- rbind(states, data.frame(state = 'District of Columbia', state.abb = 'DC'))
