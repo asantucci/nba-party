@@ -29,15 +29,6 @@ require(hangover)
 require(data.table)
 require(ggmap)
 require(magrittr)
-require(parallel)
-
-cl <- makeCluster(detectCores())
-
-clusterCall(cl, function() {
-    require(bit64)
-    require(data.table)
-    require(magrittr)
-})
 
 ### Loads raw data. Subsets based on regex. Aggregate using FUN. Save using suffix and sport.
 hangover::CleanBLS(party.regex = c('sound recording', 'music publisher', 'musical group'),

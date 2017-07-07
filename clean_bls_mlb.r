@@ -23,15 +23,6 @@ require(hangover)
 require(data.table)
 require(ggmap)
 require(magrittr)
-require(parallel)
-
-cl <- makeCluster(detectCores())
-
-clusterCall(cl, function() {
-    require(bit64)
-    require(data.table)
-    require(magrittr)
-})
 
 ### Load raw data, subset based on party.regex, aggregate using FUN, and save using suffix/sport.
 hangover::CleanBLS(party.regex = c('sound recording', 'music publisher', 'musical group'),
@@ -40,3 +31,11 @@ hangover::CleanBLS(party.regex = c('sound recording', 'music publisher', 'musica
 ### Avoids rescraping data. This output used for a comparison plot in the paper.
 hangover::CleanBLS(party.regex = c('alcohol', 'drinking'),
                    suffix = 'alcohol_and_drinking', sport = 'mlb', FUN = sum, RESCRAPE = F)
+
+
+
+
+
+
+
+
