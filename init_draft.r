@@ -160,39 +160,34 @@ stargazer(m3, m4, covariate.labels = c('Continuous measure of nightlife',
 ##################################################
 ### Dot plot of Party-Continuous by Team Location
 ##################################################
-tmp <- nba.lines[, list(party.continuous = mean(log(nmusicians+1))),
-                 by = team][order(party.continuous)]
+
+data <- rbind(nba.lines[, list(avg.party = mean(log(nmusicians+1), na.rm = T),
+                               sport = 'nba'), by = .(team, locality, state.abb)],
+              mlb.lines[, list(avg.party = mean(log(nmusicians+1), na.rm = T),
+                               sport = 'mlb'), by = .(team, locality, state.abb)])
+setkey(data, avg.party)
+data[, idx := .GRP, by = locality]
 
 pdf('writing/Party_by_Team_Location.pdf', width = 14, height = 8.5)
-ticks = 1:nrow(tmp)
-plot(x = ticks, 
-     y = tmp$party.continuous, 
-     main = 'Continuous measure of party by Team Location: NBA',
+plot(x = data[sport == 'nba', jitter(idx)],
+     y = data[sport == 'nba', avg.party],
+     main = 'Continuous measure of party by Location',
      ylab = 'Log sum of Musicians and Sound Recording Studios',
      xlab = '',
-     axes = F)
-axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>% 
-                               gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
+     axes = F, pch = 24, col = 'orange', lwd = 5)
+axis(side = 1, at = data[sport == 'nba', idx],
+     labels = gsub('([a-z]{4,}) ', '\\1\n', data[sport == 'nba', locality]) %>% 
+         gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
 axis(side = 2)
+points(x = data[sport == 'mlb', jitter(idx)],
+       y = data[sport == 'mlb', avg.party], pch = 25, col = 'purple', lwd = 5)
+axis(side = 1, at = data[sport == 'mlb', idx],
+     labels = gsub('([a-z]{4,}) ', '\\1\n', data[sport == 'mlb', locality]) %>% 
+         gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
+legend(x = data[, min(idx)], y = data[, max(avg.party)],
+       legend = c('nba', 'mlb'),
+       fill = c('orange', 'purple'), cex = 1.5, title = 'Legend')
 dev.off()
-
-
-tmp <- mlb.lines[, list(party.continuous = mean(log(nmusicians+1))),
-                 by = team][order(party.continuous)][!is.na(party.continuous)]
-
-pdf('writing/Party_by_Team_Location_mlb.pdf', width = 14, height = 8.5)
-ticks = 1:nrow(tmp)
-plot(x = ticks, 
-     y = tmp$party.continuous, 
-     main = 'Continuous measure of party by Team Location: MLB',
-     ylab = 'Log sum of Musicians and Sound Recording Studios',
-     xlab = '',
-     axes = F)
-axis(side = 1, at = ticks, labels = gsub('([a-z]{4,}) ', '\\1\n', tmp$team) %>% 
-                               gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
-axis(side = 2)
-dev.off()
-
 
 ##################################################
 ### Density of travel dist by party vs not
