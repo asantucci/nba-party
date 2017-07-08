@@ -33,7 +33,7 @@ load(file = 'tmp_data/mlb.RData')  # mlb.lines
 
 ### Discrete indicator.
 m0 <- glm(outcome == 'W' ~ party.discrete + lag.chg.pos + log(travel.dist+1)*ew + 
-             nhours.lgame + I(hour(date)) + I(team==location),
+             nhours.lgame + I(hour(date)) + I(team==location) + as.factor(season),
          data = nba.lines[season < 2017 & !is.na(party)], family = 'binomial',
          na.action = 'na.exclude')
 
@@ -44,25 +44,26 @@ m1 <- update(m0, . ~ party + . - party.discrete)
 mp <- update(m0, . ~ party.placebo + . - party.discrete)
 
 ### Player specific model - demeaned rebounds per minute.
-m2 <- lm(demeaned.reb.per.min ~ party + lag.chg.pos + log(travel.dist+1) + nhours.lgame,
-   data = espn[last.game.loc != team & season < 2017] %>% na.omit)
+## m2 <- lm(demeaned.reb.per.min ~ party + lag.chg.pos + log(travel.dist+1) + nhours.lgame +
+##              as.factor(season),
+##    data = espn[last.game.loc != team] %>% na.omit)
 
 ### Total points admitted and scored.
-tpa <- update(m2, team.pts.admitted ~ .)
+tpa <- lm(team.pts.admitted ~ party + lag.chg.pos + log(travel.dist+1) + nhours.lgame,
+   data = espn[last.game.loc != team] %>% na.omit)
 tps <- update(tpa, team.pts.scored ~ .)
 
 ### Points  allowed as afunction of last game location (by party)
 nba.lines[, demeaned.pts.admitted := team.pts.admitted - mean(team.pts.admitted),
           by = list(season, team)]
 mpa1 <- lm(demeaned.pts.admitted ~ party.discrete, data = nba.lines)
-mpa2 <- lm(demeaned.pts.admitted ~ party,          data = nba.lines)
 
 ##################################################
 ### MLB Modeling
 ##################################################
 
 m3 <- glm(I(team.score > opponent.score) ~ party + odds + I(team == location) + 
-             ndays.lgame + log(travel.dist+1) + weekend,
+             ndays.lgame + log(travel.dist+1) + weekend + as.factor(season),
          data = mlb.lines[season < 2017], family = 'binomial')
 summary(m3)
 m4 <- update(m3, . ~ party.now + . - party)
@@ -120,14 +121,16 @@ stargazer(m0, m1, covariate.labels = c('Party discrete', 'Party continuous',
                                        'Home team effect', 
                                        'Logged travel distance * east-west', 
                                        'Constant'),
-          dep.var.labels = 'Meet the Spread', report = 'vc*p')
+          omit = 'as.factor\\(season\\)',
+          dep.var.labels = 'Meet the Spread')
 
 stargazer(mp, covariate.labels = c('Party placebo', 'Lag changes in posession', 
                                    'Logged travel distance', 'East-west travel direction', 
                                    'Number hours rest time', 'Time of game during day', 
                                    'Home team effect', 'Logged travel distance * east-west', 
                                    'Constant'),
-          dep.var.labels = 'Meet the Spread (NBA)', report = 'vc*p')
+          omit = 'as.factor',
+          dep.var.labels = 'Meet the Spread (NBA)')
 
 
 ## stargazer(m2, dep.var.labels = 'Demeanead Rebounds Per Minute',
@@ -135,7 +138,7 @@ stargazer(mp, covariate.labels = c('Party placebo', 'Lag changes in posession',
 ##                                'Lag change in possessions',
 ##                                'Logged travel distance',
 ##                                'Number hours since last game',
-##                                'Constant'), report = 'vc*p')
+##                                'Constant'))
 
 stargazer(mpa1, tpa, tps, dep.var.labels = c('Points Admitted by Team', 'Team Points Admitted', 'Team Points Scored'),
           covariate.labels = c('Discrete party indicator',
@@ -143,14 +146,15 @@ stargazer(mpa1, tpa, tps, dep.var.labels = c('Points Admitted by Team', 'Team Po
                                'Lag change in possessions',
                                'Logged travel distance',
                                'Number hours since last game',
-                               'Constant'), report = 'vc*p')
+                               'Constant'))
 
 stargazer(m3, m4, covariate.labels = c('Continuous measure of nightlife',
                                        'Nightlife (no weekend interaction)', 
                                        'Bookmaker\'s odds', 'Home-team effect',
                                        'Number of rest days', 'Logged travel distance',
-                                       'Weekend', 'Constant'), 
-          dep.var.labels = 'Probability of Winning', report = 'vc*p')
+                                       'Weekend', 'Constant'),
+          omit = 'as.factor',
+          dep.var.labels = 'Probability of Winning')
 
 
 ##################################################

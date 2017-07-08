@@ -94,7 +94,7 @@ data[, (paste0('demeaned.', cols)) :=
 ##################################################
 ### Remove players who only show up < 10 times per season...
 ##################################################
-insufficient.obs <- data[, .N, keyby = list(season, player)][N < 10]
+insufficient.obs <- data[, .N, keyby = list(season, player)][N < 15]
 data <- data[!insufficient.obs, on = c('season', 'player')]
 
 data[, position := gregexpr(pattern = '[A-Z]{1,2}$', player) %>%
@@ -111,4 +111,3 @@ data[, (paste0('lag.', cols)) := shift(.SD),
      by = list(season, player), .SDcols = cols]
 
 write.csv(data, file = 'tmp_data/espn_player_data.csv', row.names = F)
-
