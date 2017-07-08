@@ -11,7 +11,7 @@
 ### Inputs: 'tmp_data/nba.RData'
 ###         'tmp_data/mlb.RData'
 ###
-### Dependencies: data.table, magrittr, stargazer
+### Dependencies: data.table, ggplot2, magrittr, stargazer
 ###
 ################################################################################
 ################################################################################
@@ -21,6 +21,7 @@
 ##################################################
 
 require(data.table)
+require(ggplot2)
 require(magrittr)
 require(stargazer)
 
@@ -121,7 +122,7 @@ stargazer(m0, m1, covariate.labels = c('Party discrete', 'Party continuous',
                                        'Home team effect', 
                                        'Logged travel distance * east-west', 
                                        'Constant'),
-          omit = 'as.factor\\(season\\)',
+          omit = '(as.factor)|(Constant)',
           dep.var.labels = 'Meet the Spread')
 
 stargazer(mp, covariate.labels = c('Party placebo', 'Lag changes in posession', 
@@ -140,7 +141,8 @@ stargazer(mp, covariate.labels = c('Party placebo', 'Lag changes in posession',
 ##                                'Number hours since last game',
 ##                                'Constant'))
 
-stargazer(mpa1, tpa, tps, dep.var.labels = c('Points Admitted by Team', 'Team Points Admitted', 'Team Points Scored'),
+stargazer(mpa1, tpa, tps,
+          dep.var.labels = c('Team Points Admitted', 'Team Points Admitted', 'Team Points Scored'),
           covariate.labels = c('Discrete party indicator',
                                'Continuous party measure',
                                'Lag change in possessions',
@@ -168,22 +170,23 @@ data <- rbind(nba.lines[, list(avg.party = mean(log(nmusicians+1), na.rm = T),
 setkey(data, avg.party)
 data[, idx := .GRP, by = locality]
 
-pdf('writing/Party_by_Team_Location.pdf', width = 14, height = 8.5)
+pdf('writing/Party_by_Team_Location.pdf', width = 13, height = 8.5)
 plot(x = data[sport == 'nba', jitter(idx)],
      y = data[sport == 'nba', avg.party],
-     main = 'Continuous measure of party by Location',
+     main = 'Continuous measure of party by location',
      ylab = 'Log sum of Musicians and Sound Recording Studios',
      xlab = '',
      axes = F, pch = 24, col = 'orange', lwd = 5)
 axis(side = 1, at = data[sport == 'nba', idx],
-     labels = gsub('([a-z]{4,}) ', '\\1\n', data[sport == 'nba', locality]) %>% 
-         gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
+     ### Shorten team-names. Take names 4+ letters long, add a new-line.
+     labels = gsub('([a-z]{3,}) ', '\\1\n', data[sport == 'nba', locality], ignore.case = T) %>%
+         gsub('([a-z]{6})[a-z]{1,}', '\\1', ., ignore.case = T), las = 2, xpd = NA)
 axis(side = 2)
 points(x = data[sport == 'mlb', jitter(idx)],
        y = data[sport == 'mlb', avg.party], pch = 25, col = 'purple', lwd = 5)
 axis(side = 1, at = data[sport == 'mlb', idx],
-     labels = gsub('([a-z]{4,}) ', '\\1\n', data[sport == 'mlb', locality]) %>% 
-         gsub('([a-z]{6})[a-z]{1,}', '\\1', .), las = 2, xpd = NA)
+     labels = gsub('([a-z]{3,}) ', '\\1\n', data[sport == 'mlb', locality], ignore.case = T) %>% 
+         gsub('([a-z]{6})[a-z]{1,}', '\\1', ., ignore.case = T), las = 2, xpd = NA)
 legend(x = data[, min(idx)], y = data[, max(avg.party)],
        legend = c('nba', 'mlb'),
        fill = c('orange', 'purple'), cex = 1.5, title = 'Legend')
@@ -192,6 +195,7 @@ dev.off()
 ##################################################
 ### Density of travel dist by party vs not
 ##################################################
+
 
 pdf('writing/travel_dist_density_by_party.pdf', width = 12, height = 11)
 plot(density(nba.lines[(party.discrete) & !is.na(travel.dist), travel.dist]), 
