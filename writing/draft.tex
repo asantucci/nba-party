@@ -150,7 +150,7 @@ were played at home or away.
 \begin{figure}
   \centering
   \label{fig: next day opponent}
-  \includegraphics[scale=0.45]{next_day_opponent}
+  \includegraphics[scale=0.5]{next_day_opponent}
   \caption{We examine the relationship between last game location and next day opponent in the NBA, sorted by distance from New York City. 
 Starting from the top left, notice that the most likely scenario across all seasons is that a game will be played at home, and the last game was also at home. This makes sense; 1/2 of all games are played at home, and 1/2 are played away, so clearly each team is most likely to be found playing a home game for any given game. When exactly one of the last game or current game was played away,
 we observe that some combinations cease to exist in our data; e.g. we never observe Charlotte Bobcats play Utah Jazz on the road and then fly directly back home for a game. Lastly, notice the patterns that emerge when both the last game and current game are played on the road. E.g. we see that when last game location was in Los Angeles, next day opponent likely to be a west coast team. There appears to be less of a correlation between last game location in New York or Brooklyn and next day opponent, perhaps because flying from east-to-west
@@ -529,21 +529,20 @@ With a causal model established, we realize a profitable betting strategy in eac
 \bibliography{sample}
 
 \section{Appendix}
-
+% \begin{figure}[h]
+%   \hspace{-55pt}
+%   \label{fig: party by team location mlb}
+%   \includegraphics[scale=0.5]{Party_by_Team_Location_mlb}
+%   \caption{Continuous measure of nightlife by team location for MLB.}
+% \end{figure}
+%   % What's   % interesting here is that because New York Yankees are in the % Bronx, they show up % as having few musicians and sound recording studios. We % might wonder if this is % a bad thing, since with NBA New York city was deemed a % major party city. It % turns out that when we define a discrete indicator of % party based on New York or % Los Angeles, it is not at all significant, and in % fact the sign is incorrect. % When we use our continuous
+% %  measure of nightlife, its significant, and it helps inform our profitable % % betting model.
+% % This is good news for our proxy, although begs the question why New York % should % be treated so differently by MLB players when compared with NBA % players. One % point worth noting is that we haven't yet made the important % distinction that in % the MLB, the Los Angeles Angels are in Orange County, for % example, which is much % less bustling than the NBA's  Los Angeles Lakers who % are located in downtown Los % Angeles. 
 \begin{figure}[h]
-  \hspace{-55pt}
-  \label{fig: party by team location mlb}
-  \includegraphics[scale=0.5]{Party_by_Team_Location_mlb}
-  \caption{Continuous measure of nightlife by team location for MLB.}
-\end{figure}
-  % What's   % interesting here is that because New York Yankees are in the Bronx, they show up % as having few musicians and sound recording studios. We might wonder if this is % a bad thing, since with NBA New York city was deemed a major party city. It % turns out that when we define a discrete indicator of party based on New York or % Los Angeles, it is not at all significant, and in fact the sign is incorrect. % When we use our continuous
-%  measure of nightlife, its significant, and it helps inform our profitable % betting model.
-% This is good news for our proxy, although begs the question why New York should % be treated so differently by MLB players when compared with NBA players. One % point worth noting is that we haven't yet made the important distinction that in % the MLB, the Los Angeles Angels are in Orange County, for example, which is much % less bustling than the NBA's  Los Angeles Lakers who are located in downtown Los % Angeles. 
-\begin{figure}   
   \centering
   \hspace{-55pt}
   \label{fig: next day opponent mlb}
-  \includegraphics[scale=0.5]{next_day_opponent_mlb} 
+  \includegraphics[scale=0.45]{next_day_opponent_mlb} 
   \caption{For the MLB, there are some differences when compared with the     analogous
   plot for NBA. In particular, notice that a common scenario is for a team to play two away games 
   back to back at the same location. This is an artifact of baseball match-ups being played 
