@@ -150,9 +150,9 @@ were played at home or away.
 \begin{figure}
   \centering
   \label{fig: next day opponent}
-  \includegraphics[scale=0.5]{next_day_opponent}
+  \includegraphics[scale=0.45]{next_day_opponent}
   \caption{We examine the relationship between last game location and next day opponent in the NBA, sorted by distance from New York City. 
-Starting from the top left, notice that the most likely scenario across all seasons is that a game will be played at home, and the last game was also at home. This makes sense; 1/2 of all games are played at home, and 1/2 are played away, so clearly each team is most likely to be found playing a home game for any given game. When exactly one of the last game or current game was played away,
+Top left: notice that the most likely scenario across all seasons is that a game will be played at home, and the last game was also at home. This makes sense; 1/2 of all games are played at home, and 1/2 are played away, so clearly each team is most likely to be found playing a home game for any given game. When exactly one of the last game or current game was played away,
 we observe that some combinations cease to exist in our data; e.g. we never observe Charlotte Bobcats play Utah Jazz on the road and then fly directly back home for a game. Lastly, notice the patterns that emerge when both the last game and current game are played on the road. E.g. we see that when last game location was in Los Angeles, next day opponent likely to be a west coast team. There appears to be less of a correlation between last game location in New York or Brooklyn and next day opponent, perhaps because flying from east-to-west
 is less burdensome as it relates to timezone changes.} 
 \end{figure}
@@ -251,9 +251,19 @@ In order to assert a causal relation between cities with active nightlife
 and subsequent day sports performance, we need to control for salient
 features such as the ability of players on either team in the match-up,
 whether any players are injured, the momentum of success each team is carrying
-in the season, etc. To that end, we utilize spread data.\citep{anderson} The benefit of
-using spread data is that it controls for a lot, but the downside is
+in the season, etc. To that end, we utilize spread data.\citep{anderson} The benefit of using spread data is that it controls for a lot, but the downside is
 we don't know exactly what it controls for.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.65]{meet_the_spread}
+  \label{fig: meet the spread}
+  \caption{Empirically, in NBA any given team is apt to meet the spread
+half the time across a particular season; in MLB, after conditioning on bookmakers' odds of
+success, successful prediction of game outcome is like a coin-flip. 
+In general, systematic deviations represent
+unexplained mechanisms. }
+\end{figure}
 
 \paragraph{How an unknown spread variable may (not) affect our inference}
 For example, if bookkeepers
@@ -313,7 +323,8 @@ stadium location.\citep{ggmap}
   \centering
   \label{fig: party by team loc}
   \includegraphics[scale=0.6,angle=270]{Party_by_Team_Location}
-  \caption{We plot our continuous measure of nightlife for each city within the NBA. We present the analagous plot for MLB in the appendix.\ref{fig: party by team location mlb}}
+  \caption{We plot our continuous measure of nightlife for each city within the NBA and MLB. We add a small amount of random noise to our x-coordinate such that cities
+with both an NBA and MLB team are visible.}
 \end{figure}
 
 
@@ -490,7 +501,8 @@ It's even more interesting to note that points spreads are on a similar order of
 
 % mpa1, tpa, tpo
 \hspace{-125pt}
-\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & Points Admitted by Team & Team Points Admitted & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.817$^{***}$ &  &  \\    & (0.712) &  &  \\    & & & \\   Continuous party measure &  & 1.942$^{***}$ & 0.377 \\    &  & (0.248) & (0.246) \\    & & & \\   Lag change in possessions &  & 0.022$^{***}$ & 0.035$^{***}$ \\    &  & (0.007) & (0.007) \\    & & & \\   Logged travel distance &  & $-$0.411$^{***}$ & 0.035 \\    &  & (0.074) & (0.073) \\    & & & \\   Number hours since last game &  & 0.012$^{***}$ & 0.020$^{***}$ \\    &  & (0.003) & (0.003) \\    & & & \\   Constant & $-$0.046 & 102.824$^{***}$ & 99.540$^{***}$ \\    & (0.091) & (0.483) & (0.478) \\    & & & \\  \hline \\[-1.8ex]  Observations & 15,139 & 44,689 & 44,689 \\  R$^{2}$ & 0.001 & 0.002 & 0.002 \\  Adjusted R$^{2}$ & 0.001 & 0.002 & 0.002 \\  Residual Std. Error & 11.137 (df = 15137) & 12.117 (df = 44684) & 12.015 (df = 44684) \\  F Statistic & 15.670$^{***}$ (df = 1; 15137) & 27.968$^{***}$ (df = 4; 44684) & 24.325$^{***}$ (df = 4; 44684) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
+\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & Team Points Admitted & Team Points Admitted & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.817$^{***}$ &  &  \\    & (0.712) &  &  \\    & & & \\   Continuous party measure &  & 1.942$^{***}$ & 0.377 \\    &  & (0.248) & (0.246) \\    & & & \\   Lag change in possessions &  & 0.022$^{***}$ & 0.035$^{***}$ \\    &  & (0.007) & (0.007) \\    & & & \\   Logged travel distance &  & $-$0.411$^{***}$ & 0.035 \\    &  & (0.074) & (0.073) \\    & & & \\   Number hours since last game &  & 0.012$^{***}$ & 0.020$^{***}$ \\    &  & (0.003) & (0.003) \\    & & & \\   Constant & $-$0.046 & 102.824$^{***}$ & 99.540$^{***}$ \\    & (0.091) & (0.483) & (0.478) \\    & & & \\  \hline \\[-1.8ex]  Observations & 15,139 & 44,689 & 44,689 \\  R$^{2}$ & 0.001 & 0.002 & 0.002 \\  Adjusted R$^{2}$ & 0.001 & 0.002 & 0.002 \\  Residual Std. Error & 11.137 (df = 15137) & 12.117 (df = 44684) & 12.015 (df = 44684) \\  F Statistic & 15.670$^{***}$ (df = 1; 15137) & 27.968$^{***}$ (df = 4; 44684) & 24.325$^{***}$ (df = 4; 44684) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
+  
 \section{Conclusions and Avenues for Future Research}
 \subsection{Extending the research}
 \paragraph{Within the NBA} 
