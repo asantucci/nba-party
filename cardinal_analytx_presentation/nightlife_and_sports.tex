@@ -80,6 +80,33 @@
   \end{block}
 \end{frame}
 
+\begin{frame}
+  \frametitle{Previous research - NBA player shooting average}
+  \begin{block}{Empirical evidence: players party to the detriment of the game.}
+  NBA Players under-perform proportion of shots made on Sundays.\footnote{Chase, ('15).}
+  \end{block}
+    \begin{itemize}       
+    \item 1,092 of 2,035 NBA players who took $\geq 1$ shot on Sundays under-perform 
+      relative to their own season-long average; $p=0.001$.
+      \item Effect size is not considered.
+      \item Density of support is questionable.\footnote{What if we miss the only shot we took on Sunday, is that relevant?}     \end{itemize}
+\end{frame}
+
+\begin{frame}   \frametitle{Prev. research - likelihood of meeting the spread in NBA}
+  \begin{block}{Empirical evidence: away teams under-perform on Sundays.}
+  Teams under-perform bookmakers expectations on Sunday afternoons when on the road.\footnote{Ezekowitz, ('14).}
+    \begin{itemize}       
+    \item Only 129 out of 284 games did the away team meet the spread, 
+      using 2006-14 data; $p=0.1089$.
+    \item Not quite significant at the 90\% confidence level.     
+    \item If we bet \$100 on each Sunday game, we'd only profit \$1,310.\footnote{$(284 - 129) \times 100 + 129 \times (-110) = 1,310$.} 
+    \end{itemize}
+  \end{block}
+  \end{frame}
+
+
+
+
 % \begin{frame}   
 %   \frametitle{Is the problem hard?}
 
@@ -99,7 +126,7 @@
     \begin{itemize}     \item strengths and weaknesses against particular opponents,
     \item momentum,
     \item injuries, and
-    \item even possibly a weather forecast.     \end{itemize}
+    \item even possibly a weather forecast (for outdoor sports).     \end{itemize}
 
     A team is expected to meet the spread $\frac{1}{2}$ the time.\footnote{Dubner and Levitt, ('06). Losers pay 10\% fee on top of wagers; a balanced book guarantees 5\% gain for the house-bookmaker.}
   \end{block}
@@ -126,31 +153,6 @@
     Weaker, still: if odds of beating the spread uncorrelated with previous game location
     $\leadsto$ identification.\footnote{Under an efficient market, this assumption should hold.}       \end{block}
 \end{frame}
-
-
-\begin{frame}
-  \frametitle{Previous research - NBA player shooting average}
-  \begin{block}{Empirical evidence: players party to the detriment of the game.}
-  NBA Players under-perform proportion of shots made on Sundays.\footnote{Chase, ('15).}
-  \end{block}
-    \begin{itemize}       
-    \item 1,092 of 2,035 NBA players who took $\geq 1$ shot on Sundays under-perform 
-      relative to their own season-long average; $p=0.001$.
-      \item Effect size is not considered.
-      \item Density of support is questionable.\footnote{What if we miss the only shot we took on Sunday, is that relevant?}     \end{itemize}
-\end{frame}
-
-\begin{frame}   \frametitle{Prev. research - likelihood of meeting the spread in NBA}
-  \begin{block}{Empirical evidence: away teams under-perform on Sundays.}
-  Teams under-perform bookmakers expectations on Sunday afternoons when on the road.\footnote{Ezekowitz, ('14).}
-    \begin{itemize}       
-    \item Only 129 out of 284 games did the away team meet the spread, 
-      using 2006-14 data; $p=0.1089$.
-    \item Not quite significant at the 90\% confidence level.     
-    \item If we bet \$100 on each Sunday game, we'd only profit \$1,310.\footnote{$(284 - 129) \times 100 + 129 \times (-110) = 1,310$.} 
-    \end{itemize}
-  \end{block}
-  \end{frame}
 
 
 % \begin{frame}   \frametitle{Our solution: a quasi-experiment}
@@ -277,7 +279,7 @@
     \end{itemize}   \end{block}
 \end{frame}
 
-\begin{frame}   \frametitle{Partying as a latent variable}
+\begin{frame}   \frametitle{Recall: partying is a latent variable}
   \begin{block}{We can't observe when players go for a night on the town.}
     Instead, we develop two approaches to proxy for partying. 
 
@@ -314,15 +316,14 @@
 
 \begin{frame}   
   \frametitle{Continuous measure of party}
-  \centering \includegraphics[scale=0.3]{../writing/Party_by_Team_Location} 
+  \centering \includegraphics[scale=0.375]{../writing/Party_by_Team_Location} 
 \end{frame}
 
 \begin{frame}   \frametitle{Results: NBA}
   \vspace{-2pt}
   \centering
   \tiny{ % m0, m1
-\begin{tabular}{@{\extracolsep{5pt}}lcc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{2}{c}{\textit{Dependent variable:}} \\  \cline{2-3}  \\[-1.8ex] & \multicolumn{2}{c}{Meet the Spread} \\  \\[-1.8ex] & (1) & (2)\\  \hline \\[-1.8ex]   Party discrete & $-$0.557$^{***}$ &  \\    & (0.149) &  \\    & & \\   Party continuous &  & $-$0.158$^{*}$ \\    &  & (0.095) \\    & & \\   Lag changes in posession & 0.189 & 0.181 \\    & (0.140) & (0.140) \\    & & \\   Logged travel distance & $-$0.015 & $-$0.010 \\    & (0.026) & (0.026) \\    & & \\   East-west travel direction & $-$0.072 & $-$0.037 \\    & (0.234) & (0.234) \\    & & \\   Number hours rest time & 0.001 & 0.001 \\    & (0.001) & (0.001) \\    & & \\   Time of game during day & 0.006 & 0.004 \\    & (0.013) & (0.013) \\    & & \\   Home team effect & 0.002 & 0.004 \\    & (0.044) & (0.044) \\    & & \\   Logged travel distance * east-west & 0.011 & 0.007 \\    & (0.036) & (0.036) \\    & & \\   Constant & $-$0.923 & $-$0.875 \\    & (0.695) & (0.695) \\    & & \\  \hline \\[-1.8ex]  Observations & 9,517 & 9,517 \\  Log Likelihood & $-$6,586.320 & $-$6,592.159 \\  Akaike Inf. Crit. & 13,200.640 & 13,212.320 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular} 
-}   
+\begin{tabular}{@{\extracolsep{5pt}}lcc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{2}{c}{\textit{Dependent variable:}} \\  \cline{2-3}  \\[-1.8ex] & \multicolumn{2}{c}{Meet the Spread} \\  \\[-1.8ex] & (1) & (2)\\  \hline \\[-1.8ex]   Party discrete & $-$0.557$^{***}$ &  \\    & (0.149) &  \\    & & \\   Party continuous &  & $-$0.158$^{*}$ \\    &  & (0.095) \\    & & \\   Lag changes in posession & 0.189 & 0.181 \\    & (0.140) & (0.140) \\    & & \\   Logged travel distance & $-$0.015 & $-$0.010 \\    & (0.026) & (0.026) \\    & & \\   East-west travel direction & $-$0.072 & $-$0.037 \\    & (0.234) & (0.234) \\    & & \\   Number hours rest time & 0.001 & 0.001 \\    & (0.001) & (0.001) \\    & & \\   Time of game during day & 0.006 & 0.004 \\    & (0.013) & (0.013) \\    & & \\   Home team effect & 0.002 & 0.004 \\    & (0.044) & (0.044) \\    & & \\   Logged travel distance * east-west & 0.011 & 0.007 \\    & (0.036) & (0.036) \\    & & \\  \hline \\[-1.8ex]  Observations & 9,517 & 9,517 \\  Log Likelihood & $-$6,586.320 & $-$6,592.159 \\  Akaike Inf. Crit. & 13,200.640 & 13,212.320 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  }   
 \end{frame}
 
 
@@ -332,7 +333,7 @@
   we fit a linear predictor to a transformation of the expected value of our
   variable of interest. I.e.
   \[
-    \textrm{logit} \left( \mathbb E[Y_i | X]\right) = \textrm{logit} \left(p\right) = \ln \left( \frac{p}{1-p}\right) = X \beta.
+    \textrm{logit} \left( \mathbb E[Y_i | X_i]\right) = \textrm{logit} \left(p\right) = \ln \left( \frac{p}{1-p}\right) = X_i^T \beta.
   \]
   So, we interpret our regression coefficient as follows: visiting LA or NY within
   24 hours of another game corresponds to being $e^{\beta_1} \approx e^{-0.55} \approx \frac{3}{5}$
@@ -416,7 +417,7 @@
 \begin{frame}   \frametitle{Defense in the NBA}
   \begin{adjustwidth}{-.75cm}{}
   \tiny{  % mpa, tpa, tps
-\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & Points Admitted by Team & Team Points Admitted & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.817$^{***}$ &  &  \\    & (0.712) &  &  \\    & & & \\   Continuous party measure &  & 1.942$^{***}$ & 0.377 \\    &  & (0.248) & (0.246) \\    & & & \\   Lag change in possessions &  & 0.022$^{***}$ & 0.035$^{***}$ \\    &  & (0.007) & (0.007) \\    & & & \\   Logged travel distance &  & $-$0.411$^{***}$ & 0.035 \\    &  & (0.074) & (0.073) \\    & & & \\   Number hours since last game &  & 0.012$^{***}$ & 0.020$^{***}$ \\    &  & (0.003) & (0.003) \\    & & & \\   Constant & $-$0.046 & 102.824$^{***}$ & 99.540$^{***}$ \\    & (0.091) & (0.483) & (0.478) \\    & & & \\  \hline \\[-1.8ex]  Observations & 15,139 & 44,689 & 44,689 \\  R$^{2}$ & 0.001 & 0.002 & 0.002 \\  Adjusted R$^{2}$ & 0.001 & 0.002 & 0.002 \\  Residual Std. Error & 11.137 (df = 15137) & 12.117 (df = 44684) & 12.015 (df = 44684) \\  F Statistic & 15.670$^{***}$ (df = 1; 15137) & 27.968$^{***}$ (df = 4; 44684) & 24.325$^{***}$ (df = 4; 44684) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}      }
+\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & Team Points Admitted & Team Points Admitted & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.817$^{***}$ &  &  \\    & (0.712) &  &  \\    & & & \\   Continuous party measure &  & 1.942$^{***}$ & 0.377 \\    &  & (0.248) & (0.246) \\    & & & \\   Lag change in possessions &  & 0.022$^{***}$ & 0.035$^{***}$ \\    &  & (0.007) & (0.007) \\    & & & \\   Logged travel distance &  & $-$0.411$^{***}$ & 0.035 \\    &  & (0.074) & (0.073) \\    & & & \\   Number hours since last game &  & 0.012$^{***}$ & 0.020$^{***}$ \\    &  & (0.003) & (0.003) \\    & & & \\   Constant & $-$0.046 & 102.824$^{***}$ & 99.540$^{***}$ \\    & (0.091) & (0.483) & (0.478) \\    & & & \\  \hline \\[-1.8ex]  Observations & 15,139 & 44,689 & 44,689 \\  R$^{2}$ & 0.001 & 0.002 & 0.002 \\  Adjusted R$^{2}$ & 0.001 & 0.002 & 0.002 \\  Residual Std. Error & 11.137 (df = 15137) & 12.117 (df = 44684) & 12.015 (df = 44684) \\  F Statistic & 15.670$^{***}$ (df = 1; 15137) & 27.968$^{***}$ (df = 4; 44684) & 24.325$^{***}$ (df = 4; 44684) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  }
 \end{adjustwidth} 
 \end{frame}
 
@@ -440,9 +441,9 @@
     \item European soccer leagues.   \end{itemize} \end{frame}
 
 \begin{frame}   \frametitle{Conclusions}
-  \begin{itemize}     \item NBA and MLB players under-perform bookmakers expectations after visiting LA and NY, and in general we see that performance decreases as a function of (our proxy for) nightlife.
-    \item The decrease in likelihood can (in part) be explained by a drop in defensive performance.
-    \item With a causal model established, we realize a profitable betting scheme.   \end{itemize} \end{frame}
+  \begin{itemize}     \item NBA and MLB players under-perform bookmakers expectations after visiting LA and NY.
+    \item In general we see that performance decreases as a function of (our proxy for) nightlife.     \item The decrease in likelihood can (in part) be explained by a drop in defensive performance in the NBA.
+    \item With a causal model established, we realize a profitable betting scheme in MLB.   \end{itemize} \end{frame}
 
 \begin{frame}   \frametitle{Why \# drinking establishments or population won't work}
   \includegraphics[scale=0.3]{../writing/why_drinks_or_population_dont_work} \end{frame}
