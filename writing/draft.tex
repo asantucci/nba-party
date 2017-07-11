@@ -78,7 +78,8 @@ We perform this analysis for both the National Basketball Association
 (NBA) and Major League Baseball (MLB). 
 We find that visiting a city with active nightlife the day prior to a game does have a 
 statistically significant negative effect on a team's likelihood of meeting bookmakers' expectations
-for both NBA and MLB. Within the NBA, we analyze specific team performance metrics such as number of points allowed and number of rebounds obtained in a game, and find that both are negatively effected by previous day visitation to a city with active nightlife. Having established a causal model, we realize a profitable betting scheme for MLB. We also perform a robustness check and see that if players rest more than
+for both NBA and MLB. Within the NBA, we analyze specific team performance metrics such as number of points allowed, and find that it is 
+negatively effected by previous day visitation to a city with active nightlife. Having established a causal model, we realize a profitable betting scheme for MLB. We also perform a robustness check and see that if players rest more than
  24 hours after visiting a ``party city'', the hangover effect dissipates.
 
 \section{Effects of Partying on Athletic Performance}
@@ -144,8 +145,7 @@ Sleep deprivation has also been shown to strongly impair cognitive and motor per
 \paragraph{On the correlation between next day opponent and last game location}
 A key assumption in our analysis is that next-day opponent is reasonably uncorrelated with
 last game location. We plot a heat-map displaying the relationship between last game location
-and next game location, and further break this down according to whether the game(s)
-were played at home or away.
+and next game location, and further break this down according to whether the game(s) were played at home or away.
 
 \begin{figure}
   \centering
@@ -157,8 +157,7 @@ we observe that some combinations cease to exist in our data; e.g. we never obse
 is less burdensome as it relates to timezone changes.} 
 \end{figure}
 
-We plot a heatmap which displays the logged count of co-occurences between last game
-location and current game location, split by home-and-away games.
+The figure displays the a count of co-occurences between last game location and current game location, faceted by home and away games.
 Our takeaway from this figure is that indeed there is some correlation between last game location
 and next day opponent (more so when both are away games,  
 and in particular this is true for west coast teams). We hypothesize that
@@ -196,7 +195,7 @@ particularly musicians.\citep{jbutlerdwade} After winning the NBA finals
 in 2016, the Cleveland Cavaliers were found celebrating in nightclubs.\citep{xsclub} 
 This motivated a continuous measure of nightlife, based on a simple count of the number of musicians in the metropolitan statistical area (MSA) 
 in which the stadium resides: if the last game was played at most 24-hours ago, use the log of the total number
-of musical groups, sound recording studios, and musical publishers in county of the 
+of musical groups, sound recording studios, and musical publishers in the MSA of the 
 last game location, else emit zero.  We also re-scale this feature to lie within the
 interval $[0,1]$ such that the magnitude of the coefficient is comparable with our
 discrete indicator of nightlife.
@@ -216,7 +215,7 @@ team will win a match-up.
 
 We interpret the point-spread according to a standard guide.\citep{hrisports} 
 The reason we utilize bookmaker spreads is because this measure already incorporates
-up-to-date information on how well the team as been performing in said season and also
+up-to-date information on how well the team has been performing in said season and also
 their expected (dis)-advantage relative to a particular opponent. Without a feature
 describing bookmaker expectations, we would need to construct a separate model (from scratch)
 which estimates the probability that one team will be victorious over another, for all
@@ -234,7 +233,7 @@ We have a total of 7,829 games in our data-set. We add features
 to our data such as number of days since last game, lagged game location, and 
 travel distance.
 
-\paragraph{MLB} We also obtain data for seasons 2010 through 2017; each season runs from 
+\paragraph{MLB} We also obtain data for seasons 2011 through 2017; each season runs from 
 April through October. There are also exactly 30 teams in the MLB, each plays 162 games per season.
 We don't have all $162 \times 30 / 2 = 2,430$ games played each season, but instead only have
 on average almost 2,100 games per season. We posit that the missing observations
@@ -286,7 +285,7 @@ we can be reasonably confident in our conclusion that there is a causal effect a
 to an NBA or MLB team from years 2010-2016. 
 As a proxy for how much night-life there is in a city, we look toward the 
 number of sound recording studios, musical groups, and music publishers there 
-are for a particular county-year: we simply calculate the total number of establishments across all three music categories listed above. We caveat that since the Toronto Raptors and Toronto Blue Jays are located in Canada, 
+are for a particular MSA and quarter: we simply calculate the total number of establishments across all three music categories listed above. We caveat that since the Toronto Raptors and Toronto Blue Jays are located in Canada, 
 we don't have BLS data for these teams.\footnote{We don't expect Toronto, Canada to be a party city.}
 
 We then merge this in with our lines data, taking care to do so according to each team's last game location such that the feature captures the proper
@@ -376,9 +375,8 @@ Interacting this with travel-distance gets us a measure of jetlag.\citep{lallens
 
 \paragraph{Model} We use a logistic regression to estimate the likelihood of meeting
 the spread as a function of whether the team partied as well as controlling for other confounders
-listed above. Our basic model is as follows accounts for the rest-time since
-last game, jet-lag, home-team effect, player fatigue incurred during the last game,
-and the party effect.
+listed above. Our basic model accounts for the rest-time since
+last game, jet-lag, home-team effect, player fatigue incurred during the last game, and the party effect.
 
 \subsection{Results}
 \subsubsection{NBA: using points-spread data}
@@ -433,8 +431,8 @@ market.
     circled point represents the worst out of pocket expense incurred.
     We first train a model on historical data then use said model to predict on ``current year''
     data, plotting profits as a function of time over the ``current'' season. For each relevant
-    game, we place a bet of \$100 if the expected value of the bet is positive after accounting for the bookmaker's cut. E.g. in the     early 2016 season,
-    at its worst we are out of pocket \$750 dollars. By season end, we have     recouped all of
+    game, we place a bet of \$100 if the expected value of the bet is positive after accounting for the bookmaker's cut. E.g. in the early 2016 season,
+    at its worst we are out of pocket \$89 dollars. By season end, we have     recouped all of
     our initial investment plus an additional \$11.5k. We are profitable in each season, and mention that 2015 is the ``worst'', but we still come out ahead.}
   \label{bettingperf}
 \end{figure}
@@ -501,8 +499,7 @@ It's even more interesting to note that points spreads are on a similar order of
 
 % mpa1, tpa, tpo
 \hspace{-125pt}
-\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & Team Points Admitted & Team Points Admitted & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.817$^{***}$ &  &  \\    & (0.712) &  &  \\    & & & \\   Continuous party measure &  & 1.942$^{***}$ & 0.377 \\    &  & (0.248) & (0.246) \\    & & & \\   Lag change in possessions &  & 0.022$^{***}$ & 0.035$^{***}$ \\    &  & (0.007) & (0.007) \\    & & & \\   Logged travel distance &  & $-$0.411$^{***}$ & 0.035 \\    &  & (0.074) & (0.073) \\    & & & \\   Number hours since last game &  & 0.012$^{***}$ & 0.020$^{***}$ \\    &  & (0.003) & (0.003) \\    & & & \\   Constant & $-$0.046 & 102.824$^{***}$ & 99.540$^{***}$ \\    & (0.091) & (0.483) & (0.478) \\    & & & \\  \hline \\[-1.8ex]  Observations & 15,139 & 44,689 & 44,689 \\  R$^{2}$ & 0.001 & 0.002 & 0.002 \\  Adjusted R$^{2}$ & 0.001 & 0.002 & 0.002 \\  Residual Std. Error & 11.137 (df = 15137) & 12.117 (df = 44684) & 12.015 (df = 44684) \\  F Statistic & 15.670$^{***}$ (df = 1; 15137) & 27.968$^{***}$ (df = 4; 44684) & 24.325$^{***}$ (df = 4; 44684) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
-  
+\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & Team Points Admitted & Team Points Admitted & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.649$^{***}$ &  &  \\    & (0.718) &  &  \\    & & & \\   Continuous party measure &  & 1.833$^{***}$ & 0.447$^{*}$ \\    &  & (0.246) & (0.245) \\    & & & \\   Lag change in possessions & 1.058$^{*}$ & 0.022$^{***}$ & 0.035$^{***}$ \\    & (0.615) & (0.007) & (0.007) \\    & & & \\   Logged travel distance & $-$0.045 & $-$0.028 & $-$0.213$^{***}$ \\    & (0.038) & (0.074) & (0.074) \\    & & & \\   Number hours since last game & 0.009$^{**}$ & 0.015$^{***}$ & 0.018$^{***}$ \\    & (0.004) & (0.003) & (0.003) \\    & & & \\   Home team effect & $-$2.997$^{***}$ & $-$3.412$^{***}$ & 2.211$^{***}$ \\    & (0.218) & (0.116) & (0.116) \\    & & & \\   Constant & $-$3.429 & 101.941$^{***}$ & 100.112$^{***}$ \\    & (2.926) & (0.479) & (0.477) \\    & & & \\  \hline \\[-1.8ex]  Observations & 14,843 & 44,689 & 44,689 \\  R$^{2}$ & 0.018 & 0.021 & 0.010 \\  Adjusted R$^{2}$ & 0.017 & 0.021 & 0.010 \\  Residual Std. Error & 11.070 (df = 14831) & 12.002 (df = 44683) & 11.967 (df = 44683) \\  F Statistic & 24.021$^{***}$ (df = 11; 14831) & 196.086$^{***}$ (df = 5; 44683) & 92.809$^{***}$ (df = 5; 44683) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}    
 \section{Conclusions and Avenues for Future Research}
 \subsection{Extending the research}
 \paragraph{Within the NBA} 
