@@ -50,14 +50,16 @@ mp <- update(m0, . ~ party.placebo + . - party.discrete)
 ##    data = espn[last.game.loc != team] %>% na.omit)
 
 ### Total points admitted and scored.
-tpa <- lm(team.pts.admitted ~ party + lag.chg.pos + log(travel.dist+1) + nhours.lgame,
+tpa <- lm(team.pts.admitted ~ party + lag.chg.pos + log(travel.dist+1) + nhours.lgame +
+         I(team == location),
    data = espn[last.game.loc != team] %>% na.omit)
 tps <- update(tpa, team.pts.scored ~ .)
 
 ### Points  allowed as afunction of last game location (by party)
 nba.lines[, demeaned.pts.admitted := team.pts.admitted - mean(team.pts.admitted),
           by = list(season, team)]
-mpa1 <- lm(demeaned.pts.admitted ~ party.discrete, data = nba.lines)
+mpa1 <- lm(demeaned.pts.admitted ~ party.discrete + lag.chg.pos + log(travel.dist+1) +
+         nhours.lgame + I(team == location) + as.factor(season), data = nba.lines)
 
 ##################################################
 ### MLB Modeling
@@ -148,7 +150,9 @@ stargazer(mpa1, tpa, tps,
                                'Lag change in possessions',
                                'Logged travel distance',
                                'Number hours since last game',
-                               'Constant'))
+                               'Home team effect',
+                               'Constant'),
+          omit = 'as.factor')
 
 stargazer(m3, m4, covariate.labels = c('Continuous measure of nightlife',
                                        'Nightlife (no weekend interaction)', 
@@ -232,9 +236,12 @@ setorder(tmp, 'distance to NYC')
 tmp[, last.game.loc := factor(last.game.loc, levels = dmat[order(distance, decreasing = T), last.game.loc])]
 tmp[, location      := factor(location,      levels = dmat[order(distance, decreasing = T), last.game.loc])]
 
+breaks <- 2^(0:6)
+
 pdf('writing/next_day_opponent.pdf', width = 14, height = 14)
-ggplot(tmp, aes(x = location, y = last.game.loc, fill = log(N))) +
+ggplot(tmp, aes(x = location, y = last.game.loc, fill = N)) +
     geom_tile() +
+    scale_fill_gradient(name = 'Count', trans = 'log', breaks = breaks) +
     facet_wrap(~lst.game + cur.game) + 
     labs(x = 'Current Game Location', y = 'Last Game Location', 
          title = 'Distribution of Next Day Opponent - NBA\n(sorted by distance to NYC)') +
@@ -245,8 +252,9 @@ dev.off()
 
 pdf('writing/next_day_opponent_on_tour.pdf', width = 14, height = 14)
 ggplot(tmp[cur.game == 'Current game away' &
-           lst.game == 'Last game away'], aes(x = location, y = last.game.loc, fill = log(N))) +
+           lst.game == 'Last game away'], aes(x = location, y = last.game.loc, fill = N)) +
     geom_tile() +
+    scale_fill_gradient(name = 'Count', trans = 'log', breaks = breaks) +
     labs(x = 'Current Game Location', y = 'Last Game Location', 
          title = 'Distribution of Next Day Opponent - NBA\n(sorted by distance to NYC)') +
     theme_bw() +
@@ -280,8 +288,9 @@ tmp[, last.game.loc := factor(last.game.loc, levels = dmat[order(distance, decre
 tmp[, location      := factor(location,      levels = dmat[order(distance, decreasing = T), last.game.loc])]
 
 pdf('writing/next_day_opponent_mlb.pdf', width = 14, height = 14)
-ggplot(tmp, aes(x = location, y = last.game.loc, fill = log(N))) + 
+ggplot(tmp, aes(x = location, y = last.game.loc, fill = N)) + 
     geom_tile() +
+    scale_fill_gradient(name = 'Count', trans = 'log', breaks = breaks) +
     facet_wrap(~lst.game + cur.game) + 
     labs(x = 'Current Game Location', y = 'Last Game Location', 
          title = 'Distribution of Next Day Opponent - MLB') +
