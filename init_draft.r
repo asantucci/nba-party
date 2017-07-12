@@ -105,7 +105,7 @@ b <- lapply(2012:2016, function(yr) {
                        format(round(sum(tmp$bet), digits = -1), big.mark = ','), '\n',
                        'Training on 2011-', yr-1, ' data'),
          xlab = 'Game Number', ylab = 'Profit', type = 'l')
-    abline(a = 0, b = 0, lty = 3)
+    abline(a = 0, b = 0, lty = 'dashed', col = 'orange', lwd = 3)
     points(x = which.min(tmp$running.prof), y = min(tmp$running.prof), type = 'p')
     text(x = which.min(tmp$running.prof), y = min(tmp$running.prof), 
          labels = round(min(tmp$running.prof)), pos = 4)
@@ -375,7 +375,7 @@ mlb.lines <- na.omit(mlb.lines)
 noinf <- glm(I(team.score > opponent.score) ~ odds, data = mlb.lines, family = 'binomial')
 mlb.lines[, fitted := fitted(noinf)]
 mlb.lines[, resid  := resid(noinf)]
-tmp <- mlb.lines[, .(avg.residual = mean(resid)), by = .(fitted = round(fitted, 2))]
+tmp <- mlb.lines[, .(avg.residual = mean(resid)), by = .(fitted = round(fitted, 3))]
 plot(tmp$fitted, tmp$avg.residual, 
      xlab = 'Fitted Probability', ylab = 'Average Residual', 
      main = paste('After conditioning on bookkeeper\'s odds (MLB),',
