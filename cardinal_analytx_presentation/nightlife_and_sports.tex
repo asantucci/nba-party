@@ -64,13 +64,20 @@
     play following games in party cities.
   \end{block}
   \vspace{12pt}\begin{block}{Part of the question is determining a measure for nightlife. }
-    We colloquially call cities with high levels of nightlife ``party cities''.   \end{block}
+    We dub cities with high levels of nightlife ``party cities''.  
+  \vspace{12pt}
+  \begin{block}{Another is how to measure a dip in performance?}
+    We need to consider player ability, team momentum, etc.
+  \end{block} \end{block}
 \end{frame}
 
 \begin{frame}   \frametitle{What's the specific question, exactly?}
-  \begin{block}{Do teams/athletes perform worse the day after playing in a party-oriented city?\footnote{  We will define ``perform worse'' relative to bookmaker expectations, which are in part driven by
-  bettors' expectations.}}
+  \begin{block}{Do teams/athletes perform worse the day after playing in a party-oriented city?}
 \vspace{12pt}     I.e. we are concerned with ``hangover effects''.
+
+\vspace{12pt}
+
+% E.g. a team visits Las Vegas for the day. How is their next game?
   \end{block}
 \end{frame}
 
@@ -102,6 +109,7 @@
   \centering   \includegraphics[scale=0.55]{../writing/meet_the_spread} 
 \end{frame}
 
+
 \begin{frame}   \frametitle{Our solution: a quasi-experiment.}
   \begin{block}{Systematic deviations represent unexplained mechanisms.}     We construct a model which attempts to estimate the causal effect of visiting a ``party city''
     on subsequent day performance, as measured by the odds of meeting the spread.       \end{block}
@@ -114,14 +122,36 @@
 \begin{frame}   \frametitle{Identifying variation}
   \begin{block}{Performance as a function of previous day's nightlife index.}     If next day opponent is uncorrelated with visitation to a party city,
     then looking at the \emph{actual outcome} of the game $\leadsto$ identification.
-
-    \vspace{15pt} 
-
-    Weaker, still: if odds of beating the spread uncorrelated with previous game location
-    $\leadsto$ identification.\footnote{Under an efficient market, this assumption should hold.}       \end{block}
+  \end{block}
 \end{frame}
 
+\begin{frame}   \frametitle{Overzealous assumption: next day opponent uncorrelated}
+  \centering \includegraphics[scale=0.25]{../writing/next_day_opponent} 
+\end{frame}
 
+\begin{frame}   \frametitle{A closer look at NBA games on the road}
+  \centering \includegraphics[scale=0.25]{../writing/next_day_opponent_on_tour} 
+\end{frame}
+
+\begin{frame}
+  \frametitle{Weakening our assumptions}
+  \begin{block}{With some correlation between next-day opponent, this further motivates using bookmaker expectations as the response.}
+    
+    Helps to account for systematically running into teams the day after visitation to 
+    a party oriented city who are particularly (not)-skilled.
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Implications and pitfalls of using a black-box feature}
+  \begin{block}{If bookkeepers aware of hangover effects...}     then our variable of interest may not appear significant, in spite of there being a true effect.   \end{block}
+  \vspace{12pt}
+  \begin{block}{If bookkeepers systematically mis-value teams...}
+     which are more likely to be encountered after visiting a city with active nightlife, we could see a spurious effect.
+
+      (Given size of betting market, this is unlikely)
+    \end{block}   
+\end{frame}
 
   %   \vspace{12pt} 
   %   \begin{itemize}       \item Do teams play worse the day after visiting a ``party city''?
@@ -143,7 +173,8 @@
     After being traded from NY to Cavaliers, performance increased.
     When asked why: ``There’s nothing you expect (in Cleveland) but basketball. 
     There’s nothing, there’s no going out, there’s no late nights.''\footnote{Price, Levy ('15).}
-  \end{block} \end{frame}
+  \end{block} 
+\end{frame}
 
 
 \begin{frame}
@@ -208,23 +239,6 @@
   \end{block} 
 \end{frame}
 
-\begin{frame}   \frametitle{Overzealous assumption: next day opponent uncorrelated}
-  \centering \includegraphics[scale=0.25]{../writing/next_day_opponent} \end{frame}
-
-\begin{frame}   \frametitle{A closer look at NBA games on the road}
-  \centering \includegraphics[scale=0.25]{../writing/next_day_opponent_on_tour} 
-\end{frame}
-
-\begin{frame}
-  \frametitle{Weakening our assumptions}
-  \begin{block}{With some correlation between next-day opponent, this further motivates using bookmaker expectations as the response.}
-    
-    \vspace{12pt}
-    Helps to account for systematically running into teams the day after visitation to 
-    a party oriented city who are particularly (not)-skilled.
-  \end{block}
-\end{frame}
-
 \begin{frame}   \frametitle{Public scrutiny makes data collection difficult}
 
   \begin{block}{Whether parties take place is a latent variable}     Due to intense public scrutiny, there is a reluctance to share nightlife experiences
@@ -244,7 +258,8 @@
 \vspace{12pt}
     \[
       \texttt{party} \coloneqq \mathbbm 1 \left \{\substack{\textrm{last game played in LA or NY} \\ \textrm{at most 24-hours ago}}\right \}
-    \]   \end{block} \end{frame}
+    \]   \end{block} 
+\end{frame}
 
 
 \begin{frame}   
@@ -271,16 +286,6 @@
   \frametitle{Continuous measure of party}
   \centering \includegraphics[scale=0.375]{../writing/Party_by_Team_Location} 
 \end{frame}
-
-
-  % \begin{itemize}     \item If bookkeepers aware of hangover effects, our variable of interest may not appear significant, in spite of there being a true effect.
-
-  %   \item If bookkeepers systematically mis-value teams which are more likely to be encountered after visiting a city with active nightlife, we could see a spurious effect.
-
-  %     (Given size of betting market, this is unlikely)
-  %   \end{itemize}   
-
-
 
 \begin{frame}   \frametitle{NBA data: 2010-11 through 2016-17 season}
   \begin{itemize}     \item Each team plays 82 games per season.
@@ -445,33 +450,22 @@
     \item Pinpoint more precisely what elements of game-play are affected by nightlife visitation.   
 \end{itemize}
 
-\vspace{12pt}  Anecdotally, rebounds are considered a ``hustle'' statistic, in the sense that players
-  who work harder on the court and expend energy boxing out other players will have higher
-  rebound rates. \end{frame}
+  \vspace{12pt}  
+  \begin{block}{Is it the case the hangover effects are more prevalent on defensive aspects of gameplay?}     Anecdotally, rebounds are considered a ``hustle'' statistic, in the sense that players
+    who work harder on the court and expend energy boxing out other players will have higher
+    rebound rates.    \end{block}
+\end{frame}
 
-% \begin{frame}   \frametitle{Analysis: rebounds}
-%   \begin{itemize}     \item For each player and each game, we calculate the % number of rebounds obtained per-minute of game-play
-%     \item From each observation, we subtract the player's average number of % rebounds per minute taken across the entire season.
-%     \item We then run a linear regression explaining demeaned rebounds as a % function of 
-%       nightlife visitation and other features describing player fatigue.   % \end{itemize} \end{frame}
-
-% \begin{frame}   \frametitle{Results: rebounds}
-%   \centering
-%   \tiny{ % m2
-% \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & % \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & % Demeanead Rebounds Per Minute \\  \hline \\[-1.8ex]   Continuous party measure & % $-$0.004$^{*}$ \\    & (0.002) \\    & \\   Lag change in possessions & 0.00002 % \\    & (0.0001) \\    & \\   Logged travel distance & 0.001 \\    & (0.001) \\    % & \\   Number hours since last game & 0.00002 \\    & (0.00002) \\    & \\   % Constant & $-$0.007 \\    & (0.004) \\    & \\  \hline \\[-1.8ex]  Observations % & 40,684 \\  R$^{2}$ & 0.0003 \\  Adjusted R$^{2}$ & 0.0002 \\  Residual Std. % Error & 0.104 (df = 40679) \\  F Statistic & 2.696$^{**}$ (df = 4; 40679) \\  % \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; % $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  } \end{frame}
-
-\begin{frame}   \frametitle{Hangover correlates with allowing more points}
-  We examine points allowed and points scored (on the team level).
-
-  \vspace{12pt}Common knowledge suggests that overall defense of a team is strongly influenced by individual player effort.
-
-  \vspace{12pt}Is it the case the hangover effects are more prevalent on defensive aspects of gameplay? \end{frame}
 
 \begin{frame}   \frametitle{Defense in the NBA}
-  \begin{adjustwidth}{-.75cm}{}
   \tiny{  % mpa1, tpa, tps
-\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & Team Points Admitted & Team Points Admitted & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.649$^{***}$ &  &  \\    & (0.718) &  &  \\    & & & \\   Continuous party measure &  & 1.833$^{***}$ & 0.447$^{*}$ \\    &  & (0.246) & (0.245) \\    & & & \\   Lag change in possessions & 1.058$^{*}$ & 0.022$^{***}$ & 0.035$^{***}$ \\    & (0.615) & (0.007) & (0.007) \\    & & & \\   Logged travel distance & $-$0.045 & $-$0.028 & $-$0.213$^{***}$ \\    & (0.038) & (0.074) & (0.074) \\    & & & \\   Number hours since last game & 0.009$^{**}$ & 0.015$^{***}$ & 0.018$^{***}$ \\    & (0.004) & (0.003) & (0.003) \\    & & & \\   Home team effect & $-$2.997$^{***}$ & $-$3.412$^{***}$ & 2.211$^{***}$ \\    & (0.218) & (0.116) & (0.116) \\    & & & \\   Constant & $-$3.429 & 101.941$^{***}$ & 100.112$^{***}$ \\    & (2.926) & (0.479) & (0.477) \\    & & & \\  \hline \\[-1.8ex]  Observations & 14,843 & 44,689 & 44,689 \\  R$^{2}$ & 0.018 & 0.021 & 0.010 \\  Adjusted R$^{2}$ & 0.017 & 0.021 & 0.010 \\  Residual Std. Error & 11.070 (df = 14831) & 12.002 (df = 44683) & 11.967 (df = 44683) \\  F Statistic & 24.021$^{***}$ (df = 11; 14831) & 196.086$^{***}$ (df = 5; 44683) & 92.809$^{***}$ (df = 5; 44683) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}    }
-\end{adjustwidth} 
+\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & \multicolumn{2}{c}{Team Points Admitted} & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.970$^{***}$ &  &  \\    & (0.835) &  &  \\    & & & \\   Continuous party measure &  & 1.661$^{***}$ & $-$0.139 \\    &  & (0.644) & (0.637) \\    & & & \\   Lag change in possessions & 6.694$^{***}$ & 6.751$^{***}$ & 5.858$^{***}$ \\    & (0.973) & (0.973) & (0.963) \\    & & & \\   Logged travel distance & $-$0.114 & $-$0.132 & $-$0.285 \\    & (0.198) & (0.198) & (0.196) \\    & & & \\   Number hours since last game & 0.011$^{*}$ & 0.015$^{**}$ & 0.016$^{**}$ \\    & (0.006) & (0.007) & (0.007) \\    & & & \\   Home team effect & $-$3.269$^{***}$ & $-$3.269$^{***}$ & 2.417$^{***}$ \\    & (0.303) & (0.303) & (0.300) \\    & & & \\   Constant & 68.114$^{***}$ & 67.686$^{***}$ & 71.348$^{***}$ \\    & (4.805) & (4.810) & (4.758) \\    & & & \\  \hline \\[-1.8ex]  Observations & 6,234 & 6,234 & 6,234 \\  R$^{2}$ & 0.091 & 0.090 & 0.084 \\  Adjusted R$^{2}$ & 0.087 & 0.086 & 0.079 \\  Residual Std. Error (df = 6201) & 11.670 & 11.675 & 11.549 \\  F Statistic (df = 32; 6201) & 19.453$^{***}$ & 19.247$^{***}$ & 17.720$^{***}$ \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}    }
+\end{frame}
+
+
+\begin{frame}
+  \centering
+  \includegraphics[scale=0.25]{../writing/distribution_point_spreads_nba}
 \end{frame}
 
 \begin{frame}   \frametitle{Future research - NBA}
