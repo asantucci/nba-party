@@ -45,21 +45,22 @@ m1 <- update(m0, . ~ party + . - party.discrete)
 mp <- update(m0, . ~ party.placebo + . - party.discrete)
 
 ### Player specific model - demeaned rebounds per minute.
-## m2 <- lm(demeaned.reb.per.min ~ party + lag.chg.pos + log(travel.dist+1) + nhours.lgame +
-##              as.factor(season),
-##    data = espn[last.game.loc != team] %>% na.omit)
+## m2 <- lm(reb.per.min ~ party + lag.chg.pos + log(travel.dist+1) + nhours.lgame +
+##              as.factor(season) + player*as.factor(season),
+##          data = espn[last.game.loc != team] %>% na.omit)
+
+## require(lfe)
+## m2 <- felm(reb.per.min ~ party.discrete + lag.chg.pos + log(travel.dist+1) + nhours.lgame +
+##              as.factor(season) + player,
+##          data = espn[last.game.loc != team] %>% na.omit)
 
 ### Total points admitted and scored.
 tpa <- lm(team.pts.admitted ~ party + lag.chg.pos + log(travel.dist+1) + nhours.lgame +
-         I(team == location),
-   data = espn[last.game.loc != team] %>% na.omit)
-tps <- update(tpa, team.pts.scored ~ .)
+              I(team == location) + team,
+          data = nba.lines[last.game.loc != team] %>% na.omit)
+mpa1 <- update(tpa, . ~ party.discrete + . - party)
+tps <- update(tpa, team.pts.scored ~ . + team)
 
-### Points  allowed as afunction of last game location (by party)
-nba.lines[, demeaned.pts.admitted := team.pts.admitted - mean(team.pts.admitted),
-          by = list(season, team)]
-mpa1 <- lm(demeaned.pts.admitted ~ party.discrete + lag.chg.pos + log(travel.dist+1) +
-         nhours.lgame + I(team == location) + as.factor(season), data = nba.lines)
 
 ##################################################
 ### MLB Modeling
@@ -144,7 +145,7 @@ stargazer(mp, covariate.labels = c('Party placebo', 'Lag changes in posession',
 ##                                'Constant'))
 
 stargazer(mpa1, tpa, tps,
-          dep.var.labels = c('Team Points Admitted', 'Team Points Admitted', 'Team Points Scored'),
+          dep.var.labels = c('Team Points Admitted', 'Team Points Scored'),
           covariate.labels = c('Discrete party indicator',
                                'Continuous party measure',
                                'Lag change in possessions',
@@ -152,7 +153,7 @@ stargazer(mpa1, tpa, tps,
                                'Number hours since last game',
                                'Home team effect',
                                'Constant'),
-          omit = 'as.factor')
+          omit = '(as.factor)|(team[^ ])')
 
 stargazer(m3, m4, covariate.labels = c('Continuous measure of nightlife',
                                        'Nightlife (no weekend interaction)', 
@@ -201,7 +202,7 @@ dev.off()
 ##################################################
 
 
-pdf('writing/travel_dist_density_by_party.pdf', width = 12, height = 11)
+pdf('writing/travel_dist_density_by_party.pdf', width = 16, height = 12)
 plot(density(nba.lines[(party.discrete) & !is.na(travel.dist), travel.dist]), 
      xlim = c(-100, 18e2), lty = 1,
      main = 'Density of travel distance\nfor (non) party cities: NBA',
@@ -370,14 +371,26 @@ hist(tmp$meet.spread, prob = T, main = paste('How often do teams meet the spread
 lines(density(tmp$meet.spread, adjust = 2), col = 'orange', lty = 'dashed', lwd = 3)
 ### There should be 'no information' left over after conditioning on odds.
 mlb.lines <- na.omit(mlb.lines)
-noinf <- lm(I(team.score > opponent.score) ~ odds, data = mlb.lines)
-preds <- fitted(noinf)
+## noinf <- lm(I(team.score > opponent.score) ~ odds, data = mlb.lines)
+noinf <- glm(I(team.score > opponent.score) ~ odds, data = mlb.lines, family = 'binomial')
 mlb.lines[, fitted := fitted(noinf)]
 mlb.lines[, resid  := resid(noinf)]
-tmp <- mlb.lines[, .(avg.residual = mean(resid)), by = .(fitted = round(fitted, 3))]
-plot(x = tmp$fitted, y = tmp$avg.residual, 
+tmp <- mlb.lines[, .(avg.residual = mean(resid)), by = .(fitted = round(fitted, 2))]
+plot(tmp$fitted, tmp$avg.residual, 
      xlab = 'Fitted Probability', ylab = 'Average Residual', 
      main = paste('After conditioning on bookkeeper\'s odds (MLB),',
                   'successful prediction is a coin-flip', sep = '\n'))
-abline(lm(avg.residual ~ fitted, tmp), col = 'orange', lty = 'dashed', lwd = 3)
+abline(lm(resid ~ fitted, mlb.lines), col = 'orange', lty = 'dashed', lwd = 3)
+dev.off()
+
+##################################################
+### Distribution of point spreads.
+##################################################
+
+pdf('writing/distribution_point_spreads_nba.pdf', width = 16, height = 12)
+hist(nba.lines$line, prob = T, breaks = 20,
+     main = paste('Distribution of point-spreads in the NBA',
+                  '2010-11 through 2016-17', sep = '\n'),
+     xlab = 'Point-spread')
+lines(density(nba.lines$line, adjust = 2), lty = 'dashed', lwd = 3, col = 'orange')
 dev.off()
