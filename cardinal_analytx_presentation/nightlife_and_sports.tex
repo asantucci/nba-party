@@ -138,7 +138,7 @@
   \begin{block}{With some correlation between next-day opponent, this further motivates using bookmaker expectations as the response.}
     
     Helps to account for systematically running into teams the day after visitation to 
-    a party oriented city who are particularly (not)-skilled.
+    a party oriented city who are particularly (not)-skilled.\footnote{Given the size of the market, this is reasonable.}
   \end{block}
 \end{frame}
 
@@ -329,7 +329,7 @@
   \vspace{12pt}These two teams are excluded from our analysis.\footnote{We don't expect Toronto to be a huge party city.} \end{frame}
 
 \begin{frame}   \frametitle{Minutes data for NBA}
-  For NBA, we also collect minutes data, which describes the number of 
+  For NBA, we also collect minutes data from ESPN, which describes the number of 
   \vspace{12pt}
   \begin{itemize}     
     \item Free-throws
@@ -457,7 +457,7 @@
 \end{frame}
 
 
-\begin{frame}   \frametitle{Defense in the NBA}
+\begin{frame}   \frametitle{Defense in the NBA is affected by our measure for party}
   \tiny{  % mpa1, tpa, tps
 \begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & \multicolumn{2}{c}{Team Points Admitted} & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.970$^{***}$ &  &  \\    & (0.835) &  &  \\    & & & \\   Continuous party measure &  & 1.661$^{***}$ & $-$0.139 \\    &  & (0.644) & (0.637) \\    & & & \\   Lag change in possessions & 6.694$^{***}$ & 6.751$^{***}$ & 5.858$^{***}$ \\    & (0.973) & (0.973) & (0.963) \\    & & & \\   Logged travel distance & $-$0.114 & $-$0.132 & $-$0.285 \\    & (0.198) & (0.198) & (0.196) \\    & & & \\   Number hours since last game & 0.011$^{*}$ & 0.015$^{**}$ & 0.016$^{**}$ \\    & (0.006) & (0.007) & (0.007) \\    & & & \\   Home team effect & $-$3.269$^{***}$ & $-$3.269$^{***}$ & 2.417$^{***}$ \\    & (0.303) & (0.303) & (0.300) \\    & & & \\   Constant & 68.114$^{***}$ & 67.686$^{***}$ & 71.348$^{***}$ \\    & (4.805) & (4.810) & (4.758) \\    & & & \\  \hline \\[-1.8ex]  Observations & 6,234 & 6,234 & 6,234 \\  R$^{2}$ & 0.091 & 0.090 & 0.084 \\  Adjusted R$^{2}$ & 0.087 & 0.086 & 0.079 \\  Residual Std. Error (df = 6201) & 11.670 & 11.675 & 11.549 \\  F Statistic (df = 32; 6201) & 19.453$^{***}$ & 19.247$^{***}$ & 17.720$^{***}$ \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}    }
 \end{frame}
@@ -485,7 +485,7 @@
   \begin{itemize}     
   \item Within the MLB, we can look at statistics such as batting averages or general fielding statistics. 
     \item Possibly prolonged effects; recall our magic 24 hour number.
-    \item European soccer leagues.   \end{itemize} \end{frame}
+    \item NHL or European soccer leagues.   \end{itemize} \end{frame}
 
 \begin{frame}   \frametitle{Conclusions}
   \begin{itemize}     \item NBA and MLB players under-perform bookmakers expectations after visiting LA and NY.
