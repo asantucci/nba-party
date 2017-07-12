@@ -308,13 +308,16 @@ stadium location.\citep{ggmap}
 \begin{figure}
 %\includegraphics[scale=0.5]{travel_dist_by_party}
   \centering
-  \includegraphics[scale=0.55]{travel_dist_density_by_party}
+  \includegraphics[scale=0.425]{travel_dist_density_by_party}
   \label{fig: density by party}
   \caption{Within the NBA, we examine travel distance to current game location as a function of
     whether the last game was in a (non) party city. We see that in general,
-  travel distance follows a similar distribution regardless of last game location, i.e. 
-  it's not as though players encounter significantly
-  more travel fatigue after playing in a party city. We mention that the same plot is not interesting to look at within the MLB, since games are played in series, and therefore most travel-distances between games are zero miles.}
+    when traveling from a non party-oriented city to next game location, the distribution
+    of travel-distance has fatter tails. This makes sense: as we saw in our previous
+    heat-map, next day opponent geographically correlated with current game location.
+    Since LA and NY are on the coast, their next day opponent is likely to be nearby; compare
+    this to inland cities, for example, who may have to travel farther to reach their 
+    nearest neighbor. We mention that the same     plot is not interesting to look at within the MLB, since games are played in     series, and therefore most travel-distances between games are zero miles.}
 \end{figure}
 
 
@@ -498,8 +501,8 @@ team their next day performance is strongly correlated with allowing the other t
 It's even more interesting to note that points spreads are on a similar order of magnitude, i.e. this could often be the difference between meeting the spread or not.
 
 % mpa1, tpa, tpo
-\hspace{-125pt}
-\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & Team Points Admitted & Team Points Admitted & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.649$^{***}$ &  &  \\    & (0.718) &  &  \\    & & & \\   Continuous party measure &  & 1.833$^{***}$ & 0.447$^{*}$ \\    &  & (0.246) & (0.245) \\    & & & \\   Lag change in possessions & 1.058$^{*}$ & 0.022$^{***}$ & 0.035$^{***}$ \\    & (0.615) & (0.007) & (0.007) \\    & & & \\   Logged travel distance & $-$0.045 & $-$0.028 & $-$0.213$^{***}$ \\    & (0.038) & (0.074) & (0.074) \\    & & & \\   Number hours since last game & 0.009$^{**}$ & 0.015$^{***}$ & 0.018$^{***}$ \\    & (0.004) & (0.003) & (0.003) \\    & & & \\   Home team effect & $-$2.997$^{***}$ & $-$3.412$^{***}$ & 2.211$^{***}$ \\    & (0.218) & (0.116) & (0.116) \\    & & & \\   Constant & $-$3.429 & 101.941$^{***}$ & 100.112$^{***}$ \\    & (2.926) & (0.479) & (0.477) \\    & & & \\  \hline \\[-1.8ex]  Observations & 14,843 & 44,689 & 44,689 \\  R$^{2}$ & 0.018 & 0.021 & 0.010 \\  Adjusted R$^{2}$ & 0.017 & 0.021 & 0.010 \\  Residual Std. Error & 11.070 (df = 14831) & 12.002 (df = 44683) & 11.967 (df = 44683) \\  F Statistic & 24.021$^{***}$ (df = 11; 14831) & 196.086$^{***}$ (df = 5; 44683) & 92.809$^{***}$ (df = 5; 44683) \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}    
+\hspace{-35pt}
+\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & \multicolumn{2}{c}{Team Points Admitted} & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.970$^{***}$ &  &  \\    & (0.835) &  &  \\    & & & \\   Continuous party measure &  & 1.661$^{***}$ & $-$0.139 \\    &  & (0.644) & (0.637) \\    & & & \\   Lag change in possessions & 6.694$^{***}$ & 6.751$^{***}$ & 5.858$^{***}$ \\    & (0.973) & (0.973) & (0.963) \\    & & & \\   Logged travel distance & $-$0.114 & $-$0.132 & $-$0.285 \\    & (0.198) & (0.198) & (0.196) \\    & & & \\   Number hours since last game & 0.011$^{*}$ & 0.015$^{**}$ & 0.016$^{**}$ \\    & (0.006) & (0.007) & (0.007) \\    & & & \\   Home team effect & $-$3.269$^{***}$ & $-$3.269$^{***}$ & 2.417$^{***}$ \\    & (0.303) & (0.303) & (0.300) \\    & & & \\   Constant & 68.114$^{***}$ & 67.686$^{***}$ & 71.348$^{***}$ \\    & (4.805) & (4.810) & (4.758) \\    & & & \\  \hline \\[-1.8ex]  Observations & 6,234 & 6,234 & 6,234 \\  R$^{2}$ & 0.091 & 0.090 & 0.084 \\  Adjusted R$^{2}$ & 0.087 & 0.086 & 0.079 \\  Residual Std. Error (df = 6201) & 11.670 & 11.675 & 11.549 \\  F Statistic (df = 32; 6201) & 19.453$^{***}$ & 19.247$^{***}$ & 17.720$^{***}$ \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  
 \section{Conclusions and Avenues for Future Research}
 \subsection{Extending the research}
 \paragraph{Within the NBA} 
