@@ -32,6 +32,24 @@
 \author{Andreas Santucci} \institute{Stanford Teaching Fellow \\ Computational Math, Data Science} \title{Effects of nightlife on sports} \subtitle{``Hangover Effects''} % \titlegraphic{\includegraphics[width=2cm]{ctanlion}}
  \begin{document}  \begin{frame} \maketitle \end{frame}
 
+\begin{frame}   \frametitle{Anecdotal evidence: athletes party}
+  \begin{block}{Open attitude toward partying}     Matt Barnes recently complained, ``there's no nightlife in Utah'' when asked
+    about playing the Jazz in the 2017 playoffs.\footnote{Cestone and Seiter ('17).}   \end{block}
+
+  \vspace{12pt}
+  \begin{block}{Blaming the party scene for poor performance}
+    J.R. Smith's career-to-date success rate of shots taken was 42\%, 
+    but on Sunday afternoon games he only managed 34\% in 2012-13.\footnote{Concepcion ('15).}
+
+    \vspace{12pt}
+    After being traded from NY to Cavaliers, performance increased.
+    When asked why: ``There’s nothing you expect (in Cleveland) but basketball. 
+    There’s nothing, there’s no going out, there’s no late nights.''\footnote{Price, Levy ('15).}
+  \end{block} 
+\end{frame}
+
+
+
 \begin{frame}   \frametitle{What is the problem?}
   \begin{block}{Do pro athletes party to the detriment of their performance?}     It's not unreasonable to think that what happens off the court affects game-outcomes, but!
     \begin{itemize}       
@@ -160,23 +178,6 @@
 
   % \vspace{12pt}We define ``play worse'' relative to bookmaker/public expectations.
 
-\begin{frame}   \frametitle{Anecdotal evidence: players do party}
-  \begin{block}{Open attitude toward partying}     Matt Barnes recently complained, ``there's no nightlife in Utah'' when asked
-    about playing the Jazz in the 2017 playoffs.\footnote{Cestone and Seiter ('17).}   \end{block}
-
-  \vspace{12pt}
-  \begin{block}{Blaming the party scene for poor performance}
-    J.R. Smith's career-to-date success rate of shots taken was 42\%, 
-    but on Sunday afternoon games he only managed 34\% in 2012-13.\footnote{Concepcion ('15).}
-
-    \vspace{12pt}
-    After being traded from NY to Cavaliers, performance increased.
-    When asked why: ``There’s nothing you expect (in Cleveland) but basketball. 
-    There’s nothing, there’s no going out, there’s no late nights.''\footnote{Price, Levy ('15).}
-  \end{block} 
-\end{frame}
-
-
 \begin{frame}
   \frametitle{Previous research - NBA player shooting average}
   \begin{block}{Empirical evidence: players party to the detriment of the game.}
@@ -287,58 +288,19 @@
   \centering \includegraphics[scale=0.375]{../writing/Party_by_Team_Location} 
 \end{frame}
 
-\begin{frame}   \frametitle{NBA data: 2010-11 through 2016-17 season}
-  \begin{itemize}     \item Each team plays 82 games per season.
-    \item 30 teams in the NBA.
-    \item Total of $82 \times 30 / 2 = 1,230$ games per season.  
-  \end{itemize}
-
-  \vspace{12pt}We query \href{http://www.basketball-reference.com/leagues/}{basketball-reference.com}
-  for a listing of game-days, and then 
-  \href{http://www.covers.com/sports/NBA/matchups?selectedDate=2011-1-01}{covers.com} for 
-  game-outcomes alongside a point-spread.
-
-  \vspace{12pt}  
-  \begin{itemize}     \item Missing the first couple months of 2010-11 season.
-    \item At most two missing games in each of remaining seasons.
-    \item Total of 7,829 games in our dataset.   \end{itemize}
-\end{frame}
-
-\begin{frame}   \frametitle{MLB data: 2011 through 2017 season}
-  \begin{itemize}     \item Each team plays 162 games per season.
-    \item 30 teams in the MLB.
-    \item Total of $162 \times 30 / 2 = 2,430$ games per season.   \end{itemize}
-  
-  \vspace{12pt}We query \href{http://www.baseball-reference.com/leagues/}{baseball-reference.com}
-  for a listing of game days, and again look to covers.com for game-outcomes and money-lines.
-  
-  \vspace{12pt}
-  \begin{itemize}     \item We have on average 2,100 games per season.
-    \item (Missing observations due to broken links, postponed games?)
-    \item Total of 12,709 games in our dataset.    \end{itemize} \end{frame}
-
-\begin{frame}   \frametitle{Bureau of Labor Statistics data: 2010-2016}
-  We look toward BLS data which describes the number of business establishments 
-  (of a very particular type) in each metropolitan statistical area
-  for each quarter of each year.
-  
-  \vspace{12pt}  All teams are in the US with the exception of 
-  \vspace{12pt}\begin{itemize}     \item Toronto Raptors (NBA)
-    \item Toronto Blue Jays (MLB)   \end{itemize} 
-
-  \vspace{12pt}These two teams are excluded from our analysis.\footnote{We don't expect Toronto to be a huge party city.} \end{frame}
-
-\begin{frame}   \frametitle{Minutes data for NBA}
-  For NBA, we also collect minutes data from ESPN, which describes the number of 
-  \vspace{12pt}
-  \begin{itemize}     
-    \item Free-throws
-    \item Field goals
-    \item Three-pointers   
-  \end{itemize}
-  \vspace{12pt}attempted and made by each player in each game. For each season and each team,
-  we have nearly complete minutes data; 85\% of our season-teams have no more than 3 missing games. \end{frame}
-
+\begin{frame}   \frametitle{Data: 2010-11 through 2016-17}
+  \begin{block}{NBA Data}     \begin{itemize}       \item Total of $82 \times 30 / 2 = 1,230$ games per season.
+      % \item Missing the first couple months of 2010-11 season.
+      \item Total of 7,829 games in our dataset.     \end{itemize}
+  \end{block} 
+  \begin{block}{MLB Data}     \begin{itemize}       \item Total of $162 \times 30 / 2 = 2,430$ games per season.
+      % \item We have on average 2,100 games per season.
+      \item Total of 12,709 games in our dataset.     \end{itemize}   \end{block}
+  \begin{block}{BLS Data}
+    \begin{itemize}       \item \# establishments by MSA-quarter-year.
+      \item Excludes Toronto from our analysis.     \end{itemize}   \end{block}
+  \begin{block}{ESPN Data}     \begin{itemize}       \item Describes \# shots taken for each player in each game.
+      \item 85\% of our season-teams have no more than 3 missing games.     \end{itemize}   \end{block} \end{frame}
 
 \begin{frame}
   \frametitle{Possible confounders}
