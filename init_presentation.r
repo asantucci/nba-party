@@ -127,7 +127,7 @@ stargazer(m0, m1, covariate.labels = c('Party discrete', 'Party continuous',
                                        'Home team effect', 
                                        'Logged travel distance * east-west', 
                                        'Constant'),
-          omit = '(as.factor)|(Constant)',
+          keep = 'party',
           dep.var.labels = 'Meet the Spread')
 
 stargazer(mp, covariate.labels = c('Party placebo', 'Lag changes in posession', 
@@ -135,7 +135,7 @@ stargazer(mp, covariate.labels = c('Party placebo', 'Lag changes in posession',
                                    'Number hours rest time', 'Time of game during day', 
                                    'Home team effect', 'Logged travel distance * east-west', 
                                    'Constant'),
-          omit = 'as.factor',
+          keep = 'party',
           dep.var.labels = 'Meet the Spread (NBA)')
 
 
@@ -155,14 +155,14 @@ stargazer(mpa1, tpa, tps,
                                'Number hours since last game',
                                'Home team effect',
                                'Constant'),
-          omit = '(as.factor)|(team[^ ])')
+          keep = 'party')
 
 stargazer(m3, m4, covariate.labels = c('Continuous measure of nightlife',
                                        'Nightlife (no weekend interaction)', 
                                        'Bookmaker\'s odds', 'Home-team effect',
                                        'Number of rest days', 'Logged travel distance',
                                        'Weekend', 'Constant'),
-          omit = 'as.factor',
+          keep = 1:2,
           dep.var.labels = 'Probability of Winning')
 
 
