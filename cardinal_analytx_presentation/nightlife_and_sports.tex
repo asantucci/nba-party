@@ -187,7 +187,7 @@
     \item 1,092 of 2,035 NBA players who took $\geq 1$ shot on Sundays       under-perform 
       relative to their own career-long average;\footnote{Analysis limited to all players who entered the league after 1974.} $p=0.001$.
     \end{itemize}
-    \begin{block}{Problems}       \begin{itemize}           \item Effect size is not considered.
+    \begin{block}{Problems}       \begin{itemize}           \item Effect size is not considered.\footnote{What if a player scores 50\% of shots taken, but only 49\% on Sundays?}
           \item Density of support is questionable.\footnote{What if we miss the only shot we took on Sunday, is that relevant?}            \end{itemize}     \end{block}
 \end{frame}
 
@@ -299,7 +299,7 @@
   \begin{block}{BLS Data}
     \begin{itemize}       \item \# establishments by MSA-quarter-year.
       \item Excludes Toronto from our analysis.     \end{itemize}   \end{block}
-  \begin{block}{ESPN Data}     \begin{itemize}       \item Describes \# shots taken for each player in each game.
+  \begin{block}{ESPN Data (NBA)}     \begin{itemize}       \item Describes \# shots taken for each player in each game.
       \item 85\% of our season-teams have no more than 3 missing games.     \end{itemize}   \end{block} \end{frame}
 
 \begin{frame}
@@ -319,7 +319,7 @@
   We add features which describe
   \vspace{12pt}  
   \begin{itemize}     
-    \item Number of days since the last game (i.e. rest-time),
+    \item Number of days since the last game (i.e. rest-time),\footnote{Note: if we are missing games in our dataset, this metric is affected.}
     \item Lagged changes in possession,\footnote{A crude measure of fatigue incurred from last game.}
     \item Lagged game location, and
     \item Travel Distance.   
@@ -336,8 +336,6 @@
     \item direction of travel (in east-west degrees) by taking sine.
   \end{itemize}
   \vspace{12pt}Finally, to account for jetlag we interact this east-west measure with travel distance.\footnote{Lallensack ('17)} \end{frame}
-
-
 
 \begin{frame}   \frametitle{Results: NBA}
   \vspace{-2pt}
