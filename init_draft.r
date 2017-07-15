@@ -386,11 +386,11 @@ dev.off()
 ##################################################
 ### Distribution of point spreads.
 ##################################################
-
+h <- hist(nba.lines$line, prob = T, breaks = 32)
+cuts <- cut(h$breaks, breaks = c(-Inf, -3, 3, Inf))
 pdf('writing/distribution_point_spreads_nba.pdf', width = 16, height = 12)
-hist(nba.lines$line, prob = T, breaks = 20,
+plot(h, col = c('white', 'orange', 'white')[cuts],
      main = paste('Distribution of point-spreads in the NBA',
                   '2010-11 through 2016-17', sep = '\n'),
      xlab = 'Point-spread')
-lines(density(nba.lines$line, adjust = 2), lty = 'dashed', lwd = 3, col = 'orange')
 dev.off()
