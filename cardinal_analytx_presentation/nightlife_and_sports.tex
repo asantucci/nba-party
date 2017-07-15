@@ -338,12 +338,11 @@
   \end{itemize}
   \vspace{12pt}Finally, to account for jetlag we interact this east-west measure with travel distance.\footnote{Lallensack ('17)} \end{frame}
 
-\begin{frame}   \frametitle{Results: NBA}
+\begin{frame}   \frametitle{Results: NBA\footnote{\tiny{We also account for: \texttt{Lag changes in posession, logged travel distance, east-west travel direction, number hours rest time, time of game during day, home team effect.}}}}
   \vspace{-2pt}
-  \centering
-  \tiny{ % m0, m1
-\begin{tabular}{@{\extracolsep{5pt}}lcc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{2}{c}{\textit{Dependent variable:}} \\  \cline{2-3}  \\[-1.8ex] & \multicolumn{2}{c}{Meet the Spread} \\  \\[-1.8ex] & (1) & (2)\\  \hline \\[-1.8ex]   Party discrete & $-$0.557$^{***}$ &  \\    & (0.149) &  \\    & & \\   Party continuous &  & $-$0.158$^{*}$ \\    &  & (0.095) \\    & & \\   Lag changes in posession & 0.189 & 0.181 \\    & (0.140) & (0.140) \\    & & \\   Logged travel distance & $-$0.015 & $-$0.010 \\    & (0.026) & (0.026) \\    & & \\   East-west travel direction & $-$0.072 & $-$0.037 \\    & (0.234) & (0.234) \\    & & \\   Number hours rest time & 0.001 & 0.001 \\    & (0.001) & (0.001) \\    & & \\   Time of game during day & 0.006 & 0.004 \\    & (0.013) & (0.013) \\    & & \\   Home team effect & 0.002 & 0.004 \\    & (0.044) & (0.044) \\    & & \\   Logged travel distance * east-west & 0.011 & 0.007 \\    & (0.036) & (0.036) \\    & & \\  \hline \\[-1.8ex]  Observations & 9,517 & 9,517 \\  Log Likelihood & $-$6,586.320 & $-$6,592.159 \\  Akaike Inf. Crit. & 13,200.640 & 13,212.320 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  }   
-\end{frame}
+  \centering 
+  % m0, m1
+\begin{tabular}{@{\extracolsep{5pt}}lcc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{2}{c}{\textit{Dependent variable:}} \\  \cline{2-3}  \\[-1.8ex] & \multicolumn{2}{c}{Meet the Spread} \\  \\[-1.8ex] & (1) & (2)\\  \hline \\[-1.8ex]   Party discrete & $-$0.557$^{***}$ &  \\    & (0.149) &  \\    & & \\   Party continuous &  & $-$0.158$^{*}$ \\    &  & (0.095) \\    & & \\  \hline \\[-1.8ex]  Observations & 9,517 & 9,517 \\  Log Likelihood & $-$6,586.320 & $-$6,592.159 \\  Akaike Inf. Crit. & 13,200.640 & 13,212.320 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  \end{frame}
 
 
 \begin{frame}   \frametitle{Interpreting our results}
@@ -360,12 +359,10 @@
 \end{frame}
 
 
-\begin{frame}   \frametitle{Placebo test (discrete indicator): what if players rest?}
+\begin{frame}   \frametitle{Placebo test (discrete indicator): what if players rest?\footnote{\tiny{We also account for: \texttt{Lag changes in posession, logged travel distance, east-west travel direction, number hours rest time, time of game during day, home team effect.}}}}
   \centering
-  \tiny{ % mp
-\begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & Meet the Spread (NBA) \\  \hline \\[-1.8ex]   Party placebo & 0.053 \\    & (0.084) \\    & \\   Lag changes in posession & 0.170 \\    & (0.140) \\    & \\   Logged travel distance & $-$0.004 \\    & (0.026) \\    & \\   East-west travel direction & $-$0.034 \\    & (0.235) \\    & \\   Number hours rest time & 0.001$^{*}$ \\    & (0.001) \\    & \\   Time of game during day & 0.002 \\    & (0.013) \\    & \\   Home team effect & $-$0.006 \\    & (0.044) \\    & \\   Logged travel distance * east-west & 0.006 \\    & (0.036) \\    & \\   Constant & $-$0.865 \\    & (0.695) \\    & \\  \hline \\[-1.8ex]  Observations & 9,517 \\  Log Likelihood & $-$6,593.344 \\  Akaike Inf. Crit. & 13,214.690 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular} 
-}
-\end{frame}
+% mp
+\begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & Meet the Spread (NBA) \\  \hline \\[-1.8ex]   Party placebo & 0.053 \\    & (0.084) \\    & \\  \hline \\[-1.8ex]  Observations & 9,517 \\  Log Likelihood & $-$6,593.344 \\  Akaike Inf. Crit. & 13,214.690 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  \end{frame}
 
 \begin{frame}   \frametitle{Differences between NBA and MLB}
   The same analysis can be replicated for MLB. Notable differences:
@@ -382,11 +379,10 @@
 %   \centering \includegraphics[scale=0.3]{Party_by_Team_Location_mlb}   
 % \end{frame}
 
-\begin{frame}   \frametitle{Results: MLB}
+\begin{frame}   \frametitle{Results: MLB\footnote{\tiny{We also account for \texttt{bookmaker's odds, home-team effect, number of rest days, logged travel distance, weekend indicator.}}}}
   \centering
-  \tiny{ % m3, m4
-\begin{tabular}{@{\extracolsep{5pt}}lcc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{2}{c}{\textit{Dependent variable:}} \\  \cline{2-3}  \\[-1.8ex] & \multicolumn{2}{c}{Probability of Winning} \\  \\[-1.8ex] & (1) & (2)\\  \hline \\[-1.8ex]   Continuous measure of nightlife & $-$0.120$^{*}$ &  \\    & (0.071) &  \\    & & \\   Nightlife (no weekend interaction) &  & 0.137 \\    &  & (0.134) \\    & & \\   Bookmaker's odds & 2.682$^{***}$ & 2.669$^{***}$ \\    & (0.158) & (0.158) \\    & & \\   Home-team effect & 0.014 & 0.144 \\    & (0.034) & (0.102) \\    & & \\   Number of rest days & 0.018 & 0.016 \\    & (0.021) & (0.021) \\    & & \\   Logged travel distance & $-$0.005 & $-$0.003 \\    & (0.005) & (0.005) \\    & & \\   Weekend & 0.044 & 0.002 \\    & (0.038) & (0.029) \\    & & \\   Constant & $-$1.363$^{***}$ & $-$1.468$^{***}$ \\    & (0.084) & (0.122) \\    & & \\  \hline \\[-1.8ex]  Observations & 26,473 & 26,473 \\  Log Likelihood & $-$18,124.350 & $-$18,125.300 \\  Akaike Inf. Crit. & 36,272.700 & 36,264.600 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  }
-\end{frame}
+% m3, m4
+\begin{tabular}{@{\extracolsep{5pt}}lcc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{2}{c}{\textit{Dependent variable:}} \\  \cline{2-3}  \\[-1.8ex] & \multicolumn{2}{c}{Probability of Winning} \\  \\[-1.8ex] & (1) & (2)\\  \hline \\[-1.8ex]   Continuous measure of nightlife & $-$0.120$^{*}$ &  \\    & (0.071) &  \\    & & \\   Nightlife (no weekend interaction) &  & 0.138 \\    &  & (0.135) \\    & & \\  \hline \\[-1.8ex]  Observations & 26,473 & 26,473 \\  Log Likelihood & $-$18,124.350 & $-$18,125.260 \\  Akaike Inf. Crit. & 36,272.700 & 36,274.510 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}  \end{frame}
 
 \begin{frame}   \frametitle{Validating our model in the market}
   Our results are statistically significant, but so what? We validate our model by seeing
@@ -418,39 +414,16 @@
 \end{frame}
 
 
-\begin{frame}   \frametitle{Defense in the NBA is affected by our measure for party}
-  \tiny{  % mpa1, tpa, tps
-\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & \multicolumn{2}{c}{Team Points Admitted} & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.970$^{***}$ &  &  \\    & (0.835) &  &  \\    & & & \\   Continuous party measure &  & 1.661$^{***}$ & $-$0.139 \\    &  & (0.644) & (0.637) \\    & & & \\   Lag change in possessions & 6.694$^{***}$ & 6.751$^{***}$ & 5.858$^{***}$ \\    & (0.973) & (0.973) & (0.963) \\    & & & \\   Logged travel distance & $-$0.114 & $-$0.132 & $-$0.285 \\    & (0.198) & (0.198) & (0.196) \\    & & & \\   Number hours since last game & 0.011$^{*}$ & 0.015$^{**}$ & 0.016$^{**}$ \\    & (0.006) & (0.007) & (0.007) \\    & & & \\   Home team effect & $-$3.269$^{***}$ & $-$3.269$^{***}$ & 2.417$^{***}$ \\    & (0.303) & (0.303) & (0.300) \\    & & & \\   Constant & 68.114$^{***}$ & 67.686$^{***}$ & 71.348$^{***}$ \\    & (4.805) & (4.810) & (4.758) \\    & & & \\  \hline \\[-1.8ex]  Observations & 6,234 & 6,234 & 6,234 \\  R$^{2}$ & 0.091 & 0.090 & 0.084 \\  Adjusted R$^{2}$ & 0.087 & 0.086 & 0.079 \\  Residual Std. Error (df = 6201) & 11.670 & 11.675 & 11.549 \\  F Statistic (df = 32; 6201) & 19.453$^{***}$ & 19.247$^{***}$ & 17.720$^{***}$ \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular}    }
-\end{frame}
+\begin{frame}   \frametitle{Defense in the NBA is affected by our measure for party\footnote{\tiny{We also account for \texttt{Lag changes in posession, logged travel distance, number of hours since last game, home team effect.}}}}
+% mpa1, tpa, tps
+\scriptsize{
+\begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & \multicolumn{2}{c}{Team Points Admitted} & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.970$^{***}$ &  &  \\    & (0.835) &  &  \\    & & & \\   Continuous party measure &  & 1.661$^{***}$ & $-$0.139 \\    &  & (0.644) & (0.637) \\    & & & \\  \hline \\[-1.8ex]  Observations & 6,234 & 6,234 & 6,234 \\  R$^{2}$ & 0.091 & 0.090 & 0.084 \\  Adjusted R$^{2}$ & 0.087 & 0.086 & 0.079 \\  Residual Std. Error (df = 6201) & 11.670 & 11.675 & 11.549 \\  F Statistic (df = 32; 6201) & 19.453$^{***}$ & 19.247$^{***}$ & 17.720$^{***}$ \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular} 
+} \end{frame}
 
 
 \begin{frame}
   \centering
   \includegraphics[scale=0.25]{distribution_point_spreads_nba}
-\end{frame}
-
-\begin{frame}   \frametitle{Future research - NBA}
-  Within the NBA
-  \begin{itemize}     
-    \item Are teams more likely to party after a win or a       loss?
-    \item Do teams who aren't going to make the playoffs party more?
-    \item Are there demographic differences which influence propensity to party? E.g. are younger, unmarried players more susceptible to our treatment effect?
-    \item We could also examine how shots taken vs. shots scored are affected for star players.
-  \end{itemize}
-  \vspace{12pt}  A preliminary and ad-hoc analysis shows that injury risk increases as a function of party.\footnote{We look for instances where players are put on the bench and stop playing (at least several) games as a function of our nightlife indicator.}
-  This might inform coaches which players to bench and when.
-
-\end{frame}
-
-\begin{frame}   \frametitle{Future research (MLB and general)}
-  \begin{itemize}     
-    \item Within the MLB, we can look at statistics such as batting averages or general fielding statistics. 
-    \vspace{12pt}
-    \item Possibly prolonged effects: recall our magic 24 hour number.
-      How does the hangover effect taper off as a function of time?
-    \vspace{12pt}
-    \item NHL or European soccer leagues.   
-  \end{itemize} 
 \end{frame}
 
 \begin{frame}   \frametitle{Conclusions}
@@ -463,6 +436,30 @@
       \item The decrease in likelihood can (in part) be explained by a drop in defensive performance in the NBA.
     \vspace{12pt}
     \item With a causal model established, we realize a profitable betting scheme in MLB.   
+  \end{itemize} 
+\end{frame}
+
+
+\begin{frame}   \frametitle{Future research - NBA}
+  Within the NBA
+  \begin{itemize}     
+    \item Are teams more likely to party after a win or a       loss?
+    \item Do teams who aren't going to make the playoffs party more?
+    \item Are there demographic differences which influence propensity to party? E.g. are younger, unmarried players more susceptible to our treatment effect?
+    \item We could also examine how shots taken vs. shots scored are affected for star players.
+  \end{itemize}
+  \vspace{12pt}  A preliminary and ad-hoc analysis shows that injury risk increases as a function of party.\footnote{We look for instances where players are put on the bench and stop playing (at least several) games as a function of our nightlife indicator.}
+  This might inform coaches which players to bench and when.
+\end{frame}
+
+\begin{frame}   \frametitle{Future research (MLB and general)}
+  \begin{itemize}     
+    \item Within the MLB, we can look at statistics such as batting averages or general fielding statistics. 
+    \vspace{12pt}
+    \item Possibly prolonged effects: recall our magic 24 hour number.
+      How does the hangover effect taper off as a function of time?
+    \vspace{12pt}
+    \item NHL or European soccer leagues.   
   \end{itemize} 
 \end{frame}
 
