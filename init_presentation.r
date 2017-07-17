@@ -214,7 +214,8 @@ plot(density(nba.lines[(party.discrete) & !is.na(travel.dist), travel.dist]),
      xlab = 'Travel Distance (Miles)',
      cex.main = 3, cex.axis = 2, cex.lab = 2, ylab = '')
 lines(density(nba.lines[!(party.discrete) & !is.na(travel.dist), travel.dist]), lty = 2)
-legend(x = 12e2, y = 0.0015, legend = c('LA/NY', 'non-party cities'), lty = 1:2, cex = 2)
+legend(x = 12e2, y = 0.0015, legend = c('LA/NY', 'non-party cities'), lty = 1:2, cex = 2,
+       title = 'Last game location')
 mtext(text = 'Density', side = 2, line = 2.4, las = 3, cex = 2)
 dev.off()
 
@@ -412,3 +413,5 @@ plot(h, col = c('white', 'orange', 'white')[cuts],
      cex.main = 2.5, cex.axis = 2, cex.lab = 2)
 mtext(text = 'Frequency', side = 2, line = 2.7, las = 3, cex = 2)
 dev.off()
+
+sd(nba.lines$line)
