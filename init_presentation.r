@@ -75,7 +75,7 @@ m4 <- update(m3, . ~ party.now + . - party)
 ##################################################
 ### MLB Betting.
 ##################################################
-pdf('cardinal_analytx_presentation/mlb_bets_by_season.pdf', width = 18, height = 13)
+pdf('cardinal_analytx_presentation/figures/mlb_bets_by_season.pdf', width = 18, height = 13)
 par(mfrow = c(3,2))
 b <- lapply(2012:2016, function(yr) {
     m <- glm(I(team.score > opponent.score) ~ party + odds,
@@ -177,7 +177,7 @@ data <- rbind(nba.lines[, list(avg.party = mean(log(nmusicians+1), na.rm = T),
 setkey(data, avg.party)
 data[, idx := .GRP, by = locality]
 
-pdf('cardinal_analytx_presentation/Party_by_Team_Location.pdf', width = 18, height = 12)
+pdf('cardinal_analytx_presentation/figures/Party_by_Team_Location.pdf', width = 18, height = 12)
 plot(x = data[sport == 'nba', jitter(idx)],
      y = data[sport == 'nba', avg.party],
      main = 'Continuous measure of party by location',
@@ -207,7 +207,7 @@ dev.off()
 ##################################################
 
 
-pdf('cardinal_analytx_presentation/travel_dist_density_by_party.pdf', width = 15, height = 13)
+pdf('cardinal_analytx_presentation/figures/travel_dist_density_by_party.pdf', width = 15, height = 13)
 plot(density(nba.lines[(party.discrete) & !is.na(travel.dist), travel.dist]), 
      xlim = c(-100, 18e2), lty = 1,
      main = 'Density of travel distance for (non) party cities: NBA',
@@ -247,7 +247,7 @@ tmp[, location      := factor(location,      levels = dmat[order(distance, decre
 
 breaks <- 2^(0:6)
 
-pdf('cardinal_analytx_presentation/next_day_opponent.pdf', width = 14, height = 14)
+pdf('cardinal_analytx_presentation/figures/next_day_opponent.pdf', width = 14, height = 14)
 ggplot(tmp, aes(x = location, y = last.game.loc, fill = N)) +
     geom_tile() +
     scale_fill_gradient(name = 'Count', trans = 'log', breaks = breaks) +
@@ -259,7 +259,7 @@ ggplot(tmp, aes(x = location, y = last.game.loc, fill = N)) +
           plot.title = element_text(hjust=.5))
 dev.off()
 
-pdf('cardinal_analytx_presentation/next_day_opponent_on_tour.pdf', width = 16, height = 12)
+pdf('cardinal_analytx_presentation/figures/next_day_opponent_on_tour.pdf', width = 16, height = 12)
 ggplot(tmp[cur.game == 'Current game away' &
            lst.game == 'Last game away'], aes(x = location, y = last.game.loc, fill = N)) +
     geom_tile() +
@@ -302,7 +302,7 @@ setorder(tmp, 'distance to NYC')
 tmp[, last.game.loc := factor(last.game.loc, levels = dmat[order(distance, decreasing = T), last.game.loc])]
 tmp[, location      := factor(location,      levels = dmat[order(distance, decreasing = T), last.game.loc])]
 
-pdf('cardinal_analytx_presentation/next_day_opponent_mlb.pdf', width = 14, height = 14)
+pdf('cardinal_analytx_presentation/figures/next_day_opponent_mlb.pdf', width = 14, height = 14)
 ggplot(tmp, aes(x = location, y = last.game.loc, fill = N)) + 
     geom_tile() +
     scale_fill_gradient(name = 'Count', trans = 'log', breaks = breaks) +
@@ -322,7 +322,7 @@ tmp <- nba.lines[, list(log.nmusicians = mean(log(nmusicians+1)),
                         log.population = mean(log(population+1), na.rm = T),
                         log.ndrinks    = mean(log(ndrinks+1))), by = team][order(log.nmusicians)]
 
-pdf('cardinal_analytx_presentation/why_drinks_or_population_dont_work.pdf', width = 16, height = 12)
+pdf('cardinal_analytx_presentation/figures/why_drinks_or_population_dont_work.pdf', width = 16, height = 12)
 ticks = 1:nrow(tmp)
 plot(x = ticks,
      y = tmp$log.nmusicians,
@@ -377,7 +377,7 @@ dev.off()
 ### Proportion of meet the spread for nba/mlb.
 ##################################################
 
-pdf('cardinal_analytx_presentation/meet_the_spread.pdf')
+pdf('cardinal_analytx_presentation/figures/meet_the_spread.pdf')
 par(mfcol = c(2, 1))
 tmp <- nba.lines[, list(meet.spread = mean(outcome == 'W')), 
           by = list(season, team)] %>% na.omit
@@ -405,7 +405,7 @@ dev.off()
 ##################################################
 h <- hist(nba.lines$line, breaks = 32, plot = F)
 cuts <- cut(h$breaks, breaks = c(-Inf, -3, 3, Inf))
-pdf('cardinal_analytx_presentation/distribution_point_spreads_nba.pdf', width = 19, height = 13)
+pdf('cardinal_analytx_presentation/figures/distribution_point_spreads_nba.pdf', width = 19, height = 13)
 plot(h, col = c('white', 'orange', 'white')[cuts],
      main = paste('Distribution of point-spreads in the NBA',
                   '2010-11 through 2016-17', sep = '\n'),
