@@ -320,8 +320,9 @@
   We add features which describe
   \vspace{12pt}  
   \begin{itemize}     
-    \item Number of days since the last game (i.e. rest-time),\footnote{Note: if we are missing games in our dataset, this metric is affected.}
-    \item Lagged changes in possession,\footnote{A crude measure of fatigue incurred from last game.}
+    \item Number of hours since the last game (i.e. rest-time),\footnote{Note: if we are missing games in our dataset, this metric is affected.}
+    \item Lagged changes in possession,\footnote{A crude measure of fatigue incurred from last game. To back this out: $\Delta \textrm{possessions} \approx \textrm{Shots made} + \textrm{turnovers} + (\textrm{shots missed} - \textrm{offensive rebounds})$.
+}
     \item Lagged game location, and
     \item Travel Distance.   
   \end{itemize}
@@ -347,15 +348,19 @@
 
 \begin{frame}   \frametitle{Interpreting our results}
   Let's consider the simplest model, where $Y_i | X \sim \textrm{Bern}(p)$, i.e.
-  $\Pr(Y_i = y | X) = p^{y} (1-p)^{1-y}$. Using a generalized linear model,
-  we fit a linear predictor to a transformation of the expected value of our
+  $\Pr(Y_i = y | X) = p^{y} (1-p)^{1-y}$. Using a GLM,
+  we fit our predictor to a transformation of the expected value of our
   variable of interest. I.e.
   \[
     \textrm{logit} \left( \mathbb E[Y_i | X_i]\right) = \textrm{logit} \left(p\right) = \ln \left( \frac{p}{1-p}\right) = X_i^T \beta.
   \]
-  So, we interpret our regression coefficient as follows: visiting LA or NY within
-  24 hours of another game corresponds to being $e^{\beta_1} \approx e^{-0.55} \approx \frac{3}{5}$
-  as likely to meet the spread, all other factors held constant. 
+  \begin{block}{Laymen's interpretation}   Visiting LA or NY within
+  24 hours of another game corresponds to being $e^{\beta_1} \approx e^{-0.55}   \approx \frac{60}{100}$
+  as likely to meet the spread, all other factors held constant.        \end{block}
+
+  \vspace{12pt}Our continuous 
+  measure suggests a team is $\frac{85}{100}$ as likely to meet the spread, given a 
+  one unit increase in last night's party index.
 \end{frame}
 
 
@@ -414,7 +419,7 @@
 \end{frame}
 
 
-\begin{frame}   \frametitle{Defense in the NBA is affected by our measure for party\footnote{\tiny{We also account for \texttt{Lag changes in posession, logged travel distance, number of hours since last game, home team effect.}}}}
+\begin{frame}   \frametitle{Defense in the NBA is affected by our measure for party\footnote{\tiny{We also account for \texttt{Lag changes in posession, logged travel distance, number of hours since last game, home team effect}. In addition, we account for team-fixed effects.}}}
 % mpa1, tpa, tps
 \scriptsize{
 \begin{tabular}{@{\extracolsep{5pt}}lccc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{3}{c}{\textit{Dependent variable:}} \\  \cline{2-4}  \\[-1.8ex] & \multicolumn{2}{c}{Team Points Admitted} & Team Points Scored \\  \\[-1.8ex] & (1) & (2) & (3)\\  \hline \\[-1.8ex]   Discrete party indicator & 2.970$^{***}$ &  &  \\    & (0.835) &  &  \\    & & & \\   Continuous party measure &  & 1.661$^{***}$ & $-$0.139 \\    &  & (0.644) & (0.637) \\    & & & \\  \hline \\[-1.8ex]  Observations & 6,234 & 6,234 & 6,234 \\  R$^{2}$ & 0.091 & 0.090 & 0.084 \\  Adjusted R$^{2}$ & 0.087 & 0.086 & 0.079 \\  Residual Std. Error (df = 6201) & 11.670 & 11.675 & 11.549 \\  F Statistic (df = 32; 6201) & 19.453$^{***}$ & 19.247$^{***}$ & 17.720$^{***}$ \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\  \end{tabular} 
